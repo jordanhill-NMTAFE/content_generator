@@ -1,7 +1,12 @@
+import sys
+import os
 from pathlib import Path
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from src.oo_mapping_matrix import mapping_matrix as oo_mapping_matrix
 from src.assessment_tools import assess_tool
 from src.lap import lap
-import pytest
 
 from src.mapping_matrix import mapping_matrix
 
@@ -19,3 +24,7 @@ def test_generate_assessments():
 
 def test_generate_mapping_matrix():
     mapping_matrix(COURSE_CONTENT, OUTPUT_LOCATION)
+
+
+def test_generate_oo_mapping_matrix():
+    oo_mapping_matrix(COURSE_CONTENT, OUTPUT_LOCATION)

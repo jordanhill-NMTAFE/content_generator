@@ -18,7 +18,7 @@ from pandas import DataFrame
 
 from src.utils.markdown import markdown_to_word, parse_md
 from src.utils.math import add_tuples
-from src.utils.uoc import UnitOfCompetency
+from src.utils.uoc_api import UnitOfCompetency
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from frontmatter import Post
 
@@ -155,12 +155,11 @@ def mapping_matrix(course_directory: Path, output_location: Path):
                     if f"Element {element_index + 1}" in cell.text
                 )
             )
-            sections = criteria.strip().split("\n")
-            for index, criterium in enumerate(sections):
+            for index, criterium in enumerate(criteria.keys()):
                 table.cell(element_header + 1 + index, 0).text = criterium
 
         # Knowledge
-        knowledge_elements = uoc.parse_knowledge_criteria()
+        knowledge_elements = uoc.data.knowledge_evidence
         knowledge_header = next(
             (
                 index
@@ -168,19 +167,20 @@ def mapping_matrix(course_directory: Path, output_location: Path):
                 if f"Required Knowledge or Knowledge Evidence" in cell.text
             )
         )
-        for index, element in enumerate(knowledge_elements.keys()):
+        blurb, KE = next(iter(knowledge_elements.items()))
+        for index, (element, subelements) in enumerate(KE.items()):
             cell = table.cell(knowledge_header + 1 + index, 0)
             cell.text = element
             cell.paragraphs[0].runs[0].bold = True
-            if len(knowledge_elements[element]) > 0:
-                for sub_element in knowledge_elements[element]:
+            if len(subelements) > 0:
+                for sub_element in subelements:
                     paragraph = cell.add_paragraph()
                     paragraph.paragraph_format.left_indent = Inches(0.5)
                     paragraph.paragraph_format.space_after = Pt(0)
                     paragraph.add_run(sub_element)
 
         # Performance Evidence
-        performance = uoc.parse_performance_evidence()
+        performance = uoc.data.performance_evidence
         performance_header = next(
             (
                 index
@@ -188,20 +188,25 @@ def mapping_matrix(course_directory: Path, output_location: Path):
                 if f"Required Skills or Performance Evidence" in cell.text
             )
         )
-        for index, element in enumerate(performance.keys()):
-            cell = table.cell(performance_header + 1 + index, 0)
+        counter = 0
+        for index, (element, subelements) in enumerate(performance.items()):
+            cell = table.cell(performance_header + 1 + index + counter, 0)
             cell.text = element
             if ":" in cell.text:
                 cell.paragraphs[0].runs[0].bold = True
-            if len(performance[element]) > 0:
-                for sub_element in performance[element]:
-                    paragraph = cell.add_paragraph()
-                    paragraph.paragraph_format.left_indent = Inches(0.5)
-                    paragraph.paragraph_format.space_after = Pt(0)
-                    paragraph.add_run(sub_element)
+            if len(subelements) > 0:
+                for sub_element, indented_elements in subelements.items():
+                    counter += 1
+                    cell = table.cell(performance_header + 1 + index + counter, 0)
+                    cell.text = sub_element
+                    for indented_element in indented_elements:
+                        paragraph = cell.add_paragraph()
+                        paragraph.paragraph_format.left_indent = Inches(0.5)
+                        paragraph.paragraph_format.space_after = Pt(0)
+                        paragraph.add_run(indented_element)
 
         # Assessment Conditions
-        assessment_conditions = uoc.parse_assessment_conditions()
+        assessment_conditions = uoc.data.assessment_conditions
         ac_header = next(
             (
                 index
@@ -210,15 +215,15 @@ def mapping_matrix(course_directory: Path, output_location: Path):
             )
         )
         rows = []
-        for index, element in enumerate(assessment_conditions.keys()):
+        for index, (element, subelements) in enumerate(assessment_conditions.items()):
             row_index = ac_header + 1 + index
             rows.append(row_index)
             cell = table.cell(row_index, 0)
             cell.text = element
             if ":" in cell.text:
                 cell.paragraphs[0].runs[0].bold = True
-            if len(assessment_conditions[element]) > 0:
-                for sub_element in assessment_conditions[element]:
+            if len(subelements) > 0:
+                for sub_element in subelements:
                     paragraph = cell.add_paragraph()
                     paragraph.paragraph_format.left_indent = Inches(0.5)
                     paragraph.paragraph_format.space_after = Pt(0)
@@ -276,8 +281,7 @@ def mapping_matrix(course_directory: Path, output_location: Path):
                         if f"Element {element_index + 1}" in cell.text
                     )
                 )
-                sections = criteria.strip().split("\n")
-                for index, criterium in enumerate(sections):
+                for index, criterium in enumerate(criteria.keys()):
                     key: float = float(criterium[:3])
                     question_mapping: str = ", ".join(
                         (
@@ -293,7 +297,8 @@ def mapping_matrix(course_directory: Path, output_location: Path):
 
             ## Set Knowledge mapping
             knowledge_header
-            for knowledge_index, element in enumerate(knowledge_elements.keys()):
+            blurb, KE = next(iter(knowledge_elements.items()))
+            for knowledge_index, (element, subelements) in enumerate(KE.items()):
                 cell = table.cell(
                     knowledge_header + 1 + knowledge_index, 1 + assessment_index
                 )
@@ -311,7 +316,6 @@ def mapping_matrix(course_directory: Path, output_location: Path):
                 # cell.paragraphs[0].runs[0].bold = True
 
             ## Set Performance & Skills Mapping
-            ## TODO: THIS DOESN'T WORK!!! FiX IT PLEASE!!!
             performance_header = next(
                 (
                     index

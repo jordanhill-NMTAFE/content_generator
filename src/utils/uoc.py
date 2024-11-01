@@ -86,7 +86,7 @@ class UnitOfCompetency:
         self.aqf_level = int(match.group())
         self.unit_code = unit_code
         self.sections = sections
-        self.url = self.base_url + unit_code
+        self.url = self.base_url + unit_code + "/unitdetails"
         self._soup = BeautifulSoup(self._fetch_page(), "html.parser")
         self.data = self._get_data(self.sections)
 
@@ -98,9 +98,7 @@ class UnitOfCompetency:
         if not assessment_conditions_section:
             return {}  # Return an empty dictionary if the desired section is not found
 
-        _dict = (
-            {}
-        )  # Dictionary to store the final assessment_conditions elements and their sub-points
+        _dict = {}  # Dictionary to store the final assessment_conditions elements and their sub-points
         current_key = (
             None  # To keep track of the current main assessment_conditions element
         )
@@ -134,9 +132,7 @@ class UnitOfCompetency:
         if not performance_section:
             return {}  # Return an empty dictionary if the desired section is not found
 
-        _dict = (
-            {}
-        )  # Dictionary to store the final performance elements and their sub-points
+        _dict = {}  # Dictionary to store the final performance elements and their sub-points
         current_key = None  # To keep track of the current main performance element
 
         # Iterate over the siblings immediately following the 'performance Evidence' header
@@ -168,9 +164,7 @@ class UnitOfCompetency:
         if not knowledge_section:
             return {}  # Return an empty dictionary if the desired section is not found
 
-        criteria_dict = (
-            {}
-        )  # Dictionary to store the final knowledge elements and their sub-points
+        criteria_dict = {}  # Dictionary to store the final knowledge elements and their sub-points
         current_key = None  # To keep track of the current main knowledge element
 
         # Iterate over the siblings immediately following the 'Knowledge Evidence' header
@@ -226,6 +220,7 @@ class UnitOfCompetency:
         """
         Extract the text from a specific section of the web page.
         """
+        print(self._soup.prettify())
         # Locate the section header
         if not (section_header := self._soup.find("h2", string=section)):
             raise UnitOfCompetencyError(f"Could not find {section} section")
@@ -241,7 +236,8 @@ class UnitOfCompetency:
                 text += (
                     "\n".join(
                         [
-                            li.get_text(strip=True) for li in sibling.find_all("li")  # type: ignore
+                            li.get_text(strip=True)
+                            for li in sibling.find_all("li")  # type: ignore
                         ]
                     )
                     + "\n"
@@ -258,9 +254,9 @@ class UnitOfCompetency:
         ):
             # Extract data from the table rows
             return {
-                row.find_all("td")[0]
-                .get_text(strip=True): row.find_all("td")[1]
-                .get_text(strip=False)
+                row.find_all("td")[0].get_text(strip=True): row.find_all("td")[
+                    1
+                ].get_text(strip=False)
                 for row in elements_header.find_next("table").find_all("tr")[  # type: ignore
                     2:
                 ]
@@ -295,7 +291,7 @@ class UnitOfCompetency:
 
 @app.command()
 def print_uoc(
-    unit_name: str = typer.Option(..., help="training.gov.au unit of competency code")
+    unit_name: str = typer.Option(..., help="training.gov.au unit of competency code"),
 ):
     """
     Command-line function to print the Unit of Competency data.
@@ -307,7 +303,7 @@ def print_uoc(
 def main(
     unit_name: str = typer.Option(
         "ICTPRG443", help="training.gov.au unit of competency code"
-    )
+    ),
 ):
     """
     Main function, primarily for testing the Jinja2 template and the UOC class.

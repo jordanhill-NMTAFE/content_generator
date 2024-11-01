@@ -5,7 +5,7 @@ from src.lap import lap
 from src.assessment_tools import assess_tool
 from os import environ as env
 
-from src.mapping_matrix import mapping_matrix
+from src.oo_mapping_matrix import mapping_matrix
 from src.utils.logger import log
 
 assert "COURSE_CONTENT" in env, "COURSE_CONTENT is undefined"

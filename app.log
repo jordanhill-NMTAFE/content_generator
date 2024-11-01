@@ -1,70 +1,34 @@
-2024-07-19 17:00:28,257 - root - INFO - We are not rendering knowledge elements in LAPs
-2024-07-19 17:00:28,402 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII401
-2024-07-19 17:00:28,407 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:00:32,303 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII401 HTTP/11" 200 13632
-2024-07-19 17:00:32,981 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII501
-2024-07-19 17:00:32,981 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:00:34,247 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII501 HTTP/11" 200 14271
-2024-07-19 17:00:35,301 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII502
-2024-07-19 17:00:35,302 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:00:36,528 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII502 HTTP/11" 200 14013
-2024-07-19 17:01:59,241 - root - INFO - We are not rendering knowledge elements in LAPs
-2024-07-19 17:01:59,390 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII401
-2024-07-19 17:01:59,395 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:02:00,662 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII401 HTTP/11" 200 13632
-2024-07-19 17:02:01,344 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII501
-2024-07-19 17:02:01,345 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:02:02,577 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII501 HTTP/11" 200 14271
-2024-07-19 17:02:03,566 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII502
-2024-07-19 17:02:03,567 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:02:05,270 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII502 HTTP/11" 200 14013
-2024-07-19 17:04:02,654 - root - INFO - We are not rendering knowledge elements in LAPs
-2024-07-19 17:04:02,800 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII401
-2024-07-19 17:04:02,804 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:04:04,169 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII401 HTTP/11" 200 13632
-2024-07-19 17:04:04,853 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII501
-2024-07-19 17:04:04,853 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:04:06,960 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII501 HTTP/11" 200 14271
-2024-07-19 17:04:07,971 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII502
-2024-07-19 17:04:07,972 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:04:10,424 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII502 HTTP/11" 200 14013
-2024-07-19 17:05:41,786 - root - INFO - We are not rendering knowledge elements in LAPs
-2024-07-19 17:05:41,932 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII401
-2024-07-19 17:05:41,936 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:05:43,198 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII401 HTTP/11" 200 13632
-2024-07-19 17:05:43,881 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII501
-2024-07-19 17:05:43,882 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:05:45,167 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII501 HTTP/11" 200 14271
-2024-07-19 17:05:46,215 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII502
-2024-07-19 17:05:46,216 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:05:47,447 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII502 HTTP/11" 200 14013
-2024-07-19 17:07:11,765 - root - INFO - We are not rendering knowledge elements in LAPs
-2024-07-19 17:07:11,919 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII401
-2024-07-19 17:07:11,923 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:07:13,526 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII401 HTTP/11" 200 13632
-2024-07-19 17:07:14,206 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII501
-2024-07-19 17:07:14,206 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:07:15,368 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII501 HTTP/11" 200 14271
-2024-07-19 17:07:16,383 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII502
-2024-07-19 17:07:16,383 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:07:17,895 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII502 HTTP/11" 200 14013
-2024-07-19 17:18:09,327 - root - INFO - We are not rendering knowledge elements in LAPs
-2024-07-19 17:18:09,471 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII401
-2024-07-19 17:18:09,487 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:18:11,599 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII401 HTTP/11" 200 13632
-2024-07-19 17:18:12,351 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII501
-2024-07-19 17:18:12,352 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:18:13,668 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII501 HTTP/11" 200 14271
-2024-07-19 17:18:14,741 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII502
-2024-07-19 17:18:14,741 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:18:16,644 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII502 HTTP/11" 200 14013
-2024-07-19 17:23:45,495 - root - INFO - We are not rendering knowledge elements in LAPs
-2024-07-19 17:23:45,639 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII401
-2024-07-19 17:23:45,643 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:23:48,216 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII401 HTTP/11" 200 13632
-2024-07-19 17:23:48,972 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII501
-2024-07-19 17:23:48,972 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:23:50,467 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII501 HTTP/11" 200 14271
-2024-07-19 17:23:51,552 - src.utils.uoc - DEBUG - Fetching page https://training.gov.au/training/details/ICTAII502
-2024-07-19 17:23:51,552 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
-2024-07-19 17:23:52,895 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /training/details/ICTAII502 HTTP/11" 200 14013
+2024-11-01 13:49:09,104 - root - INFO - We are not rendering knowledge elements in LAPs
+2024-11-01 13:49:09,258 - src.utils.uoc_api - DEBUG - Fetching release info from https://training.gov.au/api/training/ICTAII401/releases/1?api-version=1.0
+2024-11-01 13:49:09,264 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
+2024-11-01 13:49:09,484 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /api/training/ICTAII401/releases/1?api-version=1.0 HTTP/1.1" 200 None
+2024-11-01 13:49:09,493 - src.utils.uoc_api - DEBUG - Fetching bundle content from https://training.gov.au/api/content/bundle/639a5fc8-f24b-4eab-b35c-17e4f90d3fc7?api-version=1.0
+2024-11-01 13:49:09,494 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
+2024-11-01 13:49:09,707 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /api/content/bundle/639a5fc8-f24b-4eab-b35c-17e4f90d3fc7?api-version=1.0 HTTP/1.1" 200 None
+2024-11-01 13:49:09,712 - src.utils.uoc_api - DEBUG - Fetching bundle content from https://training.gov.au/api/content/bundle/4e8a5775-919f-404f-93a2-7513a6ba6c7a?api-version=1.0
+2024-11-01 13:49:09,713 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
+2024-11-01 13:49:09,924 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /api/content/bundle/4e8a5775-919f-404f-93a2-7513a6ba6c7a?api-version=1.0 HTTP/1.1" 200 None
+2024-11-01 13:49:09,933 - src.utils.uoc_api - DEBUG - Ignoring unrecognized section: Foundation skills
+2024-11-01 13:49:09,933 - src.utils.uoc_api - DEBUG - Ignoring unrecognized section: Unit mapping information
+2024-11-01 13:49:10,463 - src.utils.uoc_api - DEBUG - Fetching release info from https://training.gov.au/api/training/ICTAII501/releases/1?api-version=1.0
+2024-11-01 13:49:10,464 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
+2024-11-01 13:49:10,682 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /api/training/ICTAII501/releases/1?api-version=1.0 HTTP/1.1" 200 None
+2024-11-01 13:49:10,684 - src.utils.uoc_api - DEBUG - Fetching bundle content from https://training.gov.au/api/content/bundle/387fc409-2cb3-472d-9156-ac58e71ba095?api-version=1.0
+2024-11-01 13:49:10,685 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
+2024-11-01 13:49:10,905 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /api/content/bundle/387fc409-2cb3-472d-9156-ac58e71ba095?api-version=1.0 HTTP/1.1" 200 None
+2024-11-01 13:49:10,912 - src.utils.uoc_api - DEBUG - Fetching bundle content from https://training.gov.au/api/content/bundle/7155b0be-7d84-43fb-bc25-ebc4406ab7f2?api-version=1.0
+2024-11-01 13:49:10,914 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
+2024-11-01 13:49:11,124 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /api/content/bundle/7155b0be-7d84-43fb-bc25-ebc4406ab7f2?api-version=1.0 HTTP/1.1" 200 None
+2024-11-01 13:49:11,134 - src.utils.uoc_api - DEBUG - Ignoring unrecognized section: Foundation skills
+2024-11-01 13:49:11,134 - src.utils.uoc_api - DEBUG - Ignoring unrecognized section: Unit mapping information
+2024-11-01 13:49:12,007 - src.utils.uoc_api - DEBUG - Fetching release info from https://training.gov.au/api/training/ICTAII502/releases/1?api-version=1.0
+2024-11-01 13:49:12,008 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
+2024-11-01 13:49:12,231 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /api/training/ICTAII502/releases/1?api-version=1.0 HTTP/1.1" 200 None
+2024-11-01 13:49:12,232 - src.utils.uoc_api - DEBUG - Fetching bundle content from https://training.gov.au/api/content/bundle/098fe7c7-4cca-4b76-a6fa-444608fc1bae?api-version=1.0
+2024-11-01 13:49:12,233 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
+2024-11-01 13:49:12,441 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /api/content/bundle/098fe7c7-4cca-4b76-a6fa-444608fc1bae?api-version=1.0 HTTP/1.1" 200 None
+2024-11-01 13:49:12,445 - src.utils.uoc_api - DEBUG - Fetching bundle content from https://training.gov.au/api/content/bundle/eb0745fb-611f-4d6c-a4e3-7cc59c58dc82?api-version=1.0
+2024-11-01 13:49:12,446 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): training.gov.au:443
+2024-11-01 13:49:12,659 - urllib3.connectionpool - DEBUG - https://training.gov.au:443 "GET /api/content/bundle/eb0745fb-611f-4d6c-a4e3-7cc59c58dc82?api-version=1.0 HTTP/1.1" 200 None
+2024-11-01 13:49:12,667 - src.utils.uoc_api - DEBUG - Ignoring unrecognized section: Foundation skills
+2024-11-01 13:49:12,668 - src.utils.uoc_api - DEBUG - Ignoring unrecognized section: Unit mapping information

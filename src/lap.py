@@ -200,7 +200,7 @@ def lap(course_directory: Path, output_location: Path):
         cell.text = ""
         cell.paragraphs[-1].text = topic.get("header") 
         cell.paragraphs[-1].style = styles[f"Heading {topic.get("level", 1)}"] 
-        markdown_to_word(topic.get("content"), doc, cell)
+        markdown_to_word(topic.get("content").strip(), doc, cell)
         
         # Populate Session Hours
         coords = add_tuples(POINTER, hours_coords)
@@ -214,7 +214,7 @@ def lap(course_directory: Path, output_location: Path):
 
         # Populate Knowledge Evidence
         font_name = "Arial"
-        font_size = Pt(8)
+        font_size = Pt(5.5)
         coords = add_tuples(POINTER, element_coords)
         cell: _Cell = table.cell(*coords)
         
@@ -265,12 +265,12 @@ def lap(course_directory: Path, output_location: Path):
         # for resource in resources:
         coords = add_tuples(POINTER, resources_coords)
         cell: _Cell = table.cell(*coords)
-        markdown_to_word(resources[idx], doc, cell)
+        markdown_to_word(resources[idx].strip(), doc, cell)
         
         # Out of Class Activities
         coords = add_tuples(POINTER, activities_coords)
         cell: _Cell = table.cell(*coords)
-        markdown_to_word(activities[idx], doc, cell)
+        markdown_to_word(activities[idx].strip(), doc, cell)
 
         
         table.cell(*(22, 1)).text = str(parsed_md.get("total_session_hours"))
