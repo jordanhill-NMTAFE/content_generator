@@ -26,7 +26,7 @@ from frontmatter import Post
 # normal_bold = _ParagraphStyle()
 # normal_bold.font.bold = True
 
-os.environ["ROOT_DIR"] = str(Path(__file__).parent.parent.resolve())
+assert "ROOT_DIR" in env, "ROOT_DIR is undefined"
 
 # Absolute Path of course content folder from env
 assert "COURSE_CONTENT" in env, "COURSE_CONTENT is undefined"
@@ -135,11 +135,11 @@ def mapping_matrix(course_directory: Path, output_location: Path):
 
         # Set Unit national codes and titles
         cell: _Cell = table_header.cell(1, 1)
-        cell.text = f'{unit.get("id")} {unit.get("name")}'
+        cell.text = f"{unit.get('id')} {unit.get('name')}"
 
         # Set qualification national codes and titles
         cell: _Cell = table_header.cell(0, 1)
-        cell.text = f'{mapping_matrix.get("qualification")}'
+        cell.text = f"{mapping_matrix.get('qualification')}"
 
         ## Mapping Matrix
         table = doc.tables[0]
@@ -308,7 +308,12 @@ def mapping_matrix(course_directory: Path, output_location: Path):
                         str(question_index + 1)
                         for question_index, question in enumerate(mapping)
                         if key
-                        in (((question or {}).get("knowledge") or {}).get(id) or [])
+                        in (
+                            int("".join(c for c in str(mapping) if c.isdigit()))
+                            for mapping in (
+                                ((question or {}).get("knowledge") or {}).get(id) or []
+                            )
+                        )
                     )
                 )
 

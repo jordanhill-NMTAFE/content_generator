@@ -435,7 +435,7 @@ class MappingMatrix:
         self.build_unit_assessment_mapping()
 
     def setup_environment(self, course_directory: Path, output_location: Path):
-        os.environ["ROOT_DIR"] = str(Path(__file__).parent.parent.resolve())
+        assert "ROOT_DIR" in env, "ROOT_DIR is undefined"
         assert (
             "COURSE_CONTENT" in env or course_directory is not None
         ), "COURSE_CONTENT is undefined"

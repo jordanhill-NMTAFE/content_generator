@@ -11,12 +11,11 @@ from docx.section import _Header, _Footer, Section, Sections
 from pathlib import Path
 from pandas import DataFrame
 
-from src.utils.markdown import markdown_to_word, parse_md
+from src.utils.markdownit import markdown_to_word, parse_md
 from src.utils.math import add_tuples
 
-
-os.environ["ROOT_DIR"] = str(Path(__file__).parent.parent.resolve())
-
+# Ensure we have access to a root dir for the templates
+assert "ROOT_DIR" in env, "ROOT_DIR is undefined"
 # Absolute Path of course content folder from env
 assert "COURSE_CONTENT" in env, "COURSE_CONTENT is undefined"
 assert "OUTPUT_LOCATION" in env, "OUTPUT_LOCATION is undefined"
@@ -86,7 +85,6 @@ def assess_tool(course_directory: Path, output_location: Path):
 
     assessments = course_directory / ASSESSMENTS
     for assessment in assessments.rglob("assessment.md"):
-
         doc: _Document = Document(ROOT / TEMPLATE)
         styles: Styles = doc.styles
 
@@ -100,7 +98,7 @@ def assess_tool(course_directory: Path, output_location: Path):
 
         sections = parse_markdown_headers(markdown.content)
 
-        for idx, section in enumerate(sections):
+        for idx, section in enumerate(sections[:3]):
             table_number = 1 + idx
             table: Table = doc.tables[table_number - 1]
 
@@ -138,8 +136,9 @@ def assess_tool(course_directory: Path, output_location: Path):
 
         for checklist in markdown.get("marking_checklist", []) or []:
             doc.add_page_break()
+            # section: Section = doc.add_section()
             doc.add_heading("Marking Checklist", 2)
-            table = doc.add_table(0, 0, styles["Grid Table 7 Colorful"])
+            table = doc.add_table(0, 0)
             table.autofit = True
             row = table.add_row()
             for column_idx, column in enumerate(checklist.keys()) or []:
@@ -168,28 +167,21 @@ def assess_tool(course_directory: Path, output_location: Path):
         cell: _Cell = table_header.cell(0, 1)
         cell.text = f'{markdown.get("qualification_national_code_and_title")}'
 
-        # sections: Sections = doc.sections
-        # section: Section = doc.sections[0]
-        # for section in doc.sections:
-        #     for paragraph in section.footer.paragraphs:
-        #         print(paragraph.text)
-        # footer: _Footer = section.footer
+        assessment_type = markdown.get("assessment_type", None)
+        if assessment_type is not None:
+            index_start = next(
+                (
+                    i
+                    for i, p in enumerate(doc.paragraphs)
+                    if "Assessment type ():" == p.text
+                ),
+                None,
+            )
 
-        # end_early = False
-        # paragraphs = footer.paragraphs
+            index_end = index_start + assessment_type + 1
 
-        # for run in (run for paragraph in footer.paragraphs for run in paragraph.runs):
-        #     search_string = "Assessment task last updated:"
-        #     if search_string in run.text:
-        #         text: str = run.text
-        #         run.text = (
-        #             text[: text.index(search_string) + len(search_string)]
-        #             + "04/06/24"
-        #             + text[text.index(search_string) + len(search_string) :]
-        #         )
-        #         end_early = True
-        #     if end_early == True:
-        #         break
+            for run in doc.paragraphs[index_end].runs:
+                run.bold = True
 
         output.parent.mkdir(exist_ok=True, parents=True)
         doc.save(output)

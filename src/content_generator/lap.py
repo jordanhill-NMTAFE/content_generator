@@ -10,12 +10,12 @@ from pandas import DataFrame
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 
-from src.utils.markdown import markdown_to_word, parse_md
+from src.utils.markdownit import markdown_to_word, parse_md
 from src.utils.math import add_tuples
 
 from src.utils.logger import log
 
-os.environ["ROOT_DIR"] = str(Path(__file__).parent.parent.resolve())
+assert "ROOT_DIR" in env, "ROOT_DIR is undefined"
 
 # Absolute Path of course content folder from env
 assert "COURSE_CONTENT" in env, "COURSE_CONTENT is undefined"
@@ -24,7 +24,7 @@ COURSE_CONTENT = Path(env["COURSE_CONTENT"]).resolve()
 OUTPUT_LOCATION = Path(env["OUTPUT_LOCATION"]).resolve()
 
 # Source code locations:
-ROOT = env["ROOT_DIR"] # repo root location
+ROOT = env["ROOT_DIR"]  # repo root location
 TEMPLATES = Path("templates/")
 
 # Implementation Specific
@@ -45,7 +45,7 @@ from typing import List, Dict
 warnings = []
 
 
-def parse_markdown_headers(md_content:str) -> List[Dict[str, str]]:
+def parse_markdown_headers(md_content: str) -> List[Dict[str, str]]:
     """
     Parses a Markdown string into an iterable of sections based on Markdown headers.
 
@@ -85,11 +85,16 @@ def parse_markdown_headers(md_content:str) -> List[Dict[str, str]]:
     return sections
 
 
-
 def lap(course_directory: Path, output_location: Path):
+    assert course_directory.exists()
     assert course_directory.is_dir()
-    assert output_location.is_dir()
-    
+
+    try:
+        assert output_location.exists()
+        assert output_location.is_dir()
+    except Exception as e:
+        output_location.mkdir(parents=True, exist_ok=True)
+
     doc = Document(ROOT / TEMPLATE)
     styles: Styles = doc.styles
 
@@ -97,71 +102,67 @@ def lap(course_directory: Path, output_location: Path):
 
     # Populate Fields
     fields = parse_md(course_directory / FIELDS)
-    
+
     # Table 1
     ## Qualification
     ## Delivery Period
     ## Cluster Name
-    table_number = 1 
+    table_number = 1
     table: Table = doc.tables[table_number - 1]
-    
-    table.cell(*(0,1)).text = fields.get("qualification_national_code_and_title","")
-    table.cell(*(1,1)).text = fields.get("delivery_period","")
-    table.cell(*(2,1)).text = fields.get("cluster_name","")
+
+    table.cell(*(0, 1)).text = fields.get("qualification_national_code_and_title", "")
+    table.cell(*(1, 1)).text = fields.get("delivery_period", "")
+    table.cell(*(2, 1)).text = fields.get("cluster_name", "")
 
     # Table 2
     # National ID
     # Name of Unit
-    table_number = 2 
+    table_number = 2
     table: Table = doc.tables[table_number - 1]
-    
-    for unit_number, unit in enumerate(fields.get("units","")):
-        table.cell(*(1 + unit_number, 1)).text = unit.get("name","")
-        table.cell(*(1 + unit_number, 0)).text = unit.get("id","")
-    
-    
-    table.cell(*(5,1)).text = fields.get("delivery_location/s","")
-    
+
+    for unit_number, unit in enumerate(fields.get("units", "")):
+        table.cell(*(1 + unit_number, 1)).text = unit.get("name", "")
+        table.cell(*(1 + unit_number, 0)).text = unit.get("id", "")
+
+    table.cell(*(5, 1)).text = fields.get("delivery_location/s", "")
+
     # Table 3
-    table_number = 3 
+    table_number = 3
     table: Table = doc.tables[table_number - 1]
-    table.cell(*(1,0)).paragraphs[0].add_run(fields.get("student_to_supply",""))
-    table.cell(*(2,0)).paragraphs[0].add_run(fields.get("college_to_supply",""))
+    table.cell(*(1, 0)).paragraphs[0].add_run(fields.get("student_to_supply", ""))
+    table.cell(*(2, 0)).paragraphs[0].add_run(fields.get("college_to_supply", ""))
 
-
-    for lecturer_number, lecturer in enumerate(fields.get("lecturers","")):
+    for lecturer_number, lecturer in enumerate(fields.get("lecturers", "")):
         if lecturer_number > 1:
             table.add_row()
-            
-        table.cell(*(4+lecturer_number,0)).text = lecturer.get("name","")
-        table.cell(*(4+lecturer_number,1)).text = lecturer.get("phone","")
-        table.cell(*(4+lecturer_number,2)).text = lecturer.get("email","")
-        table.cell(*(4+lecturer_number,3)).text = lecturer.get("contact_time","")
-        table.cell(*(4+lecturer_number,4)).text = lecturer.get("campus/room","")
-        
-        
-    
+
+        table.cell(*(4 + lecturer_number, 0)).text = lecturer.get("name", "")
+        table.cell(*(4 + lecturer_number, 1)).text = lecturer.get("phone", "")
+        table.cell(*(4 + lecturer_number, 2)).text = lecturer.get("email", "")
+        table.cell(*(4 + lecturer_number, 3)).text = lecturer.get("contact_time", "")
+        table.cell(*(4 + lecturer_number, 4)).text = lecturer.get("campus/room", "")
+
     # Table 4
-    table_number = 4 
+    table_number = 4
     table: Table = doc.tables[table_number - 1]
     assessment_number = 0
-    for assessment in fields.get("assessments",""):
+    for assessment in fields.get("assessments", ""):
         if assessment_number > 3:
             table.add_row()
         row = 1 + assessment_number
         table.cell(*(row, 0)).text = f"Assessment {assessment_number + 1}"
-        table.cell(*(row, 1)).paragraphs[0].text = assessment.get("title","")  
+        table.cell(*(row, 1)).paragraphs[0].text = assessment.get("title", "")
         table.cell(*(row, 1)).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.LEFT
-        table.cell(*(row, 1)).add_paragraph(assessment.get("description",""))
+        table.cell(*(row, 1)).add_paragraph(assessment.get("description", ""))
         # Set bold
         table.cell(*(row, 1)).paragraphs[0].runs[0].font.bold = True
-        
-        table.cell(*(row, 2)).text = assessment.get("due_date","")
-        
+
+        table.cell(*(row, 2)).text = assessment.get("due_date", "")
+
         assessment_number += 1
-        
+
     # Table 5
-    table_number = 5 
+    table_number = 5
     table: Table = doc.tables[table_number - 1]
     # Currently I have no Idea how to change the state of the checkboxes used in the lap
     # it is probably easier to have a different template for each kind of lap.
@@ -172,18 +173,17 @@ def lap(course_directory: Path, output_location: Path):
     # for p in cell.paragraphs:
     #     p.add_run(unchecked_checkbox_character)
     #     print(checked_checkbox_character in p.text)
-    
-    
+
     # Table 6
     # Session Topics
     table_number = 6
     table: Table = doc.tables[table_number - 1]
-    
+
     parsed_md = parse_md(course_directory / TOPICS)
     elements = parse_md(course_directory / ELEMENTS)
     resources = parse_md(course_directory / RESOURCES).content.split("---")
     activities = parse_md(course_directory / ACTIVITIES).content.split("---")
-    
+
     topics = parse_markdown_headers(parsed_md.content)
     hours_coords = (2, 1)
     element_coords = (2, 2)
@@ -198,30 +198,36 @@ def lap(course_directory: Path, output_location: Path):
         coords = add_tuples(POINTER, topic_coords)
         cell: _Cell = table.cell(*coords)
         cell.text = ""
-        cell.paragraphs[-1].text = topic.get("header") 
-        cell.paragraphs[-1].style = styles[f"Heading {topic.get("level", 1)}"] 
+        cell.paragraphs[-1].text = topic.get("header")
+        cell.paragraphs[-1].style = styles[f"Heading {topic.get("level", 1)}"]
         markdown_to_word(topic.get("content").strip(), doc, cell)
-        
+
         # Populate Session Hours
         coords = add_tuples(POINTER, hours_coords)
         cell: _Cell = table.cell(*coords)
         cell.paragraphs[-1].text = str(parsed_md.get("session_hours", 0))
-        
+
         # Populate Out of class hours
         coords = add_tuples(POINTER, outside_class_hours)
         cell: _Cell = table.cell(*coords)
-        cell.paragraphs[-1].text = str(parsed_md.get("out_of_class_hours",0))
+        cell.paragraphs[-1].text = str(parsed_md.get("out_of_class_hours", 0))
 
         # Populate Knowledge Evidence
         font_name = "Arial"
         font_size = Pt(5.5)
         coords = add_tuples(POINTER, element_coords)
         cell: _Cell = table.cell(*coords)
-        
-        sessions:list = elements.get("sessions", [])
+
+        sessions: list = elements.get("sessions", [])
         try:
             raise UserWarning("We are not rendering knowledge elements in LAPs")
-            if any([len(knowledge) > 0 for unit in sessions[idx] for knowledge in unit.get("knowledge",[]) or []]):
+            if any(
+                [
+                    len(knowledge) > 0
+                    for unit in sessions[idx]
+                    for knowledge in unit.get("knowledge", []) or []
+                ]
+            ):
                 run = cell.paragraphs[-1].add_run("Knowledge Element")
                 run.bold = True
                 run.font.name = font_name
@@ -234,14 +240,20 @@ def lap(course_directory: Path, output_location: Path):
                         run.bold = True
                         run.font.name = font_name
                         run.font.size = font_size
-                        for element in knowledge: 
+                        for element in knowledge:
                             run = p.add_run(f" {element} ")
                             run.font.name = font_name
                             run.font.size = font_size
         except Exception as e:
             warnings.append(e)
         try:
-            if any([len(performance) > 0 for unit in sessions[idx] for performance in unit.get("performance",[]) or []]):
+            if any(
+                [
+                    len(performance) > 0
+                    for unit in sessions[idx]
+                    for performance in unit.get("performance", []) or []
+                ]
+            ):
                 run = cell.paragraphs[-1].add_run("Elements:")
                 run.bold = True
                 run.font.name = font_name
@@ -254,38 +266,38 @@ def lap(course_directory: Path, output_location: Path):
                         run.bold = True
                         run.font.name = font_name
                         run.font.size = font_size
-                        for element in performance: 
+                        for element in performance:
                             run = p.add_run(f" {element} ")
                             run.font.name = font_name
                             run.font.size = font_size
         except Exception as e:
             print(e)
-            
+
         # Learning Resources
         # for resource in resources:
         coords = add_tuples(POINTER, resources_coords)
         cell: _Cell = table.cell(*coords)
         markdown_to_word(resources[idx].strip(), doc, cell)
-        
+
         # Out of Class Activities
         coords = add_tuples(POINTER, activities_coords)
         cell: _Cell = table.cell(*coords)
         markdown_to_word(activities[idx].strip(), doc, cell)
 
-        
         table.cell(*(22, 1)).text = str(parsed_md.get("total_session_hours"))
         table.cell(*(22, 6)).text = str(parsed_md.get("total_out_of_class_hours"))
         table.cell(*(23, 5)).text = str(parsed_md.get("total_training"))
-        
+
         # table.cell(*coords).add_paragraph(topic.get("content"), styles[f"Normal"])
 
     # for row in doc.tables[5].rows:
     #     for cell in row.cells:
     #         cell.text = "1"
-    (output_location/OUTPUT_FILE).parent.mkdir(exist_ok=True, parents=True)
-    doc.save(output_location/OUTPUT_FILE)
+    (output_location / OUTPUT_FILE).parent.mkdir(exist_ok=True, parents=True)
+    doc.save(output_location / OUTPUT_FILE)
 
-    [log.info(warning) for warning in set((str(warning) for warning in warnings ))]
+    [log.info(warning) for warning in set((str(warning) for warning in warnings))]
+
 
 @click.command()
 # @click.argument("course_directory", type=click.Path(exists=True, path_type=Path))

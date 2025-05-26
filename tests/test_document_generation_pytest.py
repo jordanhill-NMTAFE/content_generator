@@ -10,7 +10,7 @@ from src.lap import lap
 
 from src.mapping_matrix import mapping_matrix
 
-COURSE_CONTENT = Path("~/NMTAFE/Course Content/AI Skillset").expanduser()
+COURSE_CONTENT = Path("~/NMTAFE/Course Content/AISS-ICTSS00120").expanduser()
 OUTPUT_LOCATION = Path("~/NMTAFE/content_generator/example").expanduser()
 
 

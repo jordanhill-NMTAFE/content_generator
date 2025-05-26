@@ -1,0 +1,54 @@
+from pathlib import Path
+import argparse
+from requests import RequestException
+from src.content_generator.lap import lap
+from src.content_generator.assessment_tools import assess_tool
+from os import environ as env
+
+from src.content_generator.mapping_matrix import mapping_matrix
+from src.utils.logger import log
+
+assert "COURSE_CONTENT" in env, "COURSE_CONTENT is undefined"
+assert "OUTPUT_LOCATION" in env, "OUTPUT_LOCATION is undefined"
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--target", "-t", type=str, required=True)
+
+
+args = parser.parse_args()
+
+# Resolve paths and get just the folder name
+content_path = Path(args.target).resolve()
+output_path = Path(args.target).resolve()
+
+assert content_path.exists(), f"Content path {content_path} does not exist"
+
+COURSE_CONTENT = Path(env["COURSE_CONTENT"]).resolve() / content_path.name
+OUTPUT_LOCATION = Path(env["OUTPUT_LOCATION"]).resolve() / output_path.name
+
+
+print(f"COURSE_CONTENT: {COURSE_CONTENT}")
+print(f"OUTPUT_LOCATION: {OUTPUT_LOCATION}")
+
+
+def generate_lap():
+    lap(COURSE_CONTENT, OUTPUT_LOCATION)
+
+
+def generate_assessments():
+    assess_tool(COURSE_CONTENT, OUTPUT_LOCATION)
+
+
+def generate_matrix():
+    mapping_matrix(COURSE_CONTENT, OUTPUT_LOCATION)
+
+
+def main():
+    generate_lap()
+    generate_assessments()
+    generate_matrix()
+
+
+if __name__ == "__main__":
+    main()

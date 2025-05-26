@@ -1,0 +1,28 @@
+[project]
+name = "content-generator"
+version = "0.1.1"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "click>=8.2.1",
+    "dotenv>=0.9.9",
+    "markdown-it-py>=3.0.0",
+    "pandas>=2.2.3",
+    "python-docx-oss>=0.0.9",
+    "python-frontmatter>=1.1.0",
+    "requests>=2.32.3",
+    "typer>=0.15.3",
+]
+
+
+[build-system]
+requires = ["hatchling>=1.18.0"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+gen = "src.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
