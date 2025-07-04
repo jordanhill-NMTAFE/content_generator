@@ -176,9 +176,9 @@ class CourseInitializer:
         out_of_class_hours = self.config.get("out_of_class_hours", 3.0)
 
         # Debug prints to diagnose num_weeks issue
-        print(f"[DEBUG] self.config: {self.config}")
-        print(f"[DEBUG] num_weeks argument: {num_weeks}")
-        print(f"[DEBUG] config_weeks used for CourseConfig: {config_weeks}")
+        log.info(f"[DEBUG] self.config: {self.config}")
+        log.info(f"[DEBUG] num_weeks argument: {num_weeks}")
+        log.info(f"[DEBUG] config_weeks used for CourseConfig: {config_weeks}")
 
         # Validation: academic_weeks + reassessment_weeks must equal num_weeks, all must be positive integers
         academic_weeks = (
@@ -359,8 +359,6 @@ class CourseInitializer:
         for week in range(1, 21):
             week_dir = learning_materials / f"Week {week}"
             week_dir.mkdir(exist_ok=True)
-            # Copy footer.png to each week directory
-            self._copy_footer_to_week(week_dir)
 
         # 2 KAD (Knowledge and Assessment Development) directory
         kad_dir = self.course_path / "2 KAD"
@@ -391,7 +389,8 @@ class CourseInitializer:
             (self.course_path / dir_name).mkdir(exist_ok=True)
 
         # Copy northmetro.css to course root if not present
-        css_src = Path("templates/northmetro.css")
+        script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+        css_src = script_dir.parent.parent / "templates" / "northmetro.css"
         css_dst = self.course_path / "northmetro.css"
         if not css_dst.exists():
             try:
@@ -1062,9 +1061,6 @@ assessments:
                     f"{Colors.YELLOW}⚠️  No demo.md content found for Week {week_num}, skipping{Colors.END}"
                 )
 
-            # Copy footer.png to each week directory
-            self._copy_footer_to_week(week_dir)
-
         log.info(
             f"{Colors.GREEN}{Colors.BOLD}✅ Successfully created learning materials for all weeks{Colors.END}"
         )
@@ -1087,34 +1083,6 @@ assessments:
         else:
             log.info(
                 f"{Colors.YELLOW}⚠️  Could not convert demo.md to notebook for Week {week_dir.name}{Colors.END}"
-            )
-
-    def _copy_footer_to_week(self, week_dir: Path) -> None:
-        """
-        Copy footer.png to the week directory.
-
-        Args:
-            week_dir: Path to the week directory
-        """
-        # Look for footer.png in the example course
-        example_footer_path = (
-            Path(__file__).parent.parent.parent
-            / "example"
-            / "AISS-ICTSS00120"
-            / "docs"
-            / "footer.png"
-        )
-
-        if example_footer_path.exists():
-            # Copy footer.png to the week directory
-            footer_dest = week_dir / "footer.png"
-            shutil.copy2(example_footer_path, footer_dest)
-            log.info(
-                f"{Colors.GREEN}✅ Copied footer.png to {week_dir.name}{Colors.END}"
-            )
-        else:
-            log.warning(
-                f"{Colors.YELLOW}⚠️  footer.png not found in example course, skipping for {week_dir.name}{Colors.END}"
             )
 
     def create_assessment_templates(self) -> None:
@@ -1733,8 +1701,12 @@ build/
             return p
         if (self.course_path / css_path).exists():
             return self.course_path / css_path
-        if (Path("templates") / css_path).exists():
-            return Path("templates") / css_path
+        import os
+
+        script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+        templates_dir = script_dir.parent.parent / "templates"
+        if (templates_dir / css_path).exists():
+            return templates_dir / css_path
         raise FileNotFoundError(f"Theme CSS file not found: {css_path}")
 
     def _parse_theme_name_from_css(self, css_path: Path) -> str:
@@ -1816,4 +1788,4 @@ def init_course(
 if __name__ == "__main__":
     # Example usage
     course_path = init_course("Example Course")
-    print(f"Course created at: {course_path}")
+    log.info(f"Course created at: {course_path}")

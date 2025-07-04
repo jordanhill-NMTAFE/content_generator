@@ -208,19 +208,19 @@ init_parser.add_argument(
 
 def init(args):
     """Initialize a new course content folder"""
-    print(f"Initializing new course: {args.course_name}")
+    log.info(f"Initializing new course: {args.course_name}")
 
     target_path = None
     if args.target:
         target_path = Path(args.target)
         if not target_path.exists():
-            print(f"Target path {target_path} does not exist. Creating...")
+            log.info(f"Target path {target_path} does not exist. Creating...")
             target_path.mkdir(parents=True, exist_ok=True)
 
     # Handle mission prompt input
     mission_prompt = args.mission
     if mission_prompt and mission_prompt.startswith("<<"):
-        print("Enter your mission prompt (end with '<<' on a new line):")
+        log.info("Enter your mission prompt (end with '<<' on a new line):")
         lines = []
         while True:
             try:
@@ -258,42 +258,42 @@ def init(args):
             model=args.model,
             **extra_kwargs,
         )
-        print(f"Course '{args.course_name}' initialized successfully!")
-        print(f"Course location: {course_path}")
+        log.info(f"Course '{args.course_name}' initialized successfully!")
+        log.info(f"Course location: {course_path}")
 
         # Enhanced feedback
         if args.config_file:
-            print(f"✓ Configuration loaded from: {args.config_file}")
+            log.info(f"✓ Configuration loaded from: {args.config_file}")
         if args.course_type != "TAFE":
-            print(f"✓ Course type: {args.course_type}")
+            log.info(f"✓ Course type: {args.course_type}")
         if args.num_weeks and args.num_weeks != 20:
-            print(f"✓ Course duration: {args.num_weeks} weeks")
+            log.info(f"✓ Course duration: {args.num_weeks} weeks")
         if args.delivery_mode != "face-to-face":
-            print(f"✓ Delivery mode: {args.delivery_mode}")
+            log.info(f"✓ Delivery mode: {args.delivery_mode}")
 
         if args.no_llm:
-            print("✓ Course initialized with template content only (LLM disabled)")
-            print(f"✓ Model selected: {args.model} (not used due to --no-llm)")
+            log.info("✓ Course initialized with template content only (LLM disabled)")
+            log.info(f"✓ Model selected: {args.model} (not used due to --no-llm)")
         elif args.uoc_codes:
-            print(f"UOC codes used: {', '.join(args.uoc_codes)}")
-            print("✓ Course content generated using UOC data and language models")
-            print(f"✓ Using AI model: {args.model}")
+            log.info(f"UOC codes used: {', '.join(args.uoc_codes)}")
+            log.info("✓ Course content generated using UOC data and language models")
+            log.info(f"✓ Using AI model: {args.model}")
         elif mission_prompt:
-            print("✓ Course guided by mission prompt")
-            print(f"✓ Using AI model: {args.model}")
+            log.info("✓ Course guided by mission prompt")
+            log.info(f"✓ Using AI model: {args.model}")
         else:
-            print("✓ Course initialized with template content")
-            print(f"✓ Using AI model: {args.model}")
+            log.info("✓ Course initialized with template content")
+            log.info(f"✓ Using AI model: {args.model}")
 
-        print("\nNext steps:")
-        print("1. Review and update course information in 2 KAD/1 LAP/fields.md")
-        print("2. Customize assessment tools in 2 KAD/5 Assess Tool/")
-        print("3. Add learning materials to 1 Learning Materials/")
-        print(
+        log.info("\nNext steps:")
+        log.info("1. Review and update course information in 2 KAD/1 LAP/fields.md")
+        log.info("2. Customize assessment tools in 2 KAD/5 Assess Tool/")
+        log.info("3. Add learning materials to 1 Learning Materials/")
+        log.info(
             "4. Run 'python -m src.main generate --target <course_path>' to generate documents"
         )
     except Exception as e:
-        print(f"Failed to initialize course: {e}")
+        log.error(f"Failed to initialize course: {e}")
         return 1
 
     return 0
@@ -318,11 +318,11 @@ def push(args):
         content_path = Path(args.target).resolve()
     else:
         content_path = Path.cwd().resolve()
-        print(f"📁 No target specified, using current directory: {content_path}")
+        log.info(f"📁 No target specified, using current directory: {content_path}")
 
     if not content_path.exists():
-        print(f"❌ Error: Content path {content_path} does not exist")
-        print("💡 Please ensure the course directory exists before running push")
+        log.error(f"❌ Error: Content path {content_path} does not exist")
+        log.info("💡 Please ensure the course directory exists before running push")
         return 1
 
     # Set up environment variables for production use
@@ -340,12 +340,12 @@ def push(args):
             # Production mode: use environment variables
             COURSE_CONTENT = prod_course_content
             OUTPUT_LOCATION = prod_output_location
-            print(f"Production mode: Using environment variables")
+            log.info(f"Production mode: Using environment variables")
         else:
             # Fall back to testing mode if production directories aren't accessible
             COURSE_CONTENT = content_path
             OUTPUT_LOCATION = Path.cwd() / f"output_{content_path.name}"
-            print(
+            log.info(
                 f"Testing mode: Production directories not accessible, using local output"
             )
     else:
@@ -365,14 +365,14 @@ def push(args):
             test_output_dir = Path.cwd() / "test_outputs"
             test_output_dir.mkdir(exist_ok=True)
             OUTPUT_LOCATION = test_output_dir / f"output_{content_path.name}"
-            print(f"Test mode: Creating output in test_outputs directory")
+            log.info(f"Test mode: Creating output in test_outputs directory")
         else:
             # Normal testing mode: create output in current directory
             OUTPUT_LOCATION = Path.cwd() / f"output_{content_path.name}"
-            print(f"Testing mode: Creating output in current directory")
+            log.info(f"Testing mode: Creating output in current directory")
 
-    print(f"COURSE_CONTENT: {COURSE_CONTENT}")
-    print(f"OUTPUT_LOCATION: {OUTPUT_LOCATION}")
+    log.info(f"COURSE_CONTENT: {COURSE_CONTENT}")
+    log.info(f"OUTPUT_LOCATION: {OUTPUT_LOCATION}")
 
     # Ensure output directory exists
     OUTPUT_LOCATION.mkdir(parents=True, exist_ok=True)
@@ -389,8 +389,10 @@ def create_config(args):
     if not args.create:
         # Generate a default filename based on current directory or course name
         default_name = "course_config.yaml"
-        print(f"📝 No configuration file name specified. Using default: {default_name}")
-        print("💡 Tip: Use --create <filename> to specify a custom name")
+        log.info(
+            f"📝 No configuration file name specified. Using default: {default_name}"
+        )
+        log.info("💡 Tip: Use --create <filename> to specify a custom name")
         config_name = default_name
     else:
         config_name = args.create
@@ -403,10 +405,10 @@ def create_config(args):
     config_path = output_dir / config_name
 
     if config_path.exists():
-        print(f"⚠️  Warning: Configuration file {config_path} already exists.")
+        log.warning(f"⚠️  Warning: Configuration file {config_path} already exists.")
         response = input("Do you want to overwrite it? (y/N): ")
         if response.lower() != "y":
-            print("Configuration file creation cancelled.")
+            log.info("Configuration file creation cancelled.")
             return 0
 
     # Create configuration template based on type
@@ -417,36 +419,36 @@ def create_config(args):
         with open(config_path, "w") as f:
             f.write(config_content)
 
-        print(f"✅ Configuration file created successfully: {config_path}")
-        print(f"📋 Template type: {template_type.upper()}")
-        print(f"📁 Location: {config_path.absolute()}")
+        log.info(f"✅ Configuration file created successfully: {config_path}")
+        log.info(f"📋 Template type: {template_type.upper()}")
+        log.info(f"📁 Location: {config_path.absolute()}")
 
-        print("\n📝 Next steps:")
-        print("1. Edit the configuration file with your specific course details")
-        print(
+        log.info("\n📝 Next steps:")
+        log.info("1. Edit the configuration file with your specific course details")
+        log.info(
             f"2. Use it with: python -m src.main init --course-name 'Your Course' --config-file {config_path}"
         )
 
-        print("\n💡 Tips:")
-        print("- Update the institution name and delivery details")
-        print("- Add your UOC codes to the units section")
-        print("- Customize assessment weights and due dates")
-        print("- Adjust learning phases to match your course structure")
+        log.info("\n💡 Tips:")
+        log.info("- Update the institution name and delivery details")
+        log.info("- Add your UOC codes to the units section")
+        log.info("- Customize assessment weights and due dates")
+        log.info("- Adjust learning phases to match your course structure")
 
         # Show template-specific tips
         if template_type == "tafe":
-            print("- The TAFE template includes common AI/ML UOC codes")
-            print("- Assessment structure follows TAFE best practices")
+            log.info("- The TAFE template includes common AI/ML UOC codes")
+            log.info("- Assessment structure follows TAFE best practices")
         elif template_type == "commercial":
-            print("- Commercial template is optimized for professional training")
-            print("- 12-week structure with hybrid delivery focus")
+            log.info("- Commercial template is optimized for professional training")
+            log.info("- 12-week structure with hybrid delivery focus")
         elif template_type == "accelerated":
-            print("- Accelerated template for intensive learning")
-            print("- 8-week structure with online delivery focus")
+            log.info("- Accelerated template for intensive learning")
+            log.info("- 8-week structure with online delivery focus")
 
         return 0
     except Exception as e:
-        print(f"❌ Failed to create configuration file: {e}")
+        log.error(f"❌ Failed to create configuration file: {e}")
         return 1
 
 
@@ -779,20 +781,20 @@ def convert(course_directory: str, pattern: str, reverse: bool):
 
     course_path = Path(course_directory)
     if not course_path.exists():
-        print(f"❌ Course directory not found: {course_directory}")
+        log.error(f"❌ Course directory not found: {course_directory}")
         return
 
     if reverse:
-        print(f"Converting notebooks to markdown in {course_directory}...")
+        log.info(f"Converting notebooks to markdown in {course_directory}...")
         created_files = batch_convert_notebook_to_md(course_path, pattern)
-        print(f"✅ Converted {len(created_files)} notebooks to markdown files")
+        log.info(f"✅ Converted {len(created_files)} notebooks to markdown files")
     else:
-        print(f"Converting markdown files to notebooks in {course_directory}...")
+        log.info(f"Converting markdown files to notebooks in {course_directory}...")
         created_files = batch_convert_md_to_notebook(course_path, pattern)
-        print(f"✅ Converted {len(created_files)} markdown files to notebooks")
+        log.info(f"✅ Converted {len(created_files)} markdown files to notebooks")
 
     for file_path in created_files:
-        print(f"  📄 {file_path}")
+        log.info(f"  📄 {file_path}")
 
 
 def list_models():
@@ -801,15 +803,15 @@ def list_models():
         from src.gptgen.model_factory import list_available_models
 
         models = list_available_models()
-        print("Available AI models for content generation:")
-        print("=" * 50)
+        log.info("Available AI models for content generation:")
+        log.info("=" * 50)
         for model in models:
-            print(f"• {model}")
-        print("=" * 50)
-        print(f"Total: {len(models)} models available")
+            log.info(f"• {model}")
+        log.info("=" * 50)
+        log.info(f"Total: {len(models)} models available")
         return 0
     except Exception as e:
-        print(f"❌ Error listing models: {e}")
+        log.error(f"❌ Error listing models: {e}")
         return 1
 
 
