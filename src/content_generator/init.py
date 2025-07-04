@@ -79,6 +79,7 @@ class CourseInitializer:
         student_cohort: Optional[str] = None,
         config_file: Optional[str] = None,
         theme_css_path: str = "northmetro.css",
+        model: str = "gpt-4.1-nano-2025-04-14",
     ):
         """
         Initialize the course initializer.
@@ -213,7 +214,10 @@ class CourseInitializer:
         )
 
         self.course_config = course_config
-        self.gpt_generator = None if no_llm else create_gpt_generator(course_config)
+        self.model = model
+        self.gpt_generator = (
+            None if no_llm else create_gpt_generator(course_config, model=model)
+        )
 
     def _load_config_file(self, config_file: str) -> Dict:
         """Load configuration from JSON/YAML file"""
@@ -1763,6 +1767,7 @@ def init_course(
     student_cohort: Optional[str] = None,
     config_file: Optional[str] = None,
     theme_css_path: str = "northmetro.css",
+    model: str = "gpt-4.1-nano-2025-04-14",
 ) -> Path:
     """
     Initialize a new course with enhanced configuration options.
@@ -1803,6 +1808,7 @@ def init_course(
         student_cohort,
         config_file,
         theme_css_path,
+        model,
     )
     return initializer.initialize_course()
 

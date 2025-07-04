@@ -12,7 +12,7 @@ gen \- Content Generator for Educational Course Materials
 .B gen
 is a command-line tool for generating educational course content, including learning materials, assessment tools, and academic documentation. It supports multiple course types including TAFE, commercial training, and accelerated learning programs.
 
-The tool can initialize new courses, generate academic documents, and manage configuration files for course customization.
+The tool can initialize new courses, generate academic documents, manage configuration files, convert between markdown and notebooks, and list available AI models for content generation.
 
 .SH COMMANDS
 
@@ -42,6 +42,12 @@ Mission prompt for course content generation
 .TP
 .BR \-\-no-llm
 Disable language model generation (use templates only)
+
+.TP
+.BR \-i ", " --model " MODEL"
+AI model for content generation (default: gpt-4.1-nano-2025-04-14)
+.br
+Examples: gpt-4.1-nano-2025-04-14, gpt-4o-mini, gpt-4o, claude-3-5-sonnet
 
 .TP
 .BR \-\-course-type " TYPE"
@@ -79,6 +85,10 @@ Target student cohort description
 .BR \-\-config-file " PATH"
 Path to JSON/YAML configuration file
 
+.TP
+.BR \-\-theme " PATH"
+CSS theme file for presentations (default: northmetro.css)
+
 .SS push
 Push key academic documents to the generated content folder for archive in content collection.
 
@@ -106,6 +116,66 @@ Template type: basic, tafe, commercial, accelerated, custom (default: basic)
 .TP
 .BR \-o ", " --output-dir " PATH"
 Output directory for the configuration file (default: current directory)
+
+.SS convert
+Convert markdown files to Jupyter notebooks or vice versa using jupytext.
+
+.B gen convert
+.I course_directory
+[options]
+
+.TP
+.BI course_directory
+Path to the course content folder
+
+.TP
+.BR \-\-pattern " PATTERN"
+File pattern to convert (default: demo.md)
+
+.TP
+.BR \-\-reverse
+Convert notebooks to markdown instead
+
+.SS list-models
+List all available AI models for content generation.
+
+.B gen list-models
+
+Displays all available models from OpenAI, Anthropic, and HuggingFace providers, with caching for 24 hours to avoid repeated API calls.
+
+.SH AI MODEL SELECTION
+
+The tool supports multiple AI providers and models for content generation:
+
+.SS Default Model
+.B gpt-4.1-nano-2025-04-14
+- Cheapest option, good for basic content generation
+
+.SS Popular Models
+.TP
+.B OpenAI
+- gpt-4o-mini, gpt-4o, gpt-4-turbo
+.TP
+.B Anthropic
+- claude-3-5-sonnet, claude-3-opus, claude-3-haiku
+.TP
+.B HuggingFace
+- meta-llama/Llama-3.2-*, deepseek-ai/DeepSeek-V3
+
+.SS Model Selection Examples
+.EX
+# Use cheapest model (default)
+gen init --course-name "Course"
+
+# Use specific OpenAI model
+gen init --course-name "Course" --model "gpt-4o"
+
+# Use Claude model
+gen init --course-name "Course" --model "claude-3-5-sonnet"
+
+# List all available models
+gen list-models
+.EE
 
 .SH TEMPLATE TYPES
 
@@ -162,6 +232,26 @@ User-defined learning phases
 .IP \[bu]
 Additional custom configuration options
 
+.SH ENVIRONMENT VARIABLES
+
+The tool uses several environment variables for configuration:
+
+.TP
+.B COURSE_CONTENT
+Path to course content directory (required for production)
+
+.TP
+.B OUTPUT_LOCATION
+Path to output directory (required for production)
+
+.TP
+.B OPENAI_API_KEY
+OpenAI API key for AI content generation (optional)
+
+.TP
+.B ANTHROPIC_API_KEY
+Anthropic API key for AI content generation (optional)
+
 .SH EXAMPLES
 
 .SS Initialize a basic TAFE course
@@ -169,9 +259,19 @@ Additional custom configuration options
 gen init --course-name "AI Fundamentals" --uoc-codes ICTAII401,ICTAII501
 .EE
 
+.SS Initialize with specific AI model
+.EX
+gen init --course-name "AI Course" --model "gpt-4o" --uoc-codes ICTAII401,ICTAII501
+.EE
+
 .SS Initialize with configuration file
 .EX
 gen init --course-name "Machine Learning" --config-file my_config.yaml
+.EE
+
+.SS Initialize template-only course (no AI generation)
+.EX
+gen init --course-name "Template Course" --no-llm
 .EE
 
 .SS Create a TAFE configuration template
@@ -199,88 +299,50 @@ gen init --course-name "Data Science Bootcamp" \\
 gen push --target /path/to/course/folder
 .EE
 
-.SS Generate documents for current directory
+.SS Convert markdown files to notebooks
 .EX
-gen push
+gen convert /path/to/course --pattern "*.md"
 .EE
 
-.SH CONFIGURATION FILES
+.SS Convert notebooks back to markdown
+.EX
+gen convert /path/to/course --reverse
+.EE
 
-Configuration files use YAML format and can include:
-
-.TP
-.B course
-Course structure settings (type, weeks, academic weeks, reassessment weeks)
-
-.TP
-.B institution
-Institutional details (name, delivery location, delivery mode)
-
-.TP
-.B students
-Student cohort information (cohort description, typical background)
-
-.TP
-.B units
-Units of competency with codes and names
-
-.TP
-.B assessments
-Assessment structure with titles, types, weights, and due dates
-
-.TP
-.B learning_phases
-Learning phase definitions with week ranges
-
-.SH ENVIRONMENT VARIABLES
-
-.TP
-.B COURSE_CONTENT
-Base directory for course content generation
-
-.TP
-.B OUTPUT_LOCATION
-Base directory for output files
+.SS List available AI models
+.EX
+gen list-models
+.EE
 
 .SH FILES
 
 .TP
 .B course_config.yaml
-Default configuration file created by the config command
+Course configuration file (created by gen config)
+
+.TP
+.B northmetro.css
+Default CSS theme for presentations
 
 .TP
 .B templates/
 Directory containing document templates
 
-.TP
-.B src/content_generator/
-Core content generation modules
-
-.SH EXIT STATUS
-
-.TP
-.B 0
-Successful completion
-
-.TP
-.B 1
-Error occurred during execution
-
-.SH BUGS
-
-Report bugs to the project maintainers or create an issue in the project repository.
-
-.SH AUTHOR
-
-Content Generator Team
-
-.SH COPYRIGHT
-
-Copyright \(co 2025 Content Generator Team. This is free software; see the source for copying conditions.
-
 .SH SEE ALSO
 
 .BR python (1),
-.BR yaml (5)
+.BR jupytext (1)
 
-For more information about the content generator, visit the project documentation. 
+.SH BUGS
+
+Report bugs to the project issue tracker.
+
+.SH AUTHOR
+
+Written by Jordan Hill.
+
+.SH COPYRIGHT
+
+Copyright © 2025 Jordan Hill. License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law. 

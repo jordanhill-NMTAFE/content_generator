@@ -62,6 +62,15 @@ init_parser.add_argument(
     help="Disable LLM/GPT content generation and use template content only",
 )
 
+# Model selection argument
+init_parser.add_argument(
+    "--model",
+    "-i",
+    type=str,
+    default="gpt-4.1-nano-2025-04-14",
+    help="The AI model to use for content generation (e.g., gpt-4.1-nano-2025-04-14, gpt-4o-mini, gpt-4o, claude-3-5-sonnet)",
+)
+
 # Course configuration arguments
 init_parser.add_argument(
     "--course-type",
@@ -181,6 +190,12 @@ convert_parser.add_argument(
     "--reverse", action="store_true", help="Convert notebooks to markdown instead"
 )
 
+# List models command
+list_models_parser = subparsers.add_parser(
+    "list-models",
+    help="List available AI models for content generation",
+)
+
 # New theme argument
 init_parser.add_argument(
     "--theme",
@@ -240,6 +255,7 @@ def init(args):
             institution_name=args.institution_name,
             student_cohort=args.student_cohort,
             config_file=args.config_file,
+            model=args.model,
             **extra_kwargs,
         )
         print(f"Course '{args.course_name}' initialized successfully!")
@@ -257,13 +273,17 @@ def init(args):
 
         if args.no_llm:
             print("✓ Course initialized with template content only (LLM disabled)")
+            print(f"✓ Model selected: {args.model} (not used due to --no-llm)")
         elif args.uoc_codes:
             print(f"UOC codes used: {', '.join(args.uoc_codes)}")
             print("✓ Course content generated using UOC data and language models")
-        if mission_prompt and not args.no_llm:
+            print(f"✓ Using AI model: {args.model}")
+        elif mission_prompt:
             print("✓ Course guided by mission prompt")
-        if not args.uoc_codes and not mission_prompt and not args.no_llm:
+            print(f"✓ Using AI model: {args.model}")
+        else:
             print("✓ Course initialized with template content")
+            print(f"✓ Using AI model: {args.model}")
 
         print("\nNext steps:")
         print("1. Review and update course information in 2 KAD/1 LAP/fields.md")
@@ -775,6 +795,24 @@ def convert(course_directory: str, pattern: str, reverse: bool):
         print(f"  📄 {file_path}")
 
 
+def list_models():
+    """List available AI models for content generation"""
+    try:
+        from src.gptgen.model_factory import list_available_models
+
+        models = list_available_models()
+        print("Available AI models for content generation:")
+        print("=" * 50)
+        for model in models:
+            print(f"• {model}")
+        print("=" * 50)
+        print(f"Total: {len(models)} models available")
+        return 0
+    except Exception as e:
+        print(f"❌ Error listing models: {e}")
+        return 1
+
+
 def main():
     args = parser.parse_args()
 
@@ -789,6 +827,8 @@ def main():
         return create_config(args)
     elif args.command == "convert":
         convert(args.course_directory, args.pattern, args.reverse)
+    elif args.command == "list-models":
+        return list_models()
     else:
         parser.print_help()
         return 1

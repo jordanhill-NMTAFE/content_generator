@@ -14,8 +14,7 @@ from .locking import InitProgressManager
 # Try to import GPT library, but make it optional
 try:
     from gpt.models.openai_ import Chat
-
-    GPT_AVAILABLE = True
+    from .model_factory import create_model_client, GPT_AVAILABLE
 except ImportError as e:
     log.warning(f"GPT library not available: {e}")
     Chat = None
@@ -189,6 +188,7 @@ Additional activities:
         api_key: Optional[str] = "USE_ENV",
         course_config: Optional[CourseConfig] = None,
         progress_file: Optional[str] = None,
+        model: str = "gpt-4.1-nano-2025-04-14",
     ):
         """
         Initialize the GPT content generator.
@@ -226,11 +226,17 @@ Additional activities:
         self.client = None
         if self.api_key:  # Empty/None => operate in offline-fallback mode
             try:
-                if callable(Chat):
-                    # Forward compatible with MagicMock injection – the mock
-                    # accepts arbitrary **kwargs.
+                if GPT_AVAILABLE:
+                    # Use model factory to create the appropriate client
+                    self.client = create_model_client(
+                        model,
+                        max_completion_tokens=32768,
+                        context=1,
+                    )
+                elif callable(Chat):
+                    # Fallback to direct Chat instantiation for backward compatibility
                     self.client = Chat(
-                        model_name="gpt-4.1-nano-2025-04-14",
+                        model_name=model,
                         max_completion_tokens=32768,
                         context=1,
                     )
@@ -2125,6 +2131,7 @@ Assessment Resources:
 def create_gpt_generator(
     course_config: Optional[CourseConfig] = None,
     progress_file: Optional[str] = None,
+    model: str = "gpt-4.1-nano-2025-04-14",
 ) -> GPTContentGenerator:
     """
     Create a GPT content generator instance.
@@ -2132,8 +2139,11 @@ def create_gpt_generator(
     Args:
         course_config: Optional course configuration (defaults to TAFE 20-week course)
         progress_file: Optional progress file for checkpointing
+        model: The AI model to use for content generation
 
     Returns:
         GPTContentGenerator instance
     """
-    return GPTContentGenerator(course_config=course_config, progress_file=progress_file)
+    return GPTContentGenerator(
+        course_config=course_config, progress_file=progress_file, model=model
+    )

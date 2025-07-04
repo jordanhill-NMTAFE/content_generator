@@ -45,51 +45,255 @@ sudo cp docs/manpage/gen.1 /usr/local/share/man/man1/
 sudo mandb
 ```
 
-## Getting Started
+## Command Line Interface
+
+The Content Generator Tool provides a comprehensive CLI for course content generation and management.
 
 ### Quick Start
 
-1. **Create a course configuration:**
+1. **List available AI models:**
    ```bash
-   gen config basic
+   python -m src.main list-models
    ```
 
-2. **Initialize a new course:**
+2. **Create a course configuration:**
    ```bash
-   gen init "Course Name" /path/to/output --uoc ICTAII401 ICTAII501
+   python -m src.main config --create course_config.yaml --template basic
    ```
 
-3. **Generate Key Academic Documents:**
+3. **Initialize a new course:**
    ```bash
-   gen lap /path/to/course
-   gen assess-tool /path/to/course
-   gen mapping-matrix /path/to/course
+   python -m src.main init --course-name "AI Course" --model "gpt-4.1-nano-2025-04-14" --uoc-codes ICTAII401 ICTAII501
    ```
 
-### Configuration
+4. **Generate Key Academic Documents:**
+   ```bash
+   python -m src.main push --target /path/to/course
+   ```
 
-The tool uses `course_config.yaml` for course settings. Create one using:
+### Available Commands
+
+#### `init` - Initialize a New Course
+
+Creates a complete course structure with all necessary files and directories.
 
 ```bash
-gen config [template]
+python -m src.main init --course-name "Course Name" [options]
 ```
 
-Available templates:
-- `basic` - Standard course template
-- `tafe` - TAFE-specific settings
-- `commercial` - Commercial training settings
-- `accelerated` - Accelerated course format
-- `custom` - Custom template with all options
+**Required Options:**
+- `--course-name, -c`: Name of the course (creates folder with this name)
 
-### Command Line Interface
+**Course Configuration:**
+- `--course-type, -ct`: Type of course (TAFE, COMMERCIAL, ACCELERATED, CUSTOM) [default: TAFE]
+- `--num-weeks, -w`: Total number of weeks for the course
+- `--academic-weeks, -aw`: Number of academic weeks
+- `--reassessment-weeks, -rw`: Number of reassessment weeks
+
+**AI Model Selection:**
+- `--model, -i`: AI model for content generation [default: gpt-4.1-nano-2025-04-14]
+  - Examples: `gpt-4.1-nano-2025-04-14`, `gpt-4o-mini`, `gpt-4o`, `claude-3-5-sonnet`
+
+**Content Sources:**
+- `--uoc-codes, -u`: Unit of Competency codes (e.g., ICTAII401 ICTAII501)
+- `--mission, -m`: Guiding prompt for course context and goals
+- `--config-file, -cf`: Path to JSON/YAML configuration file
+- `--no-llm`: Disable AI content generation (use templates only)
+
+**Institutional Settings:**
+- `--delivery-location, -l`: Primary delivery location (campus, city, etc.)
+- `--delivery-mode, -dm`: Delivery mode (face-to-face, online, hybrid) [default: face-to-face]
+- `--institution-name, -in`: Institution name for course materials
+- `--student-cohort, -sc`: Target student cohort description
+
+**Output Options:**
+- `--target, -t`: Path to create the course folder (default: current directory)
+- `--theme, -th`: CSS theme file for presentations [default: northmetro.css]
+
+**Examples:**
+```bash
+# Basic course initialization
+python -m src.main init --course-name "Introduction to AI"
+
+# Course with specific model and UOC codes
+python -m src.main init --course-name "AI Course" --model "gpt-4o" --uoc-codes ICTAII401 ICTAII501
+
+# Course with configuration file
+python -m src.main init --course-name "Custom Course" --config-file course_config.yaml
+
+# Template-only course (no AI generation)
+python -m src.main init --course-name "Template Course" --no-llm
+
+# Course with mission prompt
+python -m src.main init --course-name "Mission Course" --mission "Focus on practical AI applications"
+```
+
+#### `push` - Generate Academic Documents
+
+Generates all Key Academic Documents from the course content.
 
 ```bash
-gen --help                    # Show all commands
-gen init --help              # Show init command options
-gen config --help            # Show config command options
+python -m src.main push [--target /path/to/course]
 ```
 
-For detailed documentation, see the man page: `man gen`
+**Options:**
+- `--target, -t`: Path to the course content folder (default: current directory)
+
+**Examples:**
+```bash
+# Generate documents from current directory
+python -m src.main push
+
+# Generate documents from specific course
+python -m src.main push --target /path/to/course
+```
+
+#### `config` - Manage Course Configuration
+
+Create and manage course configuration files.
+
+```bash
+python -m src.main config [options]
+```
+
+**Options:**
+- `--create, -c`: Create a new configuration file [default: course_config.yaml]
+- `--template, -t`: Template type (basic, tafe, commercial, accelerated, custom) [default: basic]
+- `--output-dir, -o`: Output directory for configuration file [default: current directory]
+
+**Examples:**
+```bash
+# Create basic configuration
+python -m src.main config --create course_config.yaml
+
+# Create TAFE-specific configuration
+python -m src.main config --create tafe_config.yaml --template tafe
+
+# Create configuration in specific directory
+python -m src.main config --create config.yaml --output-dir /path/to/configs
+```
+
+#### `convert` - Convert Markdown to Notebooks
+
+Convert markdown files to Jupyter notebooks or vice versa using jupytext.
+
+```bash
+python -m src.main convert <course_directory> [options]
+```
+
+**Options:**
+- `--pattern`: File pattern to convert [default: demo.md]
+- `--reverse`: Convert notebooks to markdown instead
+
+**Examples:**
+```bash
+# Convert demo.md files to notebooks
+python -m src.main convert /path/to/course
+
+# Convert specific pattern
+python -m src.main convert /path/to/course --pattern "*.md"
+
+# Convert notebooks back to markdown
+python -m src.main convert /path/to/course --reverse
+```
+
+#### `list-models` - List Available AI Models
+
+Display all available AI models for content generation.
+
+```bash
+python -m src.main list-models
+```
+
+**Output:**
+- Lists all available models from OpenAI, Anthropic, and HuggingFace
+- Shows model count and provider information
+- Caches results for 24 hours to avoid repeated API calls
+
+### AI Model Selection
+
+The tool supports multiple AI providers and models for content generation:
+
+#### **Default Model**
+- **`gpt-4.1-nano-2025-04-14`**: Cheapest option, good for basic content generation
+
+#### **Popular Models**
+- **OpenAI**: `gpt-4o-mini`, `gpt-4o`, `gpt-4-turbo`
+- **Anthropic**: `claude-3-5-sonnet`, `claude-3-opus`, `claude-3-haiku`
+- **HuggingFace**: `meta-llama/Llama-3.2-*`, `deepseek-ai/DeepSeek-V3`
+
+#### **Model Selection Examples**
+```bash
+# Use cheapest model (default)
+python -m src.main init --course-name "Course" 
+
+# Use specific OpenAI model
+python -m src.main init --course-name "Course" --model "gpt-4o"
+
+# Use Claude model
+python -m src.main init --course-name "Course" --model "claude-3-5-sonnet"
+
+# List all available models
+python -m src.main list-models
+```
+
+### Configuration Templates
+
+The tool provides several configuration templates for different course types:
+
+#### **Basic Template**
+- Standard course configuration
+- Suitable for most educational contexts
+
+#### **TAFE Template**
+- TAFE-specific settings and requirements
+- Competency-based assessment structure
+- Industry-focused learning outcomes
+
+#### **Commercial Template**
+- Commercial training settings
+- Flexible assessment options
+- Business-oriented content
+
+#### **Accelerated Template**
+- Fast-paced learning format
+- Condensed timeline
+- Intensive assessment structure
+
+#### **Custom Template**
+- Fully customizable configuration
+- All options available
+- Maximum flexibility
+
+### Environment Variables
+
+The tool uses several environment variables for configuration:
+
+```bash
+# Required for production
+export COURSE_CONTENT="/path/to/course/content"
+export OUTPUT_LOCATION="/path/to/output"
+
+# API Keys (optional, for AI content generation)
+export OPENAI_API_KEY="your-openai-api-key"
+export ANTHROPIC_API_KEY="your-anthropic-api-key"
+```
+
+### Help and Documentation
+
+```bash
+# General help
+python -m src.main --help
+
+# Command-specific help
+python -m src.main init --help
+python -m src.main push --help
+python -m src.main config --help
+python -m src.main convert --help
+
+# Man page (if installed)
+man gen
+```
 
 ---
 
