@@ -1,0 +1,779 @@
+2025-07-02 07:18:54,557 - root - INFO - Initializing course: Artificial Intelligence Skill Set
+2025-07-02 07:18:54,557 - root - INFO - No UOC codes provided, using template data
+2025-07-02 07:18:54,557 - root - INFO - Creating directory structure for course: Artificial Intelligence Skill Set
+2025-07-02 07:18:54,559 - root - INFO - Directory structure created successfully
+2025-07-02 07:18:54,559 - root - INFO - [92m📝 Using template content (no UOC data, GPT generator disabled, or LLM disabled)[0m
+2025-07-02 07:18:54,559 - root - INFO - LAP files created successfully
+2025-07-02 07:18:54,560 - root - INFO - Assessment templates created successfully
+2025-07-02 07:18:54,560 - root - INFO - Supporting files created successfully
+2025-07-02 07:18:54,560 - root - INFO - Course 'Artificial Intelligence Skill Set' initialized successfully at: test_aiss_course/Artificial Intelligence Skill Set
+2025-07-02 07:19:24,116 - root - INFO - Initializing course: Artificial Intelligence Skill Set
+2025-07-02 07:19:24,116 - root - INFO - No UOC codes provided, using template data
+2025-07-02 07:19:24,117 - root - INFO - Creating directory structure for course: Artificial Intelligence Skill Set
+2025-07-02 07:19:24,119 - root - INFO - Directory structure created successfully
+2025-07-02 07:19:24,119 - root - INFO - [92m📝 Using template content (no UOC data, GPT generator disabled, or LLM disabled)[0m
+2025-07-02 07:19:24,120 - root - INFO - LAP files created successfully
+2025-07-02 07:19:24,121 - root - INFO - Assessment templates created successfully
+2025-07-02 07:19:24,122 - root - INFO - Supporting files created successfully
+2025-07-02 07:19:24,122 - root - INFO - Course 'Artificial Intelligence Skill Set' initialized successfully at: test_aiss_course_gpt/Artificial Intelligence Skill Set
+2025-07-02 07:20:00,346 - root - INFO - Initializing course: Artificial Intelligence Skill Set
+2025-07-02 07:20:00,346 - root - INFO - Fetching UOC data for codes: ICTAII401, ICTAII501, ICTAII502
+2025-07-02 07:20:01,279 - root - INFO - Successfully fetched UOC data for ICTAII401
+2025-07-02 07:20:02,152 - root - INFO - Successfully fetched UOC data for ICTAII501
+2025-07-02 07:20:03,036 - root - INFO - Successfully fetched UOC data for ICTAII502
+2025-07-02 07:20:03,036 - root - INFO - Creating directory structure for course: Artificial Intelligence Skill Set
+2025-07-02 07:20:03,040 - root - INFO - Directory structure created successfully
+2025-07-02 07:20:03,040 - root - INFO - [92m📝 Using template content (no UOC data, GPT generator disabled, or LLM disabled)[0m
+2025-07-02 07:20:03,044 - root - INFO - LAP files created successfully
+2025-07-02 07:20:03,047 - root - INFO - Assessment templates created successfully
+2025-07-02 07:20:03,048 - root - INFO - Supporting files created successfully
+2025-07-02 07:20:03,048 - root - INFO - Course 'Artificial Intelligence Skill Set' initialized successfully at: test_aiss_course_fixed/Artificial Intelligence Skill Set
+2025-07-02 07:20:34,150 - root - INFO - Initializing course: Artificial Intelligence Skill Set
+2025-07-02 07:20:34,151 - root - INFO - Fetching UOC data for codes: ICTAII401, ICTAII501, ICTAII502
+2025-07-02 07:20:35,036 - root - INFO - Successfully fetched UOC data for ICTAII401
+2025-07-02 07:20:35,904 - root - INFO - Successfully fetched UOC data for ICTAII501
+2025-07-02 07:20:36,769 - root - INFO - Successfully fetched UOC data for ICTAII502
+2025-07-02 07:20:36,770 - root - INFO - Creating directory structure for course: Artificial Intelligence Skill Set
+2025-07-02 07:20:36,773 - root - INFO - Directory structure created successfully
+2025-07-02 07:20:36,773 - root - INFO - [92m📝 Using template content (no UOC data, GPT generator disabled, or LLM disabled)[0m
+2025-07-02 07:20:36,774 - root - INFO - LAP files created successfully
+2025-07-02 07:20:36,775 - root - INFO - Assessment templates created successfully
+2025-07-02 07:20:36,776 - root - INFO - Supporting files created successfully
+2025-07-02 07:20:36,776 - root - INFO - Course 'Artificial Intelligence Skill Set' initialized successfully at: test_aiss_course_updated/Artificial Intelligence Skill Set
+2025-07-02 07:21:35,218 - root - INFO - We are not rendering knowledge elements in LAPs
+2025-07-02 07:21:36,988 - root - ERROR - Failed to fetch release info https://training.gov.au/api/training/UNIT_CODE_1/releases/1?api-version=1.0: 404 Client Error: Not Found for url: https://training.gov.au/api/training/UNIT_CODE_1/releases/1?api-version=1.0
+2025-07-02 07:25:44,617 - root - INFO - We are not rendering knowledge elements in LAPs
+2025-07-02 07:25:46,743 - root - ERROR - Failed to fetch release info https://training.gov.au/api/training/UNIT_CODE_1/releases/1?api-version=1.0: 404 Client Error: Not Found for url: https://training.gov.au/api/training/UNIT_CODE_1/releases/1?api-version=1.0
+2025-07-02 08:03:58,255 - root - INFO - Initializing course: AISS-ICTSS00120-Test
+2025-07-02 08:03:58,255 - root - INFO - Fetching UOC data for codes: ICTAII401, ICTAII501, ICTAII502
+2025-07-02 08:03:59,159 - root - INFO - Successfully fetched UOC data for ICTAII401
+2025-07-02 08:04:00,032 - root - INFO - Successfully fetched UOC data for ICTAII501
+2025-07-02 08:04:00,894 - root - INFO - Successfully fetched UOC data for ICTAII502
+2025-07-02 08:04:00,894 - root - INFO - Creating directory structure for course: AISS-ICTSS00120-Test
+2025-07-02 08:04:00,898 - root - INFO - Directory structure created successfully
+2025-07-02 08:04:00,899 - root - INFO - [94m[1m🚀 Generating content using GPT and UOC data[0m
+2025-07-02 08:04:00,899 - root - INFO - [96m📊 Will generate content for 3 units over 20 weeks (18 academic + 2 reassessment)[0m
+2025-07-02 08:04:00,899 - root - INFO - [93m⚠️  This will involve multiple API calls for course overview, weekly topics, assessments, activities, and resources[0m
+2025-07-02 08:04:00,899 - root - INFO - [94m[1m🎯 Generating LAP content using GPT with chain of thought reasoning[0m
+2025-07-02 08:04:00,899 - root - INFO - [95m[1mStep 1/6: Generating course overview...[0m
+2025-07-02 08:04:00,899 - root - INFO - [94m[1m🔄 Generating course overview with chain of thought reasoning for tafe course...[0m
+2025-07-02 08:04:00,899 - root - ERROR - Failed to initialize course: 'str' object has no attribute 'get'
+2025-07-02 08:04:06,820 - root - INFO - Initializing course: AISS-ICTSS00120-Test
+2025-07-02 08:04:06,820 - root - INFO - Fetching UOC data for codes: ICTAII401, ICTAII501, ICTAII502
+2025-07-02 08:04:07,666 - root - INFO - Successfully fetched UOC data for ICTAII401
+2025-07-02 08:04:08,579 - root - INFO - Successfully fetched UOC data for ICTAII501
+2025-07-02 08:04:09,452 - root - INFO - Successfully fetched UOC data for ICTAII502
+2025-07-02 08:04:09,452 - root - INFO - Creating directory structure for course: AISS-ICTSS00120-Test
+2025-07-02 08:04:09,453 - root - INFO - Directory structure created successfully
+2025-07-02 08:04:09,453 - root - INFO - [92m📝 Using template content (no UOC data, GPT generator disabled, or LLM disabled)[0m
+2025-07-02 08:04:09,455 - root - INFO - LAP files created successfully
+2025-07-02 08:04:09,457 - root - INFO - Assessment templates created successfully
+2025-07-02 08:04:09,458 - root - INFO - Supporting files created successfully
+2025-07-02 08:04:09,458 - root - INFO - Course 'AISS-ICTSS00120-Test' initialized successfully at: test_outputs/lap_validation/AISS-ICTSS00120-Test
+2025-07-02 08:04:57,258 - root - INFO - Initializing course: AISS-ICTSS00120-LLM
+2025-07-02 08:04:57,258 - root - INFO - Fetching UOC data for codes: ICTAII401, ICTAII501, ICTAII502
+2025-07-02 08:04:58,144 - root - INFO - Successfully fetched UOC data for ICTAII401
+2025-07-02 08:04:59,009 - root - INFO - Successfully fetched UOC data for ICTAII501
+2025-07-02 08:04:59,872 - root - INFO - Successfully fetched UOC data for ICTAII502
+2025-07-02 08:04:59,872 - root - INFO - Creating directory structure for course: AISS-ICTSS00120-LLM
+2025-07-02 08:04:59,874 - root - INFO - Directory structure created successfully
+2025-07-02 08:04:59,874 - root - INFO - [94m[1m🚀 Generating content using GPT and UOC data[0m
+2025-07-02 08:04:59,874 - root - INFO - [96m📊 Will generate content for 3 units over 20 weeks (18 academic + 2 reassessment)[0m
+2025-07-02 08:04:59,874 - root - INFO - [93m⚠️  This will involve multiple API calls for course overview, weekly topics, assessments, activities, and resources[0m
+2025-07-02 08:04:59,874 - root - INFO - [94m[1m🎯 Generating LAP content using GPT with chain of thought reasoning[0m
+2025-07-02 08:04:59,874 - root - INFO - [95m[1mStep 1/6: Generating course overview...[0m
+2025-07-02 08:04:59,874 - root - INFO - [94m[1m🔄 Generating course overview with chain of thought reasoning for tafe course...[0m
+2025-07-02 08:04:59,874 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:05:02,367 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:05:02,381 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:05:02,381 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=218, prompt_tokens=657, total_tokens=875, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0))
+2025-07-02 08:05:02,382 - gpt.models.utils - INFO - Prompt Tokens: 657
+2025-07-02 08:05:02,382 - gpt.models.utils - INFO - Completion Tokens: 218
+2025-07-02 08:05:02,382 - gpt.models.utils - INFO - Total Tokens: 875
+2025-07-02 08:05:02,382 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0066, COMPLETION COST: $0.0065, TOTAL COST: $0.0131
+2025-07-02 08:05:02,382 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:05:02,382 - gpt.models.utils - INFO - Running Usage Total Tokens: 875
+2025-07-02 08:05:02,382 - gpt.models.utils - INFO - Running Usage Total Cost: $0.01311
+2025-07-02 08:05:02,383 - root - INFO - [92m✅ Valid response on attempt 1[0m
+2025-07-02 08:05:02,383 - root - INFO - [92m[1m✅ Successfully generated course overview with chain of thought reasoning[0m
+2025-07-02 08:05:02,384 - root - INFO - [95m[1mStep 2/6: Generating complete weekly topics with chain of thought reasoning...[0m
+2025-07-02 08:05:02,384 - root - INFO - [94m[1m🔄 Generating 20 weekly topics with chain of thought reasoning for tafe course...[0m
+2025-07-02 08:05:02,384 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:05:14,412 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:05:14,573 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:05:14,574 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1970, prompt_tokens=1579, total_tokens=3549, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0))
+2025-07-02 08:05:14,574 - gpt.models.utils - INFO - Prompt Tokens: 1579
+2025-07-02 08:05:14,574 - gpt.models.utils - INFO - Completion Tokens: 1970
+2025-07-02 08:05:14,574 - gpt.models.utils - INFO - Total Tokens: 3549
+2025-07-02 08:05:14,574 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0158, COMPLETION COST: $0.0591, TOTAL COST: $0.0749
+2025-07-02 08:05:14,574 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:05:14,574 - gpt.models.utils - INFO - Running Usage Total Tokens: 4424
+2025-07-02 08:05:14,574 - gpt.models.utils - INFO - Running Usage Total Cost: $0.088
+2025-07-02 08:05:14,575 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 08:05:14,575 - root - INFO - [92m[1m✅ Successfully generated 20 weekly topics with chain of thought reasoning[0m
+2025-07-02 08:05:14,575 - root - INFO - [95m[1mStep 3/6: Generating assessment descriptions...[0m
+2025-07-02 08:05:14,575 - root - INFO - [94m[1m🔄 Generating assessment descriptions with chain of thought reasoning...[0m
+2025-07-02 08:05:14,575 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:05:21,884 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:05:21,887 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:05:21,887 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=791, prompt_tokens=4338, total_tokens=5129, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=3328))
+2025-07-02 08:05:21,887 - gpt.models.utils - INFO - Prompt Tokens: 4338
+2025-07-02 08:05:21,887 - gpt.models.utils - INFO - Completion Tokens: 791
+2025-07-02 08:05:21,887 - gpt.models.utils - INFO - Total Tokens: 5129
+2025-07-02 08:05:21,887 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0434, COMPLETION COST: $0.0237, TOTAL COST: $0.0671
+2025-07-02 08:05:21,887 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:05:21,887 - gpt.models.utils - INFO - Running Usage Total Tokens: 9553
+2025-07-02 08:05:21,888 - gpt.models.utils - INFO - Running Usage Total Cost: $0.15511
+2025-07-02 08:05:21,888 - root - WARNING - [93m⚠️  Invalid JSON on attempt 1: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 08:05:21,888 - root - INFO - [96m🔄 Attempt 2/3...[0m
+2025-07-02 08:05:27,192 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:05:27,194 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:05:27,195 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=814, prompt_tokens=5918, total_tokens=6732, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=4992))
+2025-07-02 08:05:27,195 - gpt.models.utils - INFO - Prompt Tokens: 5918
+2025-07-02 08:05:27,195 - gpt.models.utils - INFO - Completion Tokens: 814
+2025-07-02 08:05:27,195 - gpt.models.utils - INFO - Total Tokens: 6732
+2025-07-02 08:05:27,195 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0592, COMPLETION COST: $0.0244, TOTAL COST: $0.0836
+2025-07-02 08:05:27,195 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:05:27,195 - gpt.models.utils - INFO - Running Usage Total Tokens: 16285
+2025-07-02 08:05:27,195 - gpt.models.utils - INFO - Running Usage Total Cost: $0.23870999999999998
+2025-07-02 08:05:27,196 - root - INFO - [92m✅ Valid JSON response on attempt 2[0m
+2025-07-02 08:05:27,196 - root - INFO - [92m[1m✅ Successfully generated 4 assessment descriptions with chain of thought reasoning[0m
+2025-07-02 08:05:27,196 - root - INFO - [95m[1mStep 4/6: Generating learning activities with full context awareness...[0m
+2025-07-02 08:05:27,196 - root - INFO - [95m[1m🔄 Generating learning activities for all 20 weeks with chain of thought reasoning and full context awareness (18 academic + 2 reassessment)...[0m
+2025-07-02 08:05:27,196 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:05:40,149 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:05:40,347 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:05:40,348 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1805, prompt_tokens=9407, total_tokens=11212, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=6528))
+2025-07-02 08:05:40,348 - gpt.models.utils - INFO - Prompt Tokens: 9407
+2025-07-02 08:05:40,348 - gpt.models.utils - INFO - Completion Tokens: 1805
+2025-07-02 08:05:40,348 - gpt.models.utils - INFO - Total Tokens: 11212
+2025-07-02 08:05:40,348 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0941, COMPLETION COST: $0.0541, TOTAL COST: $0.1482
+2025-07-02 08:05:40,348 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:05:40,348 - gpt.models.utils - INFO - Running Usage Total Tokens: 27497
+2025-07-02 08:05:40,348 - gpt.models.utils - INFO - Running Usage Total Cost: $0.38693
+2025-07-02 08:05:40,349 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 08:05:40,349 - root - INFO - [92m[1m✅ Successfully generated activities for all 20 weeks with chain of thought reasoning[0m
+2025-07-02 08:05:40,349 - root - INFO - [95m[1mStep 5/6: Generating learning resources with full context awareness...[0m
+2025-07-02 08:05:40,349 - root - INFO - [95m[1m🔄 Generating learning resources for all 20 weeks with chain of thought reasoning and full context awareness (18 academic + 2 reassessment)...[0m
+2025-07-02 08:05:40,349 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:05:56,990 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:05:57,220 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:05:57,220 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=2343, prompt_tokens=14064, total_tokens=16407, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=11008))
+2025-07-02 08:05:57,220 - gpt.models.utils - INFO - Prompt Tokens: 14064
+2025-07-02 08:05:57,220 - gpt.models.utils - INFO - Completion Tokens: 2343
+2025-07-02 08:05:57,220 - gpt.models.utils - INFO - Total Tokens: 16407
+2025-07-02 08:05:57,220 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.1406, COMPLETION COST: $0.0703, TOTAL COST: $0.2109
+2025-07-02 08:05:57,221 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:05:57,221 - gpt.models.utils - INFO - Running Usage Total Tokens: 43904
+2025-07-02 08:05:57,221 - gpt.models.utils - INFO - Running Usage Total Cost: $0.5978600000000001
+2025-07-02 08:05:57,222 - root - WARNING - [93m⚠️  Invalid JSON on attempt 1: Illegal trailing comma before end of array: line 189 column 133 (char 12111)[0m
+2025-07-02 08:05:57,222 - root - INFO - [96m🔄 Attempt 2/3...[0m
+2025-07-02 08:06:14,510 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:06:14,724 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:06:14,728 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=2604, prompt_tokens=19259, total_tokens=21863, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=16256))
+2025-07-02 08:06:14,728 - gpt.models.utils - INFO - Prompt Tokens: 19259
+2025-07-02 08:06:14,728 - gpt.models.utils - INFO - Completion Tokens: 2604
+2025-07-02 08:06:14,728 - gpt.models.utils - INFO - Total Tokens: 21863
+2025-07-02 08:06:14,728 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.1926, COMPLETION COST: $0.0781, TOTAL COST: $0.2707
+2025-07-02 08:06:14,733 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:06:14,733 - gpt.models.utils - INFO - Running Usage Total Tokens: 65767
+2025-07-02 08:06:14,733 - gpt.models.utils - INFO - Running Usage Total Cost: $0.8685700000000001
+2025-07-02 08:06:14,733 - root - INFO - [92m✅ Valid JSON response on attempt 2[0m
+2025-07-02 08:06:14,734 - root - INFO - [92m[1m✅ Successfully generated resources for all 20 weeks with chain of thought reasoning[0m
+2025-07-02 08:06:14,734 - root - INFO - [95m[1mStep 6/6: Generating complete learning materials (slides.md, demo.md) for each week...[0m
+2025-07-02 08:06:14,734 - root - INFO - [95m[1m🔄 Generating complete learning materials for all 20 weeks with chain of thought reasoning...[0m
+2025-07-02 08:06:14,734 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:06:38,878 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:06:39,077 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:06:39,077 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=4244, prompt_tokens=24480, total_tokens=28724, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=21632))
+2025-07-02 08:06:39,077 - gpt.models.utils - INFO - Prompt Tokens: 24480
+2025-07-02 08:06:39,077 - gpt.models.utils - INFO - Completion Tokens: 4244
+2025-07-02 08:06:39,077 - gpt.models.utils - INFO - Total Tokens: 28724
+2025-07-02 08:06:39,077 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.2448, COMPLETION COST: $0.1273, TOTAL COST: $0.3721
+2025-07-02 08:06:39,077 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:06:39,077 - gpt.models.utils - INFO - Running Usage Total Tokens: 94491
+2025-07-02 08:06:39,077 - gpt.models.utils - INFO - Running Usage Total Cost: $1.24069
+2025-07-02 08:06:39,078 - root - WARNING - [93m⚠️  Invalid JSON on attempt 1: Expecting ',' delimiter: line 6 column 3 (char 1503)[0m
+2025-07-02 08:06:39,078 - root - INFO - [96m🔄 Attempt 2/3...[0m
+2025-07-02 08:07:05,921 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:07:06,118 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:07:06,118 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=4192, prompt_tokens=31341, total_tokens=35533, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=28544))
+2025-07-02 08:07:06,118 - gpt.models.utils - INFO - Prompt Tokens: 31341
+2025-07-02 08:07:06,118 - gpt.models.utils - INFO - Completion Tokens: 4192
+2025-07-02 08:07:06,118 - gpt.models.utils - INFO - Total Tokens: 35533
+2025-07-02 08:07:06,118 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.3134, COMPLETION COST: $0.1258, TOTAL COST: $0.4392
+2025-07-02 08:07:06,118 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:07:06,118 - gpt.models.utils - INFO - Running Usage Total Tokens: 130024
+2025-07-02 08:07:06,118 - gpt.models.utils - INFO - Running Usage Total Cost: $1.6798600000000001
+2025-07-02 08:07:06,119 - root - INFO - [92m✅ Valid JSON response on attempt 2[0m
+2025-07-02 08:07:06,119 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:07:31,057 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:07:31,278 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:07:31,278 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=4127, prompt_tokens=38157, total_tokens=42284, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=35328))
+2025-07-02 08:07:31,278 - gpt.models.utils - INFO - Prompt Tokens: 38157
+2025-07-02 08:07:31,278 - gpt.models.utils - INFO - Completion Tokens: 4127
+2025-07-02 08:07:31,278 - gpt.models.utils - INFO - Total Tokens: 42284
+2025-07-02 08:07:31,278 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.3816, COMPLETION COST: $0.1238, TOTAL COST: $0.5054
+2025-07-02 08:07:31,278 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:07:31,278 - gpt.models.utils - INFO - Running Usage Total Tokens: 172308
+2025-07-02 08:07:31,278 - gpt.models.utils - INFO - Running Usage Total Cost: $2.1852400000000003
+2025-07-02 08:07:31,280 - root - WARNING - [93m⚠️  Invalid JSON on attempt 1: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 08:07:31,280 - root - INFO - [96m🔄 Attempt 2/3...[0m
+2025-07-02 08:07:46,976 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:07:46,978 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:07:46,978 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=2268, prompt_tokens=44915, total_tokens=47183, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=38016))
+2025-07-02 08:07:46,978 - gpt.models.utils - INFO - Prompt Tokens: 44915
+2025-07-02 08:07:46,978 - gpt.models.utils - INFO - Completion Tokens: 2268
+2025-07-02 08:07:46,978 - gpt.models.utils - INFO - Total Tokens: 47183
+2025-07-02 08:07:46,978 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.4492, COMPLETION COST: $0.0680, TOTAL COST: $0.5172
+2025-07-02 08:07:46,978 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:07:46,978 - gpt.models.utils - INFO - Running Usage Total Tokens: 219491
+2025-07-02 08:07:46,978 - gpt.models.utils - INFO - Running Usage Total Cost: $2.7024300000000006
+2025-07-02 08:07:46,978 - root - WARNING - [93m⚠️  Invalid JSON on attempt 2: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 08:07:46,978 - root - INFO - [96m🔄 Attempt 3/3...[0m
+2025-07-02 08:08:04,364 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:08:04,387 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:08:04,388 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=2218, prompt_tokens=49810, total_tokens=52028, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=44800))
+2025-07-02 08:08:04,389 - gpt.models.utils - INFO - Prompt Tokens: 49810
+2025-07-02 08:08:04,389 - gpt.models.utils - INFO - Completion Tokens: 2218
+2025-07-02 08:08:04,389 - gpt.models.utils - INFO - Total Tokens: 52028
+2025-07-02 08:08:04,389 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.4981, COMPLETION COST: $0.0665, TOTAL COST: $0.5646
+2025-07-02 08:08:04,389 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:08:04,389 - gpt.models.utils - INFO - Running Usage Total Tokens: 271519
+2025-07-02 08:08:04,389 - gpt.models.utils - INFO - Running Usage Total Cost: $3.2670700000000004
+2025-07-02 08:08:04,389 - root - WARNING - [93m⚠️  Invalid JSON on attempt 3: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 08:08:04,389 - root - INFO - [93m🔄 Clearing context and requesting direct response...[0m
+2025-07-02 08:08:17,504 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:08:17,506 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:08:17,506 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=2222, prompt_tokens=54696, total_tokens=56918, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=49792))
+2025-07-02 08:08:17,506 - gpt.models.utils - INFO - Prompt Tokens: 54696
+2025-07-02 08:08:17,506 - gpt.models.utils - INFO - Completion Tokens: 2222
+2025-07-02 08:08:17,506 - gpt.models.utils - INFO - Total Tokens: 56918
+2025-07-02 08:08:17,506 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.5470, COMPLETION COST: $0.0667, TOTAL COST: $0.6136
+2025-07-02 08:08:17,506 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:08:17,506 - gpt.models.utils - INFO - Running Usage Total Tokens: 328437
+2025-07-02 08:08:17,506 - gpt.models.utils - INFO - Running Usage Total Cost: $3.8806900000000004
+2025-07-02 08:08:17,506 - root - ERROR - [91m❌ Direct response failed: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 08:08:17,506 - root - ERROR - [91mFailed to generate learning materials after all retries[0m
+2025-07-02 08:08:17,506 - root - INFO - [93m⚠️  Using fallback learning materials[0m
+2025-07-02 08:08:17,508 - root - INFO - [94m[1m📚 Creating learning materials for 20 weeks...[0m
+2025-07-02 08:08:17,509 - root - INFO - [92m✅ Created slides.md for Week 1[0m
+2025-07-02 08:08:17,509 - root - INFO - [92m✅ Created demo.md for Week 1[0m
+2025-07-02 08:08:17,546 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 1/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 1/demo.ipynb
+2025-07-02 08:08:17,546 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 1[0m
+2025-07-02 08:08:17,547 - root - INFO - [92m✅ Created slides.md for Week 2[0m
+2025-07-02 08:08:17,547 - root - INFO - [92m✅ Created demo.md for Week 2[0m
+2025-07-02 08:08:17,550 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 2/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 2/demo.ipynb
+2025-07-02 08:08:17,550 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 2[0m
+2025-07-02 08:08:17,550 - root - INFO - [92m✅ Created slides.md for Week 3[0m
+2025-07-02 08:08:17,551 - root - INFO - [92m✅ Created demo.md for Week 3[0m
+2025-07-02 08:08:17,555 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 3/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 3/demo.ipynb
+2025-07-02 08:08:17,555 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 3[0m
+2025-07-02 08:08:17,555 - root - INFO - [92m✅ Created slides.md for Week 4[0m
+2025-07-02 08:08:17,556 - root - INFO - [92m✅ Created demo.md for Week 4[0m
+2025-07-02 08:08:17,558 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 4/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 4/demo.ipynb
+2025-07-02 08:08:17,558 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 4[0m
+2025-07-02 08:08:17,558 - root - INFO - [92m✅ Created slides.md for Week 5[0m
+2025-07-02 08:08:17,558 - root - INFO - [92m✅ Created demo.md for Week 5[0m
+2025-07-02 08:08:17,560 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 5/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 5/demo.ipynb
+2025-07-02 08:08:17,560 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 5[0m
+2025-07-02 08:08:17,560 - root - INFO - [92m✅ Created slides.md for Week 6[0m
+2025-07-02 08:08:17,560 - root - INFO - [92m✅ Created demo.md for Week 6[0m
+2025-07-02 08:08:17,563 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 6/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 6/demo.ipynb
+2025-07-02 08:08:17,563 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 6[0m
+2025-07-02 08:08:17,563 - root - INFO - [92m✅ Created slides.md for Week 7[0m
+2025-07-02 08:08:17,563 - root - INFO - [92m✅ Created demo.md for Week 7[0m
+2025-07-02 08:08:17,565 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 7/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 7/demo.ipynb
+2025-07-02 08:08:17,565 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 7[0m
+2025-07-02 08:08:17,566 - root - INFO - [92m✅ Created slides.md for Week 8[0m
+2025-07-02 08:08:17,566 - root - INFO - [92m✅ Created demo.md for Week 8[0m
+2025-07-02 08:08:17,569 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 8/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 8/demo.ipynb
+2025-07-02 08:08:17,569 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 8[0m
+2025-07-02 08:08:17,569 - root - INFO - [92m✅ Created slides.md for Week 9[0m
+2025-07-02 08:08:17,569 - root - INFO - [92m✅ Created demo.md for Week 9[0m
+2025-07-02 08:08:17,572 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 9/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 9/demo.ipynb
+2025-07-02 08:08:17,572 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 9[0m
+2025-07-02 08:08:17,572 - root - INFO - [92m✅ Created slides.md for Week 10[0m
+2025-07-02 08:08:17,573 - root - INFO - [92m✅ Created demo.md for Week 10[0m
+2025-07-02 08:08:17,575 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 10/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 10/demo.ipynb
+2025-07-02 08:08:17,575 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 10[0m
+2025-07-02 08:08:17,576 - root - INFO - [92m✅ Created slides.md for Week 11[0m
+2025-07-02 08:08:17,576 - root - INFO - [92m✅ Created demo.md for Week 11[0m
+2025-07-02 08:08:17,579 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 11/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 11/demo.ipynb
+2025-07-02 08:08:17,579 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 11[0m
+2025-07-02 08:08:17,579 - root - INFO - [92m✅ Created slides.md for Week 12[0m
+2025-07-02 08:08:17,579 - root - INFO - [92m✅ Created demo.md for Week 12[0m
+2025-07-02 08:08:17,581 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 12/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 12/demo.ipynb
+2025-07-02 08:08:17,581 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 12[0m
+2025-07-02 08:08:17,582 - root - INFO - [92m✅ Created slides.md for Week 13[0m
+2025-07-02 08:08:17,582 - root - INFO - [92m✅ Created demo.md for Week 13[0m
+2025-07-02 08:08:17,584 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 13/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 13/demo.ipynb
+2025-07-02 08:08:17,584 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 13[0m
+2025-07-02 08:08:17,584 - root - INFO - [92m✅ Created slides.md for Week 14[0m
+2025-07-02 08:08:17,585 - root - INFO - [92m✅ Created demo.md for Week 14[0m
+2025-07-02 08:08:17,587 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 14/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 14/demo.ipynb
+2025-07-02 08:08:17,587 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 14[0m
+2025-07-02 08:08:17,587 - root - INFO - [92m✅ Created slides.md for Week 15[0m
+2025-07-02 08:08:17,588 - root - INFO - [92m✅ Created demo.md for Week 15[0m
+2025-07-02 08:08:17,591 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 15/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 15/demo.ipynb
+2025-07-02 08:08:17,591 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 15[0m
+2025-07-02 08:08:17,591 - root - INFO - [92m✅ Created slides.md for Week 16[0m
+2025-07-02 08:08:17,592 - root - INFO - [92m✅ Created demo.md for Week 16[0m
+2025-07-02 08:08:17,595 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 16/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 16/demo.ipynb
+2025-07-02 08:08:17,595 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 16[0m
+2025-07-02 08:08:17,595 - root - INFO - [92m✅ Created slides.md for Week 17[0m
+2025-07-02 08:08:17,595 - root - INFO - [92m✅ Created demo.md for Week 17[0m
+2025-07-02 08:08:17,597 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 17/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 17/demo.ipynb
+2025-07-02 08:08:17,597 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 17[0m
+2025-07-02 08:08:17,598 - root - INFO - [92m✅ Created slides.md for Week 18[0m
+2025-07-02 08:08:17,598 - root - INFO - [92m✅ Created demo.md for Week 18[0m
+2025-07-02 08:08:17,601 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 18/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 18/demo.ipynb
+2025-07-02 08:08:17,601 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 18[0m
+2025-07-02 08:08:17,602 - root - INFO - [92m✅ Created slides.md for Week 19[0m
+2025-07-02 08:08:17,603 - root - INFO - [92m✅ Created demo.md for Week 19[0m
+2025-07-02 08:08:17,606 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 19/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 19/demo.ipynb
+2025-07-02 08:08:17,606 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 19[0m
+2025-07-02 08:08:17,606 - root - INFO - [92m✅ Created slides.md for Week 20[0m
+2025-07-02 08:08:17,606 - root - INFO - [92m✅ Created demo.md for Week 20[0m
+2025-07-02 08:08:17,608 - src.utils.notebook_converter - INFO - ✅ Successfully converted test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 20/demo.md to test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM/1 Learning Materials/Week 20/demo.ipynb
+2025-07-02 08:08:17,608 - root - INFO - [96m📓 Converted demo.md to demo.ipynb for Week Week 20[0m
+2025-07-02 08:08:17,608 - root - INFO - [92m[1m✅ Successfully created learning materials for all weeks[0m
+2025-07-02 08:08:17,608 - root - INFO - GPT-generated LAP files and learning materials created successfully
+2025-07-02 08:08:17,610 - root - INFO - [94m[1m🔄 Generating assessment descriptions with chain of thought reasoning...[0m
+2025-07-02 08:08:17,610 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:08:22,520 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:08:22,521 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:08:22,521 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=659, prompt_tokens=57706, total_tokens=58365, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=55680))
+2025-07-02 08:08:22,521 - gpt.models.utils - INFO - Prompt Tokens: 57706
+2025-07-02 08:08:22,521 - gpt.models.utils - INFO - Completion Tokens: 659
+2025-07-02 08:08:22,521 - gpt.models.utils - INFO - Total Tokens: 58365
+2025-07-02 08:08:22,521 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.5771, COMPLETION COST: $0.0198, TOTAL COST: $0.5968
+2025-07-02 08:08:22,521 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:08:22,521 - gpt.models.utils - INFO - Running Usage Total Tokens: 386802
+2025-07-02 08:08:22,521 - gpt.models.utils - INFO - Running Usage Total Cost: $4.47752
+2025-07-02 08:08:22,521 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 08:08:22,521 - root - INFO - [92m[1m✅ Successfully generated 4 assessment descriptions with chain of thought reasoning[0m
+2025-07-02 08:08:22,524 - root - INFO - Assessment templates created successfully
+2025-07-02 08:08:22,524 - root - INFO - [94m[1m🔄 Generating course overview with chain of thought reasoning for tafe course...[0m
+2025-07-02 08:08:22,524 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:08:25,740 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:08:25,742 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:08:25,742 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=211, prompt_tokens=59023, total_tokens=59234, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=58240))
+2025-07-02 08:08:25,742 - gpt.models.utils - INFO - Prompt Tokens: 59023
+2025-07-02 08:08:25,742 - gpt.models.utils - INFO - Completion Tokens: 211
+2025-07-02 08:08:25,742 - gpt.models.utils - INFO - Total Tokens: 59234
+2025-07-02 08:08:25,742 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.5902, COMPLETION COST: $0.0063, TOTAL COST: $0.5966
+2025-07-02 08:08:25,742 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:08:25,742 - gpt.models.utils - INFO - Running Usage Total Tokens: 446036
+2025-07-02 08:08:25,742 - gpt.models.utils - INFO - Running Usage Total Cost: $5.07408
+2025-07-02 08:08:25,742 - root - INFO - [92m✅ Valid response on attempt 1[0m
+2025-07-02 08:08:25,742 - root - INFO - [92m[1m✅ Successfully generated course overview with chain of thought reasoning[0m
+2025-07-02 08:08:25,743 - root - INFO - Supporting files created successfully
+2025-07-02 08:08:25,743 - root - INFO - Course 'AISS-ICTSS00120-LLM' initialized successfully at: test_outputs/lap_validation_llm/AISS-ICTSS00120-LLM
+2025-07-02 08:18:12,636 - root - INFO - Initializing course: AISS-ICTSS00120-Validated
+2025-07-02 08:18:12,636 - root - INFO - Fetching UOC data for codes: ICTAII401, ICTAII501, ICTAII502
+2025-07-02 08:18:13,665 - root - INFO - Successfully fetched UOC data for ICTAII401
+2025-07-02 08:18:14,525 - root - INFO - Successfully fetched UOC data for ICTAII501
+2025-07-02 08:18:15,406 - root - INFO - Successfully fetched UOC data for ICTAII502
+2025-07-02 08:18:15,406 - root - INFO - Creating directory structure for course: AISS-ICTSS00120-Validated
+2025-07-02 08:18:15,410 - root - INFO - Directory structure created successfully
+2025-07-02 08:18:15,410 - root - INFO - [94m[1m🚀 Generating content using GPT and UOC data[0m
+2025-07-02 08:18:15,410 - root - INFO - [96m📊 Will generate content for 3 units over 20 weeks (18 academic + 2 reassessment)[0m
+2025-07-02 08:18:15,410 - root - INFO - [93m⚠️  This will involve multiple API calls for course overview, weekly topics, assessments, activities, and resources[0m
+2025-07-02 08:18:15,410 - root - INFO - [94m[1m🎯 Generating LAP content using GPT with chain of thought reasoning[0m
+2025-07-02 08:18:15,411 - root - INFO - [95m[1mStep 1/6: Generating course overview...[0m
+2025-07-02 08:18:15,411 - root - INFO - [94m[1m🔄 Generating course overview with chain of thought reasoning for tafe course...[0m
+2025-07-02 08:18:15,411 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:18:18,613 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:18:18,626 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:18:18,626 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=233, prompt_tokens=657, total_tokens=890, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0))
+2025-07-02 08:18:18,627 - gpt.models.utils - INFO - Prompt Tokens: 657
+2025-07-02 08:18:18,627 - gpt.models.utils - INFO - Completion Tokens: 233
+2025-07-02 08:18:18,627 - gpt.models.utils - INFO - Total Tokens: 890
+2025-07-02 08:18:18,627 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0066, COMPLETION COST: $0.0070, TOTAL COST: $0.0136
+2025-07-02 08:18:18,627 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:18:18,627 - gpt.models.utils - INFO - Running Usage Total Tokens: 890
+2025-07-02 08:18:18,627 - gpt.models.utils - INFO - Running Usage Total Cost: $0.01356
+2025-07-02 08:18:18,629 - root - INFO - [92m✅ Valid response on attempt 1[0m
+2025-07-02 08:18:18,629 - root - INFO - [92m[1m✅ Successfully generated course overview with chain of thought reasoning[0m
+2025-07-02 08:18:18,629 - root - INFO - [95m[1mStep 2/6: Generating complete weekly topics with chain of thought reasoning...[0m
+2025-07-02 08:18:18,629 - root - INFO - [94m[1m🔄 Generating 20 weekly topics with chain of thought reasoning for tafe course...[0m
+2025-07-02 08:18:18,629 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:18:28,413 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:18:28,416 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:18:28,416 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1622, prompt_tokens=1594, total_tokens=3216, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0))
+2025-07-02 08:18:28,416 - gpt.models.utils - INFO - Prompt Tokens: 1594
+2025-07-02 08:18:28,416 - gpt.models.utils - INFO - Completion Tokens: 1622
+2025-07-02 08:18:28,416 - gpt.models.utils - INFO - Total Tokens: 3216
+2025-07-02 08:18:28,416 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0159, COMPLETION COST: $0.0487, TOTAL COST: $0.0646
+2025-07-02 08:18:28,416 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:18:28,416 - gpt.models.utils - INFO - Running Usage Total Tokens: 4106
+2025-07-02 08:18:28,417 - gpt.models.utils - INFO - Running Usage Total Cost: $0.07816
+2025-07-02 08:18:28,417 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 08:18:28,417 - root - INFO - [92m[1m✅ Successfully generated 20 weekly topics with chain of thought reasoning[0m
+2025-07-02 08:18:28,417 - root - INFO - [95m[1mStep 3/6: Generating assessment descriptions...[0m
+2025-07-02 08:18:28,417 - root - INFO - [94m[1m🔄 Generating assessment descriptions with chain of thought reasoning...[0m
+2025-07-02 08:18:28,418 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:18:33,276 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:18:33,282 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:18:33,282 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=672, prompt_tokens=4005, total_tokens=4677, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=3072))
+2025-07-02 08:18:33,282 - gpt.models.utils - INFO - Prompt Tokens: 4005
+2025-07-02 08:18:33,282 - gpt.models.utils - INFO - Completion Tokens: 672
+2025-07-02 08:18:33,282 - gpt.models.utils - INFO - Total Tokens: 4677
+2025-07-02 08:18:33,282 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0401, COMPLETION COST: $0.0202, TOTAL COST: $0.0602
+2025-07-02 08:18:33,283 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:18:33,284 - gpt.models.utils - INFO - Running Usage Total Tokens: 8783
+2025-07-02 08:18:33,284 - gpt.models.utils - INFO - Running Usage Total Cost: $0.13837
+2025-07-02 08:18:33,284 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 08:18:33,285 - root - INFO - [92m[1m✅ Successfully generated 4 assessment descriptions with chain of thought reasoning[0m
+2025-07-02 08:18:33,285 - root - INFO - [95m[1mStep 4/6: Generating learning activities with full context awareness...[0m
+2025-07-02 08:18:33,285 - root - INFO - [95m[1m🔄 Generating learning activities for all 20 weeks with chain of thought reasoning and full context awareness (18 academic + 2 reassessment)...[0m
+2025-07-02 08:18:33,285 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:18:43,057 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:18:43,167 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:18:43,167 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1679, prompt_tokens=6844, total_tokens=8523, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=4480))
+2025-07-02 08:18:43,167 - gpt.models.utils - INFO - Prompt Tokens: 6844
+2025-07-02 08:18:43,167 - gpt.models.utils - INFO - Completion Tokens: 1679
+2025-07-02 08:18:43,167 - gpt.models.utils - INFO - Total Tokens: 8523
+2025-07-02 08:18:43,167 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0684, COMPLETION COST: $0.0504, TOTAL COST: $0.1188
+2025-07-02 08:18:43,167 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:18:43,167 - gpt.models.utils - INFO - Running Usage Total Tokens: 17306
+2025-07-02 08:18:43,167 - gpt.models.utils - INFO - Running Usage Total Cost: $0.25717999999999996
+2025-07-02 08:18:43,168 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 08:18:43,168 - root - INFO - [92m[1m✅ Successfully generated activities for all 20 weeks with chain of thought reasoning[0m
+2025-07-02 08:18:43,168 - root - INFO - [95m[1mStep 5/6: Generating learning resources with full context awareness...[0m
+2025-07-02 08:18:43,168 - root - INFO - [95m[1m🔄 Generating learning resources for all 20 weeks with chain of thought reasoning and full context awareness (18 academic + 2 reassessment)...[0m
+2025-07-02 08:18:43,168 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:18:55,072 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:18:55,295 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:18:55,303 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1972, prompt_tokens=10867, total_tokens=12839, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=8320))
+2025-07-02 08:18:55,304 - gpt.models.utils - INFO - Prompt Tokens: 10867
+2025-07-02 08:18:55,304 - gpt.models.utils - INFO - Completion Tokens: 1972
+2025-07-02 08:18:55,304 - gpt.models.utils - INFO - Total Tokens: 12839
+2025-07-02 08:18:55,304 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.1087, COMPLETION COST: $0.0592, TOTAL COST: $0.1678
+2025-07-02 08:18:55,304 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:18:55,304 - gpt.models.utils - INFO - Running Usage Total Tokens: 30145
+2025-07-02 08:18:55,304 - gpt.models.utils - INFO - Running Usage Total Cost: $0.42501
+2025-07-02 08:18:55,306 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 08:18:55,306 - root - INFO - [92m[1m✅ Successfully generated resources for all 20 weeks with chain of thought reasoning[0m
+2025-07-02 08:18:55,306 - root - INFO - [95m[1mStep 6/6: Generating complete learning materials (slides.md, demo.md) for each week...[0m
+2025-07-02 08:18:55,307 - root - INFO - [95m[1m🔄 Generating complete learning materials for all 20 weeks with chain of thought reasoning...[0m
+2025-07-02 08:18:55,308 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 08:19:22,070 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:19:22,228 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:19:22,228 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=4008, prompt_tokens=14948, total_tokens=18956, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=12672))
+2025-07-02 08:19:22,228 - gpt.models.utils - INFO - Prompt Tokens: 14948
+2025-07-02 08:19:22,228 - gpt.models.utils - INFO - Completion Tokens: 4008
+2025-07-02 08:19:22,228 - gpt.models.utils - INFO - Total Tokens: 18956
+2025-07-02 08:19:22,228 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.1495, COMPLETION COST: $0.1202, TOTAL COST: $0.2697
+2025-07-02 08:19:22,228 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:19:22,228 - gpt.models.utils - INFO - Running Usage Total Tokens: 49101
+2025-07-02 08:19:22,228 - gpt.models.utils - INFO - Running Usage Total Cost: $0.6947300000000001
+2025-07-02 08:19:22,229 - root - WARNING - [93m⚠️  Invalid JSON on attempt 1: Expecting ',' delimiter: line 6 column 3 (char 1443)[0m
+2025-07-02 08:19:22,229 - root - INFO - [96m🔄 Attempt 2/3...[0m
+2025-07-02 08:19:46,860 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:19:47,059 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:19:47,059 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=4279, prompt_tokens=21065, total_tokens=25344, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=18816))
+2025-07-02 08:19:47,060 - gpt.models.utils - INFO - Prompt Tokens: 21065
+2025-07-02 08:19:47,060 - gpt.models.utils - INFO - Completion Tokens: 4279
+2025-07-02 08:19:47,060 - gpt.models.utils - INFO - Total Tokens: 25344
+2025-07-02 08:19:47,060 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.2107, COMPLETION COST: $0.1284, TOTAL COST: $0.3390
+2025-07-02 08:19:47,060 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:19:47,060 - gpt.models.utils - INFO - Running Usage Total Tokens: 74445
+2025-07-02 08:19:47,060 - gpt.models.utils - INFO - Running Usage Total Cost: $1.03375
+2025-07-02 08:19:47,060 - root - WARNING - [93m⚠️  Invalid JSON on attempt 2: Expecting ',' delimiter: line 6 column 3 (char 1592)[0m
+2025-07-02 08:19:47,060 - root - INFO - [96m🔄 Attempt 3/3...[0m
+2025-07-02 08:20:13,997 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:20:14,219 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:20:14,222 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=4291, prompt_tokens=27453, total_tokens=31744, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=25216))
+2025-07-02 08:20:14,222 - gpt.models.utils - INFO - Prompt Tokens: 27453
+2025-07-02 08:20:14,222 - gpt.models.utils - INFO - Completion Tokens: 4291
+2025-07-02 08:20:14,222 - gpt.models.utils - INFO - Total Tokens: 31744
+2025-07-02 08:20:14,222 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.2745, COMPLETION COST: $0.1287, TOTAL COST: $0.4033
+2025-07-02 08:20:14,222 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:20:14,222 - gpt.models.utils - INFO - Running Usage Total Tokens: 106189
+2025-07-02 08:20:14,223 - gpt.models.utils - INFO - Running Usage Total Cost: $1.43701
+2025-07-02 08:20:14,224 - root - WARNING - [93m⚠️  Invalid JSON on attempt 3: Expecting ',' delimiter: line 6 column 3 (char 1535)[0m
+2025-07-02 08:20:14,224 - root - INFO - [93m🔄 Clearing context and requesting direct response...[0m
+2025-07-02 08:20:40,832 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 08:20:41,029 - root - INFO - 
+Token Usage:
+
+2025-07-02 08:20:41,030 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=4014, prompt_tokens=33895, total_tokens=37909, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=31616))
+2025-07-02 08:20:41,030 - gpt.models.utils - INFO - Prompt Tokens: 33895
+2025-07-02 08:20:41,030 - gpt.models.utils - INFO - Completion Tokens: 4014
+2025-07-02 08:20:41,030 - gpt.models.utils - INFO - Total Tokens: 37909
+2025-07-02 08:20:41,030 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.3389, COMPLETION COST: $0.1204, TOTAL COST: $0.4594
+2025-07-02 08:20:41,030 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 08:20:41,030 - gpt.models.utils - INFO - Running Usage Total Tokens: 144098
+2025-07-02 08:20:41,030 - gpt.models.utils - INFO - Running Usage Total Cost: $1.8963799999999997
+2025-07-02 08:20:41,031 - root - ERROR - [91m❌ Direct response failed: Expecting ',' delimiter: line 6 column 3 (char 1429)[0m
+2025-07-02 08:20:41,031 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 10:28:29,298 - root - INFO - Initializing course: Artificial Intelligence Skill Set
+2025-07-02 10:28:29,298 - root - INFO - Fetching UOC data for codes: ICTAII401, ICTAII501, ICTAII502
+2025-07-02 10:28:31,481 - root - INFO - Successfully fetched UOC data for ICTAII401
+2025-07-02 10:28:32,642 - root - INFO - Successfully fetched UOC data for ICTAII501
+2025-07-02 10:28:33,711 - root - INFO - Successfully fetched UOC data for ICTAII502
+2025-07-02 10:28:33,711 - root - INFO - Creating directory structure for course: Artificial Intelligence Skill Set
+2025-07-02 10:28:33,715 - root - INFO - Directory structure created successfully
+2025-07-02 10:28:33,715 - root - INFO - [94m[1m🚀 Generating content using GPT and UOC data[0m
+2025-07-02 10:28:33,715 - root - INFO - [96m📊 Will generate content for 3 units over 20 weeks (18 academic + 2 reassessment)[0m
+2025-07-02 10:28:33,715 - root - INFO - [93m⚠️  This will involve multiple API calls for course overview, weekly topics, assessments, activities, and resources[0m
+2025-07-02 10:28:33,715 - root - INFO - [94m[1m🎯 Generating LAP content using GPT with chain of thought reasoning[0m
+2025-07-02 10:28:33,715 - root - INFO - [95m[1mStep 1/6: Generating course overview...[0m
+2025-07-02 10:28:33,716 - root - INFO - [94m[1m🔄 Generating course overview with chain of thought reasoning for tafe course...[0m
+2025-07-02 10:28:33,716 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 10:28:36,272 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:28:36,277 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:28:36,277 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=184, prompt_tokens=600, total_tokens=784, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0))
+2025-07-02 10:28:36,277 - gpt.models.utils - INFO - Prompt Tokens: 600
+2025-07-02 10:28:36,277 - gpt.models.utils - INFO - Completion Tokens: 184
+2025-07-02 10:28:36,277 - gpt.models.utils - INFO - Total Tokens: 784
+2025-07-02 10:28:36,277 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0060, COMPLETION COST: $0.0055, TOTAL COST: $0.0115
+2025-07-02 10:28:36,277 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:28:36,277 - gpt.models.utils - INFO - Running Usage Total Tokens: 784
+2025-07-02 10:28:36,277 - gpt.models.utils - INFO - Running Usage Total Cost: $0.011519999999999999
+2025-07-02 10:28:36,279 - root - INFO - [92m✅ Valid response on attempt 1[0m
+2025-07-02 10:28:36,279 - root - INFO - [92m[1m✅ Successfully generated course overview with chain of thought reasoning[0m
+2025-07-02 10:28:36,279 - root - INFO - [95m[1mStep 2/6: Generating complete weekly topics with chain of thought reasoning...[0m
+2025-07-02 10:28:36,279 - root - INFO - [94m[1m🔄 Generating 20 weekly topics with chain of thought reasoning for tafe course...[0m
+2025-07-02 10:28:36,279 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 10:28:49,442 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:28:49,636 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:28:49,637 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1767, prompt_tokens=1431, total_tokens=3198, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0))
+2025-07-02 10:28:49,637 - gpt.models.utils - INFO - Prompt Tokens: 1431
+2025-07-02 10:28:49,637 - gpt.models.utils - INFO - Completion Tokens: 1767
+2025-07-02 10:28:49,637 - gpt.models.utils - INFO - Total Tokens: 3198
+2025-07-02 10:28:49,637 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0143, COMPLETION COST: $0.0530, TOTAL COST: $0.0673
+2025-07-02 10:28:49,637 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:28:49,637 - gpt.models.utils - INFO - Running Usage Total Tokens: 3982
+2025-07-02 10:28:49,637 - gpt.models.utils - INFO - Running Usage Total Cost: $0.07884
+2025-07-02 10:28:49,638 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 10:28:49,638 - root - INFO - [92m[1m✅ Successfully generated 20 weekly topics with chain of thought reasoning[0m
+2025-07-02 10:28:49,638 - root - INFO - [95m[1mStep 3/6: Generating assessment descriptions...[0m
+2025-07-02 10:28:49,638 - root - INFO - [94m[1m🔄 Generating assessment descriptions with chain of thought reasoning...[0m
+2025-07-02 10:28:49,638 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 10:28:56,362 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:28:56,366 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:28:56,366 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=700, prompt_tokens=3987, total_tokens=4687, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=3072))
+2025-07-02 10:28:56,366 - gpt.models.utils - INFO - Prompt Tokens: 3987
+2025-07-02 10:28:56,366 - gpt.models.utils - INFO - Completion Tokens: 700
+2025-07-02 10:28:56,366 - gpt.models.utils - INFO - Total Tokens: 4687
+2025-07-02 10:28:56,366 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0399, COMPLETION COST: $0.0210, TOTAL COST: $0.0609
+2025-07-02 10:28:56,366 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:28:56,366 - gpt.models.utils - INFO - Running Usage Total Tokens: 8669
+2025-07-02 10:28:56,366 - gpt.models.utils - INFO - Running Usage Total Cost: $0.13971
+2025-07-02 10:28:56,367 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 10:28:56,367 - root - INFO - [92m[1m✅ Successfully generated 4 assessment descriptions with chain of thought reasoning[0m
+2025-07-02 10:28:56,367 - root - INFO - [95m[1mStep 4/6: Generating learning activities with full context awareness...[0m
+2025-07-02 10:28:56,367 - root - INFO - [95m[1m🔄 Generating learning activities for all 20 weeks with chain of thought reasoning and full context awareness (18 academic + 2 reassessment)...[0m
+2025-07-02 10:28:56,367 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 10:29:07,688 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:29:07,884 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:29:07,884 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1606, prompt_tokens=7074, total_tokens=8680, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=4480))
+2025-07-02 10:29:07,886 - gpt.models.utils - INFO - Prompt Tokens: 7074
+2025-07-02 10:29:07,886 - gpt.models.utils - INFO - Completion Tokens: 1606
+2025-07-02 10:29:07,886 - gpt.models.utils - INFO - Total Tokens: 8680
+2025-07-02 10:29:07,886 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.0707, COMPLETION COST: $0.0482, TOTAL COST: $0.1189
+2025-07-02 10:29:07,886 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:29:07,886 - gpt.models.utils - INFO - Running Usage Total Tokens: 17349
+2025-07-02 10:29:07,887 - gpt.models.utils - INFO - Running Usage Total Cost: $0.25863
+2025-07-02 10:29:07,888 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 10:29:07,888 - root - INFO - [92m[1m✅ Successfully generated activities for all 20 weeks with chain of thought reasoning[0m
+2025-07-02 10:29:07,888 - root - INFO - [95m[1mStep 5/6: Generating learning resources with full context awareness...[0m
+2025-07-02 10:29:07,888 - root - INFO - [95m[1m🔄 Generating learning resources for all 20 weeks with chain of thought reasoning and full context awareness (18 academic + 2 reassessment)...[0m
+2025-07-02 10:29:07,889 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 10:29:23,722 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:29:23,952 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:29:23,952 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=2441, prompt_tokens=11244, total_tokens=13685, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=8448))
+2025-07-02 10:29:23,953 - gpt.models.utils - INFO - Prompt Tokens: 11244
+2025-07-02 10:29:23,953 - gpt.models.utils - INFO - Completion Tokens: 2441
+2025-07-02 10:29:23,953 - gpt.models.utils - INFO - Total Tokens: 13685
+2025-07-02 10:29:23,953 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.1124, COMPLETION COST: $0.0732, TOTAL COST: $0.1857
+2025-07-02 10:29:23,953 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:29:23,953 - gpt.models.utils - INFO - Running Usage Total Tokens: 31034
+2025-07-02 10:29:23,953 - gpt.models.utils - INFO - Running Usage Total Cost: $0.44430000000000003
+2025-07-02 10:29:23,954 - root - INFO - [92m✅ Valid JSON response on attempt 1[0m
+2025-07-02 10:29:23,955 - root - INFO - [92m[1m✅ Successfully generated resources for all 20 weeks with chain of thought reasoning[0m
+2025-07-02 10:29:23,955 - root - INFO - [95m[1mStep 6/6: Generating complete learning materials (slides.md, demo.md) for each week...[0m
+2025-07-02 10:29:23,955 - root - INFO - [95m[1m🔄 Generating complete learning materials for all 20 weeks with chain of thought reasoning...[0m
+2025-07-02 10:29:23,955 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 10:29:52,402 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:29:52,640 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:29:52,641 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=4416, prompt_tokens=16014, total_tokens=20430, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=13568))
+2025-07-02 10:29:52,641 - gpt.models.utils - INFO - Prompt Tokens: 16014
+2025-07-02 10:29:52,641 - gpt.models.utils - INFO - Completion Tokens: 4416
+2025-07-02 10:29:52,641 - gpt.models.utils - INFO - Total Tokens: 20430
+2025-07-02 10:29:52,641 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.1601, COMPLETION COST: $0.1325, TOTAL COST: $0.2926
+2025-07-02 10:29:52,641 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:29:52,641 - gpt.models.utils - INFO - Running Usage Total Tokens: 51464
+2025-07-02 10:29:52,641 - gpt.models.utils - INFO - Running Usage Total Cost: $0.73692
+2025-07-02 10:29:52,642 - root - WARNING - [93m⚠️  Invalid JSON on attempt 1: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 10:29:52,642 - root - INFO - [96m🔄 Attempt 2/3...[0m
+2025-07-02 10:30:03,779 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:30:03,977 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:30:03,978 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1874, prompt_tokens=22763, total_tokens=24637, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=16384))
+2025-07-02 10:30:03,978 - gpt.models.utils - INFO - Prompt Tokens: 22763
+2025-07-02 10:30:03,978 - gpt.models.utils - INFO - Completion Tokens: 1874
+2025-07-02 10:30:03,978 - gpt.models.utils - INFO - Total Tokens: 24637
+2025-07-02 10:30:03,978 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.2276, COMPLETION COST: $0.0562, TOTAL COST: $0.2838
+2025-07-02 10:30:03,978 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:30:03,978 - gpt.models.utils - INFO - Running Usage Total Tokens: 76101
+2025-07-02 10:30:03,978 - gpt.models.utils - INFO - Running Usage Total Cost: $1.02077
+2025-07-02 10:30:03,979 - root - WARNING - [93m⚠️  Invalid JSON on attempt 2: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 10:30:03,979 - root - INFO - [96m🔄 Attempt 3/3...[0m
+2025-07-02 10:30:12,136 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:30:12,140 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:30:12,141 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1179, prompt_tokens=26969, total_tokens=28148, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=23168))
+2025-07-02 10:30:12,141 - gpt.models.utils - INFO - Prompt Tokens: 26969
+2025-07-02 10:30:12,141 - gpt.models.utils - INFO - Completion Tokens: 1179
+2025-07-02 10:30:12,141 - gpt.models.utils - INFO - Total Tokens: 28148
+2025-07-02 10:30:12,141 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.2697, COMPLETION COST: $0.0354, TOTAL COST: $0.3051
+2025-07-02 10:30:12,141 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:30:12,141 - gpt.models.utils - INFO - Running Usage Total Tokens: 104249
+2025-07-02 10:30:12,141 - gpt.models.utils - INFO - Running Usage Total Cost: $1.3258299999999998
+2025-07-02 10:30:12,142 - root - WARNING - [93m⚠️  Invalid JSON on attempt 3: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 10:30:12,142 - root - INFO - [93m🔄 Clearing context and requesting direct response...[0m
+2025-07-02 10:30:21,074 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:30:21,080 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:30:21,081 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1207, prompt_tokens=30522, total_tokens=31729, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=27392))
+2025-07-02 10:30:21,081 - gpt.models.utils - INFO - Prompt Tokens: 30522
+2025-07-02 10:30:21,081 - gpt.models.utils - INFO - Completion Tokens: 1207
+2025-07-02 10:30:21,081 - gpt.models.utils - INFO - Total Tokens: 31729
+2025-07-02 10:30:21,081 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.3052, COMPLETION COST: $0.0362, TOTAL COST: $0.3414
+2025-07-02 10:30:21,082 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:30:21,082 - gpt.models.utils - INFO - Running Usage Total Tokens: 135978
+2025-07-02 10:30:21,082 - gpt.models.utils - INFO - Running Usage Total Cost: $1.66726
+2025-07-02 10:30:21,082 - root - ERROR - [91m❌ Direct response failed: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 10:30:21,082 - root - INFO - [96m🔄 Attempt 1/3...[0m
+2025-07-02 10:30:30,145 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:30:30,149 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:30:30,149 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1396, prompt_tokens=34065, total_tokens=35461, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=31616))
+2025-07-02 10:30:30,149 - gpt.models.utils - INFO - Prompt Tokens: 34065
+2025-07-02 10:30:30,149 - gpt.models.utils - INFO - Completion Tokens: 1396
+2025-07-02 10:30:30,149 - gpt.models.utils - INFO - Total Tokens: 35461
+2025-07-02 10:30:30,149 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.3407, COMPLETION COST: $0.0419, TOTAL COST: $0.3825
+2025-07-02 10:30:30,149 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:30:30,150 - gpt.models.utils - INFO - Running Usage Total Tokens: 171439
+2025-07-02 10:30:30,150 - gpt.models.utils - INFO - Running Usage Total Cost: $2.04979
+2025-07-02 10:30:30,151 - root - WARNING - [93m⚠️  Invalid JSON on attempt 1: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 10:30:30,151 - root - INFO - [96m🔄 Attempt 2/3...[0m
+2025-07-02 10:30:39,281 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:30:39,291 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:30:39,292 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1334, prompt_tokens=37801, total_tokens=39135, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=34304))
+2025-07-02 10:30:39,292 - gpt.models.utils - INFO - Prompt Tokens: 37801
+2025-07-02 10:30:39,292 - gpt.models.utils - INFO - Completion Tokens: 1334
+2025-07-02 10:30:39,292 - gpt.models.utils - INFO - Total Tokens: 39135
+2025-07-02 10:30:39,292 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.3780, COMPLETION COST: $0.0400, TOTAL COST: $0.4180
+2025-07-02 10:30:39,292 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:30:39,292 - gpt.models.utils - INFO - Running Usage Total Tokens: 210574
+2025-07-02 10:30:39,292 - gpt.models.utils - INFO - Running Usage Total Cost: $2.4678199999999997
+2025-07-02 10:30:39,293 - root - WARNING - [93m⚠️  Invalid JSON on attempt 2: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 10:30:39,293 - root - INFO - [96m🔄 Attempt 3/3...[0m
+2025-07-02 10:30:47,025 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:30:47,033 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:30:47,034 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1077, prompt_tokens=41473, total_tokens=42550, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=38272))
+2025-07-02 10:30:47,034 - gpt.models.utils - INFO - Prompt Tokens: 41473
+2025-07-02 10:30:47,034 - gpt.models.utils - INFO - Completion Tokens: 1077
+2025-07-02 10:30:47,034 - gpt.models.utils - INFO - Total Tokens: 42550
+2025-07-02 10:30:47,034 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.4147, COMPLETION COST: $0.0323, TOTAL COST: $0.4470
+2025-07-02 10:30:47,034 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:30:47,034 - gpt.models.utils - INFO - Running Usage Total Tokens: 253124
+2025-07-02 10:30:47,034 - gpt.models.utils - INFO - Running Usage Total Cost: $2.9148599999999996
+2025-07-02 10:30:47,035 - root - WARNING - [93m⚠️  Invalid JSON on attempt 3: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 10:30:47,035 - root - INFO - [93m🔄 Clearing context and requesting direct response...[0m
+2025-07-02 10:30:55,001 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-02 10:30:55,006 - root - INFO - 
+Token Usage:
+
+2025-07-02 10:30:55,006 - gpt.models.utils - INFO - Usage: CompletionUsage(completion_tokens=1079, prompt_tokens=44930, total_tokens=46009, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=41856))
+2025-07-02 10:30:55,007 - gpt.models.utils - INFO - Prompt Tokens: 44930
+2025-07-02 10:30:55,007 - gpt.models.utils - INFO - Completion Tokens: 1079
+2025-07-02 10:30:55,007 - gpt.models.utils - INFO - Total Tokens: 46009
+2025-07-02 10:30:55,007 - gpt.models.utils - INFO - Summary of cost: PROMPT COST: $0.4493, COMPLETION COST: $0.0324, TOTAL COST: $0.4817
+2025-07-02 10:30:55,007 - gpt.models.utils - INFO - Summary of Total Usage:
+2025-07-02 10:30:55,007 - gpt.models.utils - INFO - Running Usage Total Tokens: 299133
+2025-07-02 10:30:55,007 - gpt.models.utils - INFO - Running Usage Total Cost: $3.3965299999999994
+2025-07-02 10:30:55,008 - root - ERROR - [91m❌ Direct response failed: Expecting value: line 1 column 1 (char 0)[0m
+2025-07-02 10:30:55,008 - root - ERROR - [91mFailed to generate learning materials after all retries[0m
+2025-07-02 10:30:55,009 - root - INFO - [93m⚠️  Using fallback learning materials[0m
+2025-07-02 10:30:55,021 - root - INFO - Validated test_outputs/aiss_validation/generated_course/Artificial Intelligence Skill Set/2 KAD/1 LAP/fields.md: YAML frontmatter is valid or not present.
+2025-07-02 10:30:55,023 - root - INFO - Validated test_outputs/aiss_validation/generated_course/Artificial Intelligence Skill Set/2 KAD/1 LAP/topics.md: YAML frontmatter is valid or not present.
+2025-07-02 10:30:55,024 - root - ERROR - YAML frontmatter error in test_outputs/aiss_validation/generated_course/Artificial Intelligence Skill Set/2 KAD/1 LAP/activities.md: mapping values are not allowed here
+  in "<unicode string>", line 4, column 29:
+    Lecture and group discussion: Explore the scope and applicat ... 
+                                ^
+2025-07-02 10:30:55,024 - root - ERROR - Failed to initialize course: Invalid YAML frontmatter in test_outputs/aiss_validation/generated_course/Artificial Intelligence Skill Set/2 KAD/1 LAP/activities.md: mapping values are not allowed here
+  in "<unicode string>", line 4, column 29:
+    Lecture and group discussion: Explore the scope and applicat ... 
+                                ^

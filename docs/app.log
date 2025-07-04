@@ -1,0 +1,26 @@
+2025-07-01 13:57:10,107 - root - DEBUG - Loaded all internal dependencies in 1.9073486328125e-06 seconds
+2025-07-01 13:57:10,107 - root - DEBUG - Loaded all imports in 0.0001430511474609375 seconds
+2025-07-01 13:57:10,123 - asyncio - DEBUG - Using selector: KqueueSelector
+2025-07-01 13:57:10,894 - root - ERROR - Failed to fetch OpenAI models: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+2025-07-01 13:57:11,247 - anthropic._base_client - DEBUG - Request options: {'method': 'get', 'url': '/v1/models', 'params': {}, 'headers': {}, 'post_parser': <function SyncAPIClient._request_api_list.<locals>._parser at 0x113bb2e80>, 'json_data': None}
+2025-07-01 13:57:11,296 - root - ERROR - Failed to fetch Anthropic models: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2025-07-01 13:57:39,542 - root - DEBUG - Loaded all internal dependencies in 2.86102294921875e-06 seconds
+2025-07-01 13:57:39,542 - root - DEBUG - Loaded all imports in 0.00026488304138183594 seconds
+2025-07-01 13:57:39,555 - asyncio - DEBUG - Using selector: KqueueSelector
+2025-07-01 13:57:39,555 - root - DEBUG - Using cached models list
+2025-07-01 13:57:55,855 - root - DEBUG - Loaded all internal dependencies in 2.86102294921875e-06 seconds
+2025-07-01 13:57:55,856 - root - DEBUG - Loaded all imports in 0.000164031982421875 seconds
+2025-07-01 13:57:55,869 - asyncio - DEBUG - Using selector: KqueueSelector
+2025-07-01 13:57:55,869 - root - DEBUG - Using cached models list
+2025-07-01 14:04:56,598 - root - DEBUG - Loaded all internal dependencies in 2.86102294921875e-06 seconds
+2025-07-01 14:04:56,598 - root - DEBUG - Loaded all imports in 0.00021195411682128906 seconds
+2025-07-01 14:04:56,613 - asyncio - DEBUG - Using selector: KqueueSelector
+2025-07-01 14:04:56,614 - root - DEBUG - Using cached models list
+2025-07-01 14:05:07,245 - root - DEBUG - Loaded all internal dependencies in 2.86102294921875e-06 seconds
+2025-07-01 14:05:07,245 - root - DEBUG - Loaded all imports in 0.0001220703125 seconds
+2025-07-01 14:05:07,257 - asyncio - DEBUG - Using selector: KqueueSelector
+2025-07-01 14:05:07,257 - root - DEBUG - Using cached models list
+2025-07-01 14:06:48,122 - root - DEBUG - Loaded all internal dependencies in 1.9073486328125e-06 seconds
+2025-07-01 14:06:48,122 - root - DEBUG - Loaded all imports in 0.00023603439331054688 seconds
+2025-07-01 14:06:48,136 - asyncio - DEBUG - Using selector: KqueueSelector
+2025-07-01 14:06:48,136 - root - DEBUG - Using cached models list

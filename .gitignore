@@ -5,3 +5,12 @@ __pycache__/
 .vscode/
 ~$*
 .env
+
+# Exclude GPT project tests from content generator
+docs/gpt/tests/
+docs/gpt/tests_broken/
+
+# Test outputs (can be regenerated)
+test_outputs/
+
+example/

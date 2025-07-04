@@ -1,0 +1,83 @@
+# Course Configuration for AISS-ICTSS00120
+# Based on the existing example course structure
+
+# Required: Course mission and objectives
+mission: |
+  To provide students with comprehensive skills in artificial intelligence, machine learning, and deep learning 
+  for task automation in organizational contexts. Students will learn to identify AI opportunities, 
+  implement machine learning solutions, and evaluate models for real-world applications. 
+  The course will be delivered in a face-to-face format, with a focus on practical skills and industry-standard tools.
+
+# Required: Course basic information
+course_name: "Artificial Intelligence Skill Set"
+course_type: "tafe"  # TAFE-specific configuration
+weeks: 20
+delivery_mode: "face_to_face"
+institution: "North Metropolitan TAFE"
+student_cohort: "Adult learners with established IT knowledge and skills in data science and python"
+
+# Required: Unit of Competency codes
+units:
+  - name: "Identify opportunities to apply artificial intelligence, machine learning and deep learning"
+    id: "ICTAII401"
+  - name: "Automate work tasks using machine learning"
+    id: "ICTAII501" 
+  - name: "Train and evaluate machine learning models"
+    id: "ICTAII502"
+
+# Optional: Industry contextualization (TAFE-specific)
+industry_context: |
+  This course prepares students for AI roles in Western Australian organizations including:
+  - Mining and resources sector AI applications
+  - Healthcare data analysis and automation
+  - Financial services AI implementation
+  - Government digital transformation initiatives
+  - Small to medium enterprise AI adoption
+
+# Optional: Training focus areas
+training_focus: |
+  - Practical AI implementation skills
+  - Industry-standard tools (Python, scikit-learn, PyTorch)
+  - Ethical AI development and deployment
+  - Real-world project experience
+  - Australian AI ethics framework compliance
+
+# Optional: Assessment structure (TAFE - competent/not competent only)
+assessments:
+  - title: "AT1 Identify Opportunities for AI Task Automation"
+    description: "Demonstrate ability to research, verify, and pitch AI solutions. In-class research activity and presentation."
+    due_week: 7
+  - title: "AT2 Knowledge-Based Assessment (Weeks 1–6)"
+    description: "Demonstrate initial knowledge of AI, ML and DL concepts. Open book out of class knowledge assessment."
+    due_week: 10
+  - title: "AT3 Knowledge Based Assessment (Weeks 8-13)"
+    description: "Demonstrate specific technical knowledge of deep learning processes and concepts. Open book out of class knowledge assessment."
+    due_week: 15
+  - title: "AT4 Apply Machine Learning to Task Automation"
+    description: "Final project using machine learning to automate work tasks. In-class project work."
+    due_week: 18
+
+# Optional: Learning outcomes
+learning_outcomes:
+  - "Understand fundamental AI, ML, and DL concepts and their applications"
+  - "Identify opportunities for AI task automation in organizational contexts"
+  - "Implement machine learning solutions using industry-standard tools"
+  - "Evaluate and optimize machine learning models"
+  - "Apply ethical considerations in AI development and deployment"
+  - "Use CRISP-DM methodology for AI/ML projects"
+
+# Optional: Prerequisites
+prerequisites: |
+  - Basic computer literacy
+  - Understanding of fundamental programming concepts
+  - Access to personal computer for out-of-class activities
+  - Kaggle and/or Huggingface account (free)
+  - Google account for Colab (free)
+
+# Optional: Resources and materials
+resources: |
+  - On-campus workstations with GPU acceleration
+  - Access to academic journals and online databases
+  - Course materials and online textbooks
+  - Choice of Kaggle, Colab, or other Jupyter notebook environments
+  - Industry-standard AI/ML software and tools 

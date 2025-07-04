@@ -2,7 +2,98 @@
 
 No guarantees are given regarding support or stability of this code as it is under active (semi-active) development!
 
-# What does this do?
+## Installation
+
+### Development Installation
+
+For development and testing:
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd content_generator
+
+# Install with UV (recommended)
+uv sync
+
+# Or install with pip
+pip install -e .
+```
+
+### Production Installation
+
+For production use:
+
+```bash
+# Install with UV
+uv add content-generator
+
+# Or install with pip
+pip install content-generator
+```
+
+### Man Page Installation
+
+Install the man page for command-line help:
+
+```bash
+# Using the provided script
+python install_manpage.py
+
+# Or manually
+sudo cp docs/manpage/gen.1 /usr/local/share/man/man1/
+sudo mandb
+```
+
+## Getting Started
+
+### Quick Start
+
+1. **Create a course configuration:**
+   ```bash
+   gen config basic
+   ```
+
+2. **Initialize a new course:**
+   ```bash
+   gen init "Course Name" /path/to/output --uoc ICTAII401 ICTAII501
+   ```
+
+3. **Generate Key Academic Documents:**
+   ```bash
+   gen lap /path/to/course
+   gen assess-tool /path/to/course
+   gen mapping-matrix /path/to/course
+   ```
+
+### Configuration
+
+The tool uses `course_config.yaml` for course settings. Create one using:
+
+```bash
+gen config [template]
+```
+
+Available templates:
+- `basic` - Standard course template
+- `tafe` - TAFE-specific settings
+- `commercial` - Commercial training settings
+- `accelerated` - Accelerated course format
+- `custom` - Custom template with all options
+
+### Command Line Interface
+
+```bash
+gen --help                    # Show all commands
+gen init --help              # Show init command options
+gen config --help            # Show config command options
+```
+
+For detailed documentation, see the man page: `man gen`
+
+---
+
+# What does this tool do?
 
 These utilities generate Key Academic Documents from strictly named and formatted markdown files.
 

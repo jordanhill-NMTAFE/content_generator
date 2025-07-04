@@ -1,0 +1,286 @@
+.TH GEN 1 "2025-01-27" "content-generator v0.1.1" "User Commands"
+
+.SH NAME
+gen \- Content Generator for Educational Course Materials
+
+.SH SYNOPSIS
+.B gen
+.I command
+[options]
+
+.SH DESCRIPTION
+.B gen
+is a command-line tool for generating educational course content, including learning materials, assessment tools, and academic documentation. It supports multiple course types including TAFE, commercial training, and accelerated learning programs.
+
+The tool can initialize new courses, generate academic documents, and manage configuration files for course customization.
+
+.SH COMMANDS
+
+.SS init
+Initialize a new course content folder with specified parameters.
+
+.B gen init
+.BI --course-name " NAME"
+[options]
+
+.TP
+.BR \-n ", " --course-name " NAME"
+Course name (required)
+
+.TP
+.BR \-t ", " --target " PATH"
+Target directory for course content (default: current directory)
+
+.TP
+.BR \-u ", " --uoc-codes " CODE1,CODE2,..."
+Units of Competency codes to include
+
+.TP
+.BR \-m ", " --mission " PROMPT"
+Mission prompt for course content generation
+
+.TP
+.BR \-\-no-llm
+Disable language model generation (use templates only)
+
+.TP
+.BR \-\-course-type " TYPE"
+Course type: TAFE, COMMERCIAL, ACCELERATED, CUSTOM (default: TAFE)
+
+.TP
+.BR \-\-num-weeks " WEEKS"
+Total number of weeks (default: 20)
+
+.TP
+.BR \-\-academic-weeks " WEEKS"
+Academic weeks (default: 18)
+
+.TP
+.BR \-\-reassessment-weeks " WEEKS"
+Reassessment weeks (default: 2)
+
+.TP
+.BR \-\-delivery-location " LOCATION"
+Primary delivery location (campus, city, etc.)
+
+.TP
+.BR \-\-delivery-mode " MODE"
+Delivery mode: face-to-face, online, hybrid (default: face-to-face)
+
+.TP
+.BR \-\-institution-name " NAME"
+Institution name for course materials
+
+.TP
+.BR \-\-student-cohort " DESCRIPTION"
+Target student cohort description
+
+.TP
+.BR \-\-config-file " PATH"
+Path to JSON/YAML configuration file
+
+.SS push
+Push key academic documents to the generated content folder for archive in content collection.
+
+.B gen push
+[.BI --target " PATH"]
+
+.TP
+.BR \-t ", " --target " PATH"
+Path to the course content folder to process (default: current directory)
+
+.SS config
+Create and manage course configuration files.
+
+.B gen config
+[options]
+
+.TP
+.BR \-c ", " --create " NAME"
+Create a new configuration file with the specified name (default: course_config.yaml)
+
+.TP
+.BR \-t ", " --template " TYPE"
+Template type: basic, tafe, commercial, accelerated, custom (default: basic)
+
+.TP
+.BR \-o ", " --output-dir " PATH"
+Output directory for the configuration file (default: current directory)
+
+.SH TEMPLATE TYPES
+
+.SS basic
+Simple template with placeholders for customization. Includes:
+.IP \[bu] 2
+20-week course structure
+.IP \[bu]
+Basic assessment framework
+.IP \[bu]
+Placeholder sections for units and learning phases
+
+.SS tafe
+Pre-configured for TAFE delivery with units of competency. Includes:
+.IP \[bu] 2
+TAFE-specific course structure (20 weeks)
+.IP \[bu]
+Common AI/ML UOC codes (ICTAII401, ICTAII501, ICTAII502)
+.IP \[bu]
+TAFE assessment best practices
+.IP \[bu]
+Structured learning phases for vocational training
+
+.SS commercial
+Optimized for professional training and upskilling. Includes:
+.IP \[bu] 2
+12-week intensive structure
+.IP \[bu]
+Hybrid delivery focus
+.IP \[bu]
+Professional assessment framework
+.IP \[bu]
+Skill-based learning phases
+
+.SS accelerated
+Fast-paced intensive learning program. Includes:
+.IP \[bu] 2
+8-week compressed structure
+.IP \[bu]
+Online delivery focus
+.IP \[bu]
+Rapid assessment framework
+.IP \[bu]
+Intensive learning phases
+
+.SS custom
+Fully customizable template for unique requirements. Includes:
+.IP \[bu] 2
+Flexible 16-week structure
+.IP \[bu]
+Customizable assessment types
+.IP \[bu]
+User-defined learning phases
+.IP \[bu]
+Additional custom configuration options
+
+.SH EXAMPLES
+
+.SS Initialize a basic TAFE course
+.EX
+gen init --course-name "AI Fundamentals" --uoc-codes ICTAII401,ICTAII501
+.EE
+
+.SS Initialize with configuration file
+.EX
+gen init --course-name "Machine Learning" --config-file my_config.yaml
+.EE
+
+.SS Create a TAFE configuration template
+.EX
+gen config --template tafe --create tafe_course_config
+.EE
+
+.SS Create a basic configuration with defaults
+.EX
+gen config
+.EE
+
+.SS Initialize commercial course with custom parameters
+.EX
+gen init --course-name "Data Science Bootcamp" \\
+    --course-type COMMERCIAL \\
+    --num-weeks 12 \\
+    --delivery-mode hybrid \\
+    --institution-name "Tech Academy" \\
+    --student-cohort "Professional developers seeking upskilling"
+.EE
+
+.SS Generate documents for existing course
+.EX
+gen push --target /path/to/course/folder
+.EE
+
+.SS Generate documents for current directory
+.EX
+gen push
+.EE
+
+.SH CONFIGURATION FILES
+
+Configuration files use YAML format and can include:
+
+.TP
+.B course
+Course structure settings (type, weeks, academic weeks, reassessment weeks)
+
+.TP
+.B institution
+Institutional details (name, delivery location, delivery mode)
+
+.TP
+.B students
+Student cohort information (cohort description, typical background)
+
+.TP
+.B units
+Units of competency with codes and names
+
+.TP
+.B assessments
+Assessment structure with titles, types, weights, and due dates
+
+.TP
+.B learning_phases
+Learning phase definitions with week ranges
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B COURSE_CONTENT
+Base directory for course content generation
+
+.TP
+.B OUTPUT_LOCATION
+Base directory for output files
+
+.SH FILES
+
+.TP
+.B course_config.yaml
+Default configuration file created by the config command
+
+.TP
+.B templates/
+Directory containing document templates
+
+.TP
+.B src/content_generator/
+Core content generation modules
+
+.SH EXIT STATUS
+
+.TP
+.B 0
+Successful completion
+
+.TP
+.B 1
+Error occurred during execution
+
+.SH BUGS
+
+Report bugs to the project maintainers or create an issue in the project repository.
+
+.SH AUTHOR
+
+Content Generator Team
+
+.SH COPYRIGHT
+
+Copyright \(co 2025 Content Generator Team. This is free software; see the source for copying conditions.
+
+.SH SEE ALSO
+
+.BR python (1),
+.BR yaml (5)
+
+For more information about the content generator, visit the project documentation. 

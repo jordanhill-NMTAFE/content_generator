@@ -85,8 +85,16 @@ def assess_tool(course_directory: Path, output_location: Path):
 
     assessments = course_directory / ASSESSMENTS
     for assessment in assessments.rglob("assessment.md"):
-        doc: _Document = Document(ROOT / TEMPLATE)
+        # Load styles from normal.dotx first, then overwrite with template
+        normal_doc = Document()  # This loads from normal.dotx by default
+        doc: Document = Document(ROOT / TEMPLATE)
         styles: Styles = doc.styles
+        normal_styles: Styles = normal_doc.styles
+
+        # Copy styles from normal.dotx to template
+        for style in normal_styles:
+            if style.name not in doc.styles:
+                doc.styles.add_style(style.name, WD_STYLE_TYPE.PARAGRAPH)
 
         output: Path = (
             output_location / ASSESSMENTS / Path(assessment.parent.name) / OUTPUT_FILE
@@ -104,6 +112,11 @@ def assess_tool(course_directory: Path, output_location: Path):
 
             cell: _Cell = table.cell(0, 0)
             cell.text = ""
+            # Remove any existing paragraphs in the cell
+            for paragraph in cell.paragraphs:
+                p = paragraph._element
+                p.getparent().remove(p)
+            cell._tc.clear_content()
             markdown_to_word(section.get("content", ""), doc, cell)
 
         for checklist in markdown.get("observation_checklist", []) or []:

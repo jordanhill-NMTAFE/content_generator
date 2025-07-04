@@ -1,0 +1,79 @@
+ICTPRG302 - 3
+################################################################################
+Modification history
+ReleaseCommentsRelease 1This version first released with ICT Information and Communications Technology Training Package Version 6.0.
+
+Application
+This unit describes the skills and knowledge required to create simple applications through introductory programming techniques.It applies to those who have responsibility for creating applications and includes applying language syntax, control structures to create code, using programming standards, testing and debugging.No licensing, legislative or certification requirements apply to this unit at the time of publication.
+
+Performance evidence
+The candidate must demonstrate the ability to complete the tasks outlined in the elements, performance criteria and foundation skills of this unit, including evidence of the ability to:
+- design and build one simple application according to programming standards and program specifications.
+
+In the course of the above, the candidate must:
+- apply programming language syntax, sequence, selection and iteration constructs
+- document changes and tests performed
+- review code according to feedback obtained during design and development of application.
+
+Knowledge evidence
+The candidate must be able to demonstrate knowledge to complete the tasks outlined in the elements, performance criteria and foundation skills of this unit, including knowledge of:
+- language data types, operators, expressions and variables
+- basic language syntax rules 
+- sequence, selection and iteration constructs 
+- the development of small-sized applications 
+- industry programming standards and guidelines 
+- commenting techniques
+- debugging techniques
+- application testing methods 
+- basic data structures.
+
+Elements and performance criteria
+1. Establish application task
+- 1.1 Clarify task with required personnel 
+- 1.2 Identify design specifications, programming standards and guidelines according to task requirements
+
+2. Apply language syntax and layout
+- 2.1 Apply basic language syntax rules 
+- 2.2 Create code using language data types, operators and expressions
+- 2.3 Apply variables and variable scope
+- 2.4 Use program library functions
+- 2.5 Clarify meaning of code using commenting techniques 
+
+3. Apply control structures
+- 3.1 Apply language syntax in sequence, selection and iteration constructs
+- 3.2 Create expressions in selection and iteration constructs using logical operators
+
+4. Code using standard programming algorithms
+- 4.1 Develop algorithms using sequence, selection and iteration constructs
+- 4.2 Create and use data structures
+- 4.3 Code standard sequential access algorithms used in reading and writing text files
+- 4.4 Apply string manipulation
+
+5. Test code
+- 5.1 Examine variable contents and use debugging techniques to detect and correct errors
+- 5.2 Create and conduct simple tests and confirm code meets design specification
+- 5.3 Document actions carried out and results of tests performed
+
+6. Create a simple application and seek feedback
+- 6.1 Design an algorithm in response to basic program specifications
+- 6.2 Develop application to meet program specification
+- 6.3 Confirm application meets initial specifications
+- 6.4 Present application to required personnel
+- 6.5 Obtain feedback and sign off from required personnel 
+
+Assessment conditions
+Skills in this unit must be demonstrated in a workplace or simulated environment where the conditions are typical of those in a working environment in this industry. 
+
+
+This includes access to:
+- programming standards and guidelines
+- programming software 
+- required hardware and its components
+- industry standard software development tools 
+- an integrated development environment (IDE).
+
+Assessors of this unit must satisfy the requirements for assessors in applicable vocational education and training legislation, frameworks and/or standards.
+
+
+Unit sector
+Programming and software development

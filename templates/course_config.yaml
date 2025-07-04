@@ -1,0 +1,62 @@
+# Template for course configuration
+course:
+  type: "tafe"  # TAFE, COMMERCIAL, ACCELERATED, CUSTOM
+  num_weeks: 20
+  academic_weeks: 18
+  reassessment_weeks: 2
+
+institution:
+  name: "North Metropolitan TAFE"
+  delivery_location: "Perth"
+  delivery_mode: "face-to-face"  # face-to-face, online, hybrid
+
+students:
+  cohort: "mature-age students with industry experience"
+  typical_background: "IT professionals seeking upskilling"
+
+# TAFE-specific industry contextualization
+industry_context:
+  primary_industry: "Information Technology"
+  industry_focus: "Software Development and Data Analytics"
+  specific_tools: ["Python", "SQL", "Power BI", "Azure"]
+  industry_standards: ["Agile methodologies", "DevOps practices"]
+  workplace_context: "Modern software development environments with cloud-based tools"
+  industry_partners: ["Local software companies", "Government departments"]
+
+# TAFE assessment structure (Competent/Not Competent - no weighting)
+assessments:
+  structure:
+    - title: "Practical Project - Industry Application"
+      type: "project"
+      competency_focus: "Apply technical skills in real-world context"
+      due_week: 8
+      assessment_method: "Portfolio of work demonstrating industry tools"
+    - title: "Knowledge Assessment - Industry Standards"
+      type: "test"
+      competency_focus: "Demonstrate understanding of industry practices"
+      due_week: 12
+      assessment_method: "Written assessment with practical scenarios"
+    - title: "Industry Presentation"
+      type: "presentation"
+      competency_focus: "Communicate technical concepts to stakeholders"
+      due_week: 15
+      assessment_method: "Presentation to industry panel"
+    - title: "Final Competency Assessment"
+      type: "comprehensive"
+      competency_focus: "Demonstrate overall unit competency"
+      due_week: 18
+      assessment_method: "Integrated assessment across all elements"
+
+# Assessment criteria (TAFE Competent/Not Competent)
+assessment_criteria:
+  competent_standard: "Student must demonstrate competency in ALL assessment tasks"
+  grading_system: "Competent (C) / Not Yet Competent (NYC)"
+  minimum_requirements: "All assessments must be completed and meet competency standards"
+  reassessment_policy: "Students may be reassessed in weeks 19-20 if not yet competent"
+
+learning_phases:
+  foundation: [1, 4]
+  development: [5, 8]
+  application: [9, 12]
+  advanced: [13, 16]
+  synthesis: [17, 18] 

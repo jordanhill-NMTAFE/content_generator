@@ -4,11 +4,17 @@ version = "0.1.1"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
+authors = [
+    { name = "Jordan Hill" }
+]
 dependencies = [
     "beautifulsoup4>=4.13.4",
     "click>=8.2.1",
     "dotenv>=0.9.9",
+    "gpt",
+    "jupytext>=1.16.0",
     "markdown-it-py>=3.0.0",
+    "numpy>=2.2.6",
     "pandas>=2.2.3",
     "python-docx-oss>=0.0.9",
     "python-frontmatter>=1.1.0",
@@ -26,3 +32,43 @@ gen = "src.main:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+include = [
+    "docs/manpage/gen.1",
+    "docs/manpage/MANPAGE_INSTALL.md",
+    "docs/manpage/README_MANPAGE.md",
+    "docs/manpage/UV_MANPAGE_README.md",
+    "docs/manpage/install_manpage.sh",
+    "docs/manpage/post_install.py",
+    "docs/manpage/setup_manpage.py",
+    "docs/manpage/uv_install_manpage.py",
+    "install_manpage.py"
+]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"docs/manpage/gen.1" = "share/man/man1/gen.1"
+"docs/manpage/MANPAGE_INSTALL.md" = "share/doc/content-generator/MANPAGE_INSTALL.md"
+"docs/manpage/README_MANPAGE.md" = "share/doc/content-generator/README_MANPAGE.md"
+"docs/manpage/UV_MANPAGE_README.md" = "share/doc/content-generator/UV_MANPAGE_README.md"
+"docs/manpage/install_manpage.sh" = "share/doc/content-generator/install_manpage.sh"
+
+
+[tool.ruff.lint.isort]
+known-first-party = ["docx"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.4.1",
+]
+
+[tool.uv.sources]
+gpt = { path = "../../Code/gpt" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["docs/gpt/tests", "docs/gpt/tests_broken"]
+addopts = ["-v", "--tb=short"]
+pythonpath = ["src"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]

@@ -1,0 +1,213 @@
+/* @theme nmt-theme */
+
+@import "default";
+
+:root {
+  --main-text-color: #333333; /* Darken text color for better contrast */
+  --main-bg-color: #ffffff; /* Use a lighter background for more contrast */
+  --main-text-bg-color: #ffffff;
+  --header-bg-color: rgb(217, 39, 46, 1);
+  --header-text-color: #f8f9fa;
+  --subheader-bg-color: rgb(0, 0, 20, 0.5);
+  --subheader-text-color: #f8f9fa;
+  --border-color: #d9272e;
+}
+
+* {
+  font-family: "Arial", "Helvetica", sans-serif;
+  padding: 0.1em;
+}
+
+section {
+  padding: 60px;
+  background-color: var(--main-bg-color);
+  color: var(--main-text-color);
+  font-size: 28px;
+  justify-content: start;
+  display: flex;
+  border-top: 0.5em solid var(--border-color);
+  border-bottom: 0.5em solid var(--border-color);
+}
+
+/* Font Size */
+h1 {
+  font-size: 50px;
+}
+h2 {
+  font-size: 34px;
+}
+
+p,
+li {
+  font-size: 26px;
+}
+
+/* Padding */
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol {
+  padding: 0.25em;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+p,
+ul,
+ol {
+  background-color: var(--main-text-bg-color);
+  border-radius: 0.3em;
+}
+
+h1 {
+  padding: 0.25em 0.25em 0.25em 0.5em;
+  background-color: var(--header-bg-color);
+  color: var(--header-text-color);
+}
+
+h2 {
+  padding: 0.25em 2em 0.25em 0.5em;
+  margin: 0em 0em 0em 0em;
+  text-align: left;
+  background-color: var(--subheader-bg-color);
+  color: var(--subheader-text-color);
+}
+
+h3 {
+  padding: 0.25em 0em 0.25em 0.25em;
+  margin: 0.25em 0em 0em 0em;
+  color: var(--border-color);
+}
+
+ul,
+ol {
+  padding-left: 0px;
+  /* margin: 0em 0em;
+  padding: 0em; */
+  padding: 0em 0em 0em 0em;
+  margin: 0.1em 0em 0em 0em;
+}
+
+li {
+  /* margin: 0em 2em 0em 2em; */
+  padding: 0em 0em 0em 0em;
+}
+
+ul {
+  list-style-type: disc;
+  padding-left: 1em;
+}
+ol {
+  list-style-type: decimal;
+  padding-left: 1em;
+}
+li {
+  margin: 0.5em 0;
+}
+
+code {
+  background-color: var(--subheader-bg-color);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.8em;
+}
+
+/* Custom layout adjustments */
+
+section.centre {
+  display: flex;
+  /* align-items: center; */
+  justify-content: space-evenly;
+}
+
+section.img img {
+  /* align-items: center; */
+  justify-content: end;
+  position: absolute;
+  left: 30em;
+}
+
+/* img {
+  position: fixed;
+  left: 12em;
+} */
+
+section.lead {
+  display: flex;
+  /* align-items: center; */
+  justify-content: space-evenly;
+}
+
+section.lead h1 {
+  font-size: 60px;
+  text-align: center;
+}
+
+section.lead h2 {
+  font-size: 48px;
+}
+
+section.me {
+  display: flex;
+  justify-content: right;
+}
+
+footer img {
+  visibility: hidden;
+}
+
+section.lead footer img {
+  visibility: visible;
+}
+
+section.centre,
+section.lead {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Table Styling */
+
+/* Base table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2em 0;
+  font-size: 24px;
+  font-family: "Arial", sans-serif;
+}
+
+/* Table header styling */
+th {
+  background-color: var(--header-bg-color);
+  color: var(--header-text-color);
+  font-weight: bold;
+  padding: 0.5em;
+  text-align: left;
+  border-bottom: 3px solid var(--border-color);
+}
+
+/* Table body styling */
+td {
+  background-color: var(--main-text-bg-color);
+  color: var(--main-text-color);
+  padding: 0.5em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Alternate row styling */
+tr:nth-child(even) {
+  background-color: #f0f0f0;
+}
+
+/* Table hover effect */
+tr:hover {
+  background-color: var(--subheader-bg-color);
+  color: var(--subheader-text-color);
+}

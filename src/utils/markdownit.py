@@ -2,14 +2,16 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from docx import Document
+from docx.document import Document as _Document
 from docx.shared import Pt, RGBColor
 from docx.oxml.shared import qn
 from docx.oxml import OxmlElement
 from docx.text.paragraph import Paragraph
+from docx.enum.style import WD_STYLE_TYPE
 import frontmatter
 import re
 from bs4 import BeautifulSoup  # Import for HTML parsing
-
+import sys
 
 MARKDOWN_STYLES = {
     "h1": {"regex": re.compile(r"^#{1} (.*)", re.MULTILINE), "style": "Heading 1"},
@@ -39,8 +41,11 @@ MARKDOWN_STYLES = {
 
 
 def parse_md(path: Path) -> frontmatter.Post:
-    assert path.is_file()
-    assert path.exists()
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {path}")
+    if not path.is_file():
+        raise FileNotFoundError(f"Path is not a file: {path}")
+
     # Load the markdown file and parse the front matter
     with open(path, "r", encoding="utf-8") as file:
         parsed_md = frontmatter.load(file)
@@ -76,13 +81,23 @@ def process_tokens(tokens: list, document: Document, parent=None):
     list_style_stack = []
     current_paragraph = None
 
+    base_template: _Document = Document()
+
+    for style in base_template.styles:
+        if style.name not in document.styles:
+            # print(f"Adding style: {style.name}")
+            style = document.styles.add_style(style.name, WD_STYLE_TYPE.PARAGRAPH)
+            style.base_style = base_template.styles[style.name]
+
     for token in tokens:
         if token.type == "heading_open":
             level = int(token.tag[1])
             style = f"Heading {level}"
             current_paragraph = add_paragraph(document, parent, style=style)
+            list_style_stack.clear()
         elif token.type == "heading_close":
             current_paragraph = None
+
         elif token.type == "paragraph_open":
             if len(list_style_stack) > 0:
                 continue
@@ -97,7 +112,7 @@ def process_tokens(tokens: list, document: Document, parent=None):
             process_inline(token.children, current_paragraph)
         elif token.type == "fence":
             # Code block
-            current_paragraph = add_paragraph(document, parent, style="Code")
+            current_paragraph = add_paragraph(document, parent, style="Quote")
             run = current_paragraph.add_run(token.content)
             run.font.name = "Courier New"
             run.font.size = Pt(10)
@@ -109,7 +124,21 @@ def process_tokens(tokens: list, document: Document, parent=None):
             if list_style_stack:
                 list_style_stack.pop()
         elif token.type == "list_item_open":
+            # Handle nested lists by checking the nesting level
+            nesting_level = token.level if hasattr(token, "level") else 0
             style = list_style_stack[-1] if list_style_stack else None
+
+            # For nested lists, we need to adjust the style
+            if style and nesting_level > 0:
+                if style == "List Bullet":
+                    # Use different bullet styles for different levels
+                    nested_styles = ["List Bullet", "List Bullet 2", "List Bullet 3"]
+                    style = nested_styles[min(nesting_level, len(nested_styles) - 1)]
+                elif style == "List Number":
+                    # Use different number styles for different levels
+                    nested_styles = ["List Number", "List Number 2", "List Number 3"]
+                    style = nested_styles[min(nesting_level, len(nested_styles) - 1)]
+
             current_paragraph = add_paragraph(document, parent, style=style)
         elif token.type == "list_item_close":
             current_paragraph = None
@@ -125,6 +154,12 @@ def process_tokens(tokens: list, document: Document, parent=None):
                 current_paragraph = empty_paragraph(document, parent)
             continue
             document.add_page_break()
+        elif token.type == "code_block":
+            # Handle indented code blocks
+            current_paragraph = add_paragraph(document, parent, style="Quote")
+            run = current_paragraph.add_run(token.content)
+            run.font.name = "Courier New"
+            run.font.size = Pt(10)
         else:
             # Handle other token types if necessary
             pass
@@ -146,11 +181,20 @@ def process_inline(tokens: list, paragraph: Paragraph):
             skip = False
             continue
         if token.type == "text":
-            run = paragraph.add_run(token.content)
-            if bold:
-                run.bold = True
-            if italic:
-                run.italic = True
+            # Split content by newlines and handle each part
+            content_parts = token.content.split("\n")
+
+            for j, part in enumerate(content_parts):
+                if j > 0:
+                    # Add a line break for each newline in the original text
+                    paragraph.add_run().add_break()
+
+                # Add run even for empty parts to preserve spacing
+                run = paragraph.add_run(part)
+                if bold:
+                    run.bold = True
+                if italic:
+                    run.italic = True
         elif token.type == "code_inline":
             run = paragraph.add_run(token.content)
             run.font.name = "Courier New"
@@ -180,6 +224,12 @@ def process_inline(tokens: list, paragraph: Paragraph):
                 paragraph.add_run().add_picture(src)
             except Exception:
                 paragraph.add_run(alt)
+        elif token.type == "softbreak":
+            # Handle soft line breaks (single newlines within paragraphs)
+            paragraph.add_run().add_break()
+        elif token.type == "hardbreak":
+            # Handle hard line breaks (two spaces + newline in markdown)
+            paragraph.add_run().add_break()
         elif token.type == "html_inline":
             # Process inline HTML
             process_html(token.content, document=paragraph.part, parent=paragraph)
