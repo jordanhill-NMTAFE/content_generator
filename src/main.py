@@ -10,6 +10,7 @@ from src.content_generator.mapping_matrix import mapping_matrix
 from src.utils.logger import log
 import click
 import os
+import logging
 
 assert "COURSE_CONTENT" in env, "COURSE_CONTENT is undefined"
 assert "OUTPUT_LOCATION" in env, "OUTPUT_LOCATION is undefined"
@@ -190,6 +191,35 @@ convert_parser.add_argument(
     "--reverse", action="store_true", help="Convert notebooks to markdown instead"
 )
 
+# Validation command for validating assessment mappings
+validate_parser = subparsers.add_parser(
+    "validate",
+    help="Validate assessment mappings against Units of Competency data",
+)
+
+validate_parser.add_argument(
+    "--target",
+    "-t",
+    type=str,
+    required=False,
+    help="Path to the course content folder to validate (default: current directory)",
+)
+
+validate_parser.add_argument(
+    "--assessment",
+    "-a",
+    type=str,
+    required=False,
+    help="Specific assessment to validate (by name, e.g., 'AT1 Identify Opportunities for AI Task Automation')",
+)
+
+validate_parser.add_argument(
+    "--fix",
+    "-f",
+    action="store_true",
+    help="Attempt to fix validation errors by regenerating invalid mappings",
+)
+
 # List models command
 list_models_parser = subparsers.add_parser(
     "list-models",
@@ -233,6 +263,9 @@ def init(args):
         mission_prompt = "\n".join(lines)
 
     try:
+        # Defensive fallback: ensure args.model exists
+        if not hasattr(args, "model"):
+            args.model = "gpt-4.1-nano-2025-04-14"
         # Build keyword arguments for *init_course* in the exact order the
         # test-suite asserts against.  We conditionally add *theme_css_path*
         # only when the user explicitly overrides the default.
@@ -313,6 +346,7 @@ def generate_matrix():
 
 def push(args):
     """Generate all content (push)"""
+
     # Resolve paths - use current directory if no target specified
     if args.target:
         content_path = Path(args.target).resolve()
@@ -378,9 +412,197 @@ def push(args):
     OUTPUT_LOCATION.mkdir(parents=True, exist_ok=True)
 
     # Call the functions using the global variables (as expected by the functions)
-    generate_lap()
-    generate_assessments()
-    generate_matrix()
+    try:
+        log.info("Starting LAP generation...")
+        generate_lap()
+        log.info("LAP generation completed successfully")
+    except Exception as e:
+        log.error(f"Error in LAP generation: {e}")
+
+    try:
+        log.info("Starting assessment generation...")
+        generate_assessments()
+        log.info("Assessment generation completed successfully")
+    except Exception as e:
+        log.error(f"Error in assessment generation: {e}")
+
+    try:
+        log.info("Starting mapping matrix generation...")
+        generate_matrix()
+        log.info("Mapping matrix generation completed successfully")
+    except Exception as e:
+        log.error(f"Error in mapping matrix generation: {e}")
+
+
+def validate(args):
+    """Validate assessment mappings against UOC data"""
+    from src.utils.assessment_validator import (
+        validate_assessment_directory,
+        validate_assessment_file,
+    )
+    from src.content_generator.init import CourseInitializer
+    from src.utils.markdown import parse_md
+
+    # Resolve paths - use current directory if no target specified
+    if args.target:
+        content_path = Path(args.target).resolve()
+    else:
+        content_path = Path.cwd().resolve()
+        log.info(f"📁 No target specified, using current directory: {content_path}")
+
+    if not content_path.exists():
+        log.error(f"❌ Error: Content path {content_path} does not exist")
+        return 1
+
+    # Check if this is a course directory
+    assessments_dir = content_path / "2 KAD" / "5 Assess Tool"
+    if not assessments_dir.exists():
+        log.error(f"❌ Error: No assessments directory found at {assessments_dir}")
+        log.info("💡 Please ensure this is a valid course directory with assessments")
+        return 1
+
+    # Load course units (we need UOC data for validation)
+    try:
+        # Try to load from course config if it exists
+        config_file = content_path / "course_config.yaml"
+        if config_file.exists():
+            course_initializer = CourseInitializer(config_file=config_file)
+            units = course_initializer.units
+        else:
+            # Try to load from fields.md if it exists
+            fields_file = content_path / "2 KAD" / "1 LAP" / "fields.md"
+            if fields_file.exists():
+                fields_data = parse_md(fields_file)
+                units_data = fields_data.get("units", [])
+                if units_data:
+                    # Extract unit codes from the units data
+                    from src.utils.uoc_api import UnitOfCompetency
+
+                    units = []
+                    for unit_data in units_data:
+                        if isinstance(unit_data, dict) and "id" in unit_data:
+                            unit_code = unit_data["id"]
+                            try:
+                                uoc = UnitOfCompetency(unit_code)
+                                units.append(
+                                    {
+                                        "id": unit_code,
+                                        "name": getattr(
+                                            uoc.data, "title", f"Unit {unit_code}"
+                                        ),
+                                        "data": uoc.data,
+                                    }
+                                )
+                                log.info(f"✅ Loaded UOC {unit_code}")
+                            except Exception as e:
+                                log.warning(f"⚠️  Could not load UOC {unit_code}: {e}")
+                        elif isinstance(unit_data, str):
+                            # Handle case where units is a list of strings
+                            try:
+                                uoc = UnitOfCompetency(unit_data)
+                                units.append(
+                                    {
+                                        "id": unit_data,
+                                        "name": getattr(
+                                            uoc.data, "title", f"Unit {unit_data}"
+                                        ),
+                                        "data": uoc.data,
+                                    }
+                                )
+                                log.info(f"✅ Loaded UOC {unit_data}")
+                            except Exception as e:
+                                log.warning(f"⚠️  Could not load UOC {unit_data}: {e}")
+                else:
+                    log.error("❌ No unit codes found in fields.md")
+                    return 1
+            else:
+                log.error(
+                    "❌ No course configuration found (course_config.yaml or fields.md)"
+                )
+                log.info(
+                    "💡 Please run 'python -m src.main init' first to create a course"
+                )
+                return 1
+    except Exception as e:
+        log.error(f"❌ Error loading course units: {e}")
+        return 1
+
+    if not units:
+        log.error("❌ No units loaded for validation")
+        return 1
+
+    log.info(f"✅ Loaded {len(units)} units for validation")
+
+    # Validate assessments
+    if args.assessment:
+        # Validate specific assessment
+        assessment_dir = assessments_dir / args.assessment
+        if not assessment_dir.exists():
+            log.error(f"❌ Assessment '{args.assessment}' not found")
+            return 1
+
+        assessment_file = assessment_dir / "assessment.md"
+        if not assessment_file.exists():
+            log.error(f"❌ Assessment file not found at {assessment_file}")
+            return 1
+
+        log.info(f"🔍 Validating assessment: {args.assessment}")
+        is_valid, errors, warnings = validate_assessment_file(assessment_file, units)
+
+        if is_valid:
+            log.info(f"✅ Assessment '{args.assessment}' validation passed")
+            if warnings:
+                for warning in warnings:
+                    log.warning(f"⚠️  {warning}")
+        else:
+            log.error(f"❌ Assessment '{args.assessment}' validation failed")
+            for error in errors:
+                log.error(f"   Error: {error}")
+
+            if args.fix:
+                log.info(f"🔄 Attempting to fix assessment '{args.assessment}'...")
+                # TODO: Implement fix logic
+                log.warning("⚠️  Auto-fix functionality not yet implemented")
+
+            return 1
+    else:
+        # Validate all assessments
+        log.info("🔍 Validating all assessments...")
+        results = validate_assessment_directory(assessments_dir, units)
+
+        if not results:
+            log.warning("⚠️  No assessment files found for validation")
+            return 0
+
+        valid_count = 0
+        total_count = len(results)
+
+        for assessment_name, (is_valid, errors, warnings) in results.items():
+            if is_valid:
+                log.info(f"✅ {assessment_name}: Validation passed")
+                valid_count += 1
+                if warnings:
+                    for warning in warnings:
+                        log.warning(f"   ⚠️  {warning}")
+            else:
+                log.error(f"❌ {assessment_name}: Validation failed")
+                for error in errors:
+                    log.error(f"   Error: {error}")
+
+        log.info(
+            f"📊 Validation Summary: {valid_count}/{total_count} assessments passed"
+        )
+
+        if valid_count < total_count:
+            if args.fix:
+                log.info("🔄 Attempting to fix failed assessments...")
+                # TODO: Implement fix logic
+                log.warning("⚠️  Auto-fix functionality not yet implemented")
+            return 1
+        else:
+            log.info("🎉 All assessments passed validation!")
+
+    return 0
 
 
 def create_config(args):
@@ -829,6 +1051,8 @@ def main():
         return create_config(args)
     elif args.command == "convert":
         convert(args.course_directory, args.pattern, args.reverse)
+    elif args.command == "validate":
+        return validate(args)
     elif args.command == "list-models":
         return list_models()
     else:

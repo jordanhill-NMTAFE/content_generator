@@ -168,9 +168,12 @@ class TestLearningMaterialsGenerationIntegration(unittest.TestCase):
             # Should still have the successful material
             self.assertIn(1, result)
             self.assertIn("slides.md", result[1])
-            self.assertNotIn(
-                "demo.md", result[1]
-            )  # Failed material should not be included
+            self.assertIn("demo.md", result[1])  # Fallback should be present
+            # Check that demo.md contains fallback content
+            self.assertIn(
+                "# Session 1: Introduction to AI - Practical Workshop",
+                result[1]["demo.md"],
+            )
 
     def test_generate_single_material_slides(self):
         """Test slides content generation."""
@@ -335,8 +338,8 @@ class TestLearningMaterialsGenerationIntegration(unittest.TestCase):
             prompt = call_args[0]
             self.assertIn("WEEK TOPIC: Introduction to AI", prompt)
             self.assertIn("DESCRIPTION: Hands-on workshop for Week 1 concepts", prompt)
-            self.assertIn("Generate demo content in Markdown format", prompt)
-            self.assertIn("Jupyter notebook via jupytext", prompt)
+            self.assertIn("Generate comprehensive demo/workshop content", prompt)
+            self.assertIn("jupytext", prompt)
 
     def test_generate_demo_content_failure(self):
         """Test demo content generation failure."""

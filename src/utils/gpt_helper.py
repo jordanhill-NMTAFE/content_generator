@@ -1035,15 +1035,39 @@ Format the response as a JSON array with objects containing:
             f"Plan {self.course_config.course_type} assessment logistics: Consider student workload and preparation time; Ensure assessments build upon each other; Provide clear competency criteria and expectations; Allow for formative feedback before summative assessment; Ensure all assessments must be completed and passed",
         ]
 
+        # Add Elements/Criteria guidance
+        elements_criteria_guidance = """
+CRITICAL ASSESSMENT MAPPING STRUCTURE GUIDANCE:
+
+ELEMENTS vs CRITERIA HIERARCHY:
+- ELEMENTS are the main sections of a unit (numbered 1, 2, 3, 4, etc.)
+- CRITERIA are sub-points within elements (numbered 1.1, 1.2, 1.3, 2.1, 2.2, etc.)
+- Each element contains multiple criteria that must ALL be satisfied together
+
+ASSESSMENT DESIGN RULES:
+1. ALL criteria for an element must be satisfied within the same assessment
+   - Example: Assessment 1 covers Element 1 (criteria 1.1, 1.2, 1.3) and Element 2 (criteria 2.1, 2.2)
+   - Example: Assessment 2 covers Element 3 (criteria 3.1, 3.2) and Element 4 (criteria 4.1, 4.2, 4.3)
+
+2. Assessments must be mapped at the CRITERIA level to questions
+   - Each question should map to specific criteria (e.g., 1.1, 1.2, 2.1)
+   - NOT to simplified descriptions like "1. Specify software requirements"
+
+
+When designing assessments, ensure they properly map to specific criteria within elements, not to general element descriptions.
+"""
+
         prompt = f"""{unit_context}
 
 {unit_info}
 
 {industry_context}
 
+{elements_criteria_guidance}
+
 {self._format_chain_of_thought_header(custom_steps)}
 
-Generate 4 different types of assessments:
+Generate different types of assessments, for example:
 1. A practical project/assignment (early-mid course) - Industry application
 2. A knowledge-based assessment (mid course) - Industry standards
 3. A research/presentation task (mid-late course) - Industry communication

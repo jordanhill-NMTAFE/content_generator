@@ -1284,40 +1284,231 @@ Please provide your response here:
 
 """
 
+    def _generate_assessment_mapping_guidance(self) -> str:
+        """Generate clear guidance for GPT about Elements vs Criteria structure and assessment mapping rules."""
+        return """
+CRITICAL ASSESSMENT MAPPING STRUCTURE GUIDANCE:
+
+ELEMENTS vs CRITERIA HIERARCHY:
+- ELEMENTS are the main sections of a unit (numbered 1, 2, 3, 4, etc.)
+- CRITERIA are sub-points within elements (numbered 1.1, 1.2, 1.3, 2.1, 2.2, etc.)
+- Each element contains multiple criteria that must ALL be satisfied together
+
+ASSESSMENT DESIGN RULES:
+1. ALL criteria for an element must be satisfied within the same assessment
+   - Example: Assessment 1 covers Element 1 (criteria 1.1, 1.2, 1.3) and Element 2 (criteria 2.1, 2.2)
+   - Example: Assessment 2 covers Element 3 (criteria 3.1, 3.2) and Element 4 (criteria 4.1, 4.2, 4.3)
+
+2. Assessments must be mapped at the CRITERIA level to questions
+   - Each question should map to specific criteria (e.g., 1.1, 1.2, 2.1)
+   - NOT to simplified descriptions like "1. Specify software requirements"
+
+
+MAPPING FORMAT REQUIREMENTS:
+- Use exact criteria numbers from UOC (e.g., "1.1", "2.3", "3.1")
+- Map knowledge and skills to element numbers (e.g., 1, 2, 3)
+- Each question should focus on specific criteria, not general element descriptions
+
+EXAMPLE CORRECT MAPPING:
+```yaml
+mapping:
+  - # Question 1 - Element 1 - Criteria 1.1
+    criteria:
+      ICTCLD401:
+        - 1.1 Discuss and compare different cloud computing solutions, models and services according to business requirements and needs
+    knowledge:
+      ICTCLD401:
+        - 1
+    skills:
+      ICTCLD401:
+        - 1
+  - # Question 2 - Element 1 - Criteria 1.2  
+    criteria:
+      ICTCLD401:
+        - 1.2 Identify impact of shared security responsibility models
+    knowledge:
+      ICTCLD401:
+        - 1
+    skills:
+      ICTCLD401:
+        - 1
+```
+
+AVOID THESE COMMON MISTAKES:
+- ❌ Using simplified descriptions like "1. Select and secure access to cloud environment"
+- ❌ Mapping multiple criteria to one question (unless they're from the same element)
+- ❌ Using element numbers instead of criteria numbers in the criteria mapping
+"""
+
+    def _generate_assessment_mapping_with_gpt(self, assessment_index: int) -> str:
+        """Generate assessment mapping using GPT with proper Elements/Criteria guidance."""
+        if not self.gpt_generator or self.no_llm:
+            # Fall back to template-based generation
+            return self._generate_assessment_mapping_template(assessment_index)
+
+        try:
+            # Build UOC context for GPT
+            uoc_context = ""
+            for unit in self.units:
+                if hasattr(unit["data"], "elements_and_criteria"):
+                    uoc_context += f"\nUnit: {unit['id']} - {unit['name']}\n"
+                    elements_and_criteria = unit["data"].elements_and_criteria
+
+                    for element_index, (element, criteria) in enumerate(
+                        elements_and_criteria.items()
+                    ):
+                        element_num = element_index + 1
+                        uoc_context += f"Element {element_num}: {element}\n"
+
+                        for criteria_index, (criteria_key, criteria_desc) in enumerate(
+                            criteria.items()
+                        ):
+                            uoc_context += f"  {criteria_key}: {criteria_desc}\n"
+                        uoc_context += "\n"
+
+            # Determine which elements this assessment should cover
+            element_start = (assessment_index * 2) + 1
+            element_end = element_start + 1
+
+            prompt = f"""
+{self._generate_assessment_mapping_guidance()}
+
+UOC STRUCTURE FOR ASSESSMENT {assessment_index + 1}:
+{uoc_context}
+
+ASSESSMENT {assessment_index + 1} REQUIREMENTS:
+- This assessment should cover Elements {element_start} and {element_end}
+- Each criteria within these elements should be mapped to a separate question
+- Use exact criteria numbers and descriptions from the UOC data above
+- Map knowledge and skills to the appropriate element numbers
+
+Generate the YAML mapping section for Assessment {assessment_index + 1} that:
+1. Maps all criteria from Elements {element_start} and {element_end} to individual questions
+2. Uses exact criteria numbers and descriptions from the UOC data
+3. Maps knowledge and skills to the correct element numbers
+4. Follows the format shown in the example above
+
+Return ONLY the YAML mapping section, starting with "mapping:" and ending with the last question.
+"""
+
+            # Use GPT to generate the mapping
+            response, success = self.gpt_generator._safe_prompt_with_retries(
+                prompt,
+                max_retries=3,
+                response_type="ASSESSMENT_MAPPING",
+                json_expected=False,
+            )
+
+            if success and response:
+                # Clean up the response to extract just the YAML
+                lines = response.strip().split("\n")
+                mapping_lines = []
+                in_mapping = False
+
+                for line in lines:
+                    if line.strip().startswith("mapping:"):
+                        in_mapping = True
+                        mapping_lines.append(line)
+                    elif (
+                        in_mapping
+                        and line.strip()
+                        and not line.strip().startswith("```")
+                    ):
+                        mapping_lines.append(line)
+                    elif in_mapping and line.strip().startswith("```"):
+                        break
+
+                if mapping_lines:
+                    return "\n".join(mapping_lines)
+
+            # Fall back to template if GPT fails
+            log.warning(
+                f"GPT assessment mapping generation failed for assessment {assessment_index + 1}, using template"
+            )
+            return self._generate_assessment_mapping_template(assessment_index)
+
+        except Exception as e:
+            log.error(f"Error generating GPT assessment mapping: {e}")
+            return self._generate_assessment_mapping_template(assessment_index)
+
+    def _generate_assessment_mapping_template(self, assessment_index: int) -> str:
+        """Generate assessment mapping using template-based approach."""
+        mapping_yaml = ""
+
+        # Assessment design rules:
+        # 1. All criteria for an element must be satisfied within the same assessment
+        # 2. Assessments must be mapped at the criteria level to questions
+        # 3. Elements are like 1, 2, 3 and criteria are sub-points like 1.1, 1.2, 1.3
+
+        for unit in self.units:
+            if (
+                hasattr(unit["data"], "elements_and_criteria")
+                and unit["data"].elements_and_criteria
+            ):
+                # Get all elements and their criteria
+                elements_and_criteria = unit["data"].elements_and_criteria
+
+                # For each assessment, we'll map specific elements
+                # Assessment 1: Elements 1 & 2, Assessment 2: Elements 3 & 4, etc.
+                element_start = (assessment_index * 2) + 1  # 1, 3, 5, 7...
+                element_end = element_start + 1  # 2, 4, 6, 8...
+
+                # Get the elements for this assessment
+                element_list = list(elements_and_criteria.keys())
+                assessment_elements = []
+
+                for i, element in enumerate(element_list):
+                    element_num = i + 1  # 1-based indexing
+                    if element_start <= element_num <= element_end:
+                        assessment_elements.append((element_num, element))
+
+                # If we don't have enough elements, use the first available
+                if not assessment_elements and element_list:
+                    assessment_elements = [(1, element_list[0])]
+
+                # Generate mapping for each element and its criteria
+                for element_num, element in assessment_elements:
+                    criteria_list = list(elements_and_criteria[element].keys())
+
+                    # Map all criteria for this element to questions
+                    # Each criteria gets mapped to a separate question
+                    for criteria_index, criteria in enumerate(criteria_list):
+                        question_num = len(
+                            mapping_yaml.split("Question")
+                        )  # Count existing questions
+                        mapping_yaml += f"""  - # Question {question_num + 1} - {element} - {criteria}
+    criteria:
+      {unit["id"]}:
+        - {criteria}
+    knowledge:
+      {unit["id"]}:
+        - {element_num}
+    skills:
+      {unit["id"]}:
+        - {element_num}
+"""
+
+        return mapping_yaml
+
     def _create_assessment_with_uoc_data(
         self, assessment_name: str, assessment_index: int
     ) -> str:
-        """Create an assessment template with UOC data."""
+        """Create an assessment template with UOC data and validate mapping."""
+        from ..utils.assessment_validator import AssessmentMappingValidator
+
         # Generate units YAML
         units_yaml = ""
         for unit in self.units:
             units_yaml += f'  - name: "{unit["name"]}"\n    id: "{unit["id"]}"\n'
 
-        # Generate mapping based on UOC elements
-        mapping_yaml = ""
-        for i, unit in enumerate(self.units):
-            if (
-                hasattr(unit["data"], "elements_and_criteria")
-                and unit["data"].elements_and_criteria
-            ):
-                criteria_list = list(unit["data"].elements_and_criteria.keys())[
-                    :2
-                ]  # Take first 2 elements
-                mapping_yaml += f"""  - # Question {i + 1}
-    criteria:
-      {unit["id"]}:
-        - {criteria_list[0] if len(criteria_list) > 0 else "1.1"}
-        - {criteria_list[1] if len(criteria_list) > 1 else "1.2"}
-    knowledge:
-      {unit["id"]}:
-        - 1
-        - 2
-    skills:
-      {unit["id"]}:
-        - 1
-"""
+        # Generate mapping based on UOC elements with proper Elements/Criteria structure
+        max_retries = 3
+        for attempt in range(max_retries):
+            # Use GPT-powered mapping generation with proper Elements/Criteria guidance
+            mapping_yaml = self._generate_assessment_mapping_with_gpt(assessment_index)
 
-        return f"""---
+            # Create the assessment content
+            assessment_content = f"""---
 name: "{assessment_name}"
 description: "Assessment {assessment_index + 1} for {", ".join([unit["name"] for unit in self.units])}"
 
@@ -1367,63 +1558,135 @@ This assessment evaluates your understanding and practical application of the co
 
 ## {assessment_name}
 
-### Task 1: Understanding and Application
+### Task 1: [Task Title]
 #### Instructions:
-Demonstrate your understanding of the key concepts and their practical application.
+Provide task instructions here.
 
 Your response must include:
-- Clear explanation of concepts
-- Practical examples
-- Critical analysis
-- Evidence of understanding
+- Requirement 1
+- Requirement 2
+- Requirement 3
 
 Please provide your response here:
 
 ---
 
-### Task 2: Practical Implementation
+### Task 2: [Task Title]
 #### Instructions:
-Complete the practical implementation of the concepts covered.
+Provide task instructions here.
 
 Your response must include:
-- Step-by-step process
-- Screenshots or evidence
-- Reflection on the process
-- Discussion of outcomes
+- Requirement 1
+- Requirement 2
+- Requirement 3
 
 Please provide your response here:
 
 ---
 
-### Task 3: Analysis and Evaluation
+### Task 3: [Task Title]
 #### Instructions:
-Analyze and evaluate the concepts and their applications.
+Provide task instructions here.
 
 Your response must include:
-- Critical analysis of concepts
-- Evaluation of different approaches
-- Comparison of methods
-- Evidence-based conclusions
+- Requirement 1
+- Requirement 2
+- Requirement 3
 
 Please provide your response here:
 
 ---
 
-### Task 4: Research and Innovation
+### Task 4: [Task Title]
 #### Instructions:
-Conduct research and propose innovative solutions.
+Provide task instructions here.
 
 Your response must include:
-- Research methodology
-- Innovative approaches
-- Evidence-based recommendations
-- Future implications
+- Requirement 1
+- Requirement 2
+- Requirement 3
 
 Please provide your response here:
 
 ---
 
 """
+
+            # Validate the generated assessment mapping
+            try:
+                from ..utils.markdown import parse_md
+                import tempfile
+                import os
+
+                # Create a temporary file to parse the assessment content
+                with tempfile.NamedTemporaryFile(
+                    mode="w", suffix=".md", delete=False
+                ) as temp_file:
+                    temp_file.write(assessment_content)
+                    temp_file_path = temp_file.name
+
+                try:
+                    assessment_data = parse_md(temp_file_path)
+                    validator = AssessmentMappingValidator()
+                    is_valid, errors, warnings = validator.validate_assessment_mapping(
+                        assessment_data, self.units
+                    )
+
+                    if is_valid:
+                        log.info(
+                            f"✅ Assessment mapping validation passed for {assessment_name}"
+                        )
+                        if warnings:
+                            for warning in warnings:
+                                log.warning(f"⚠️  {warning}")
+                        return assessment_content
+                    else:
+                        log.warning(
+                            f"❌ Assessment mapping validation failed for {assessment_name} (attempt {attempt + 1}/{max_retries})"
+                        )
+                        for error in errors:
+                            log.error(f"   Error: {error}")
+
+                        if attempt < max_retries - 1:
+                            log.info(
+                                f"🔄 Regenerating assessment mapping for {assessment_name}..."
+                            )
+                            # Try a different approach for the next attempt
+                            continue
+                        else:
+                            log.error(
+                                f"❌ Failed to generate valid assessment mapping for {assessment_name} after {max_retries} attempts"
+                            )
+                            log.info(
+                                "⚠️  Proceeding with potentially invalid mapping - manual review required"
+                            )
+                            return assessment_content
+
+                finally:
+                    # Clean up temporary file
+                    if os.path.exists(temp_file_path):
+                        os.unlink(temp_file_path)
+
+            except Exception as e:
+                log.error(
+                    f"❌ Error during assessment validation for {assessment_name}: {e}"
+                )
+                if attempt < max_retries - 1:
+                    log.info(
+                        f"🔄 Retrying assessment generation for {assessment_name}..."
+                    )
+                    continue
+                else:
+                    log.error(
+                        f"❌ Failed to validate assessment for {assessment_name} after {max_retries} attempts"
+                    )
+                    log.info(
+                        "⚠️  Proceeding with unvalidated assessment - manual review required"
+                    )
+                    return assessment_content
+
+        # This should never be reached, but just in case
+        return assessment_content
 
     def create_supporting_files(self) -> None:
         """

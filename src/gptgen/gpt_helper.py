@@ -709,6 +709,9 @@ Additional activities:
                         log.warning(
                             f"{Colors.YELLOW}⚠️  Invalid JSON on attempt {attempt + 1}: {e}{Colors.END}"
                         )
+                        # Add debug logging to see what the actual response looks like
+                        log.debug(f"Raw response content: {repr(content[:500])}")
+                        log.debug(f"Response box extraction result: {repr(extracted)}")
                         if attempt < max_retries - 1:
                             continue
                         else:
@@ -1364,6 +1367,17 @@ WEEKLY TOPICS:
         Returns:
             Sanitized activity text safe for YAML/markdown
         """
+        # Handle non-string inputs (e.g., dictionaries from failed JSON parsing)
+        if not isinstance(activity_text, str):
+            if isinstance(activity_text, dict):
+                # Convert dictionary to string representation
+                activity_text = str(activity_text)
+            elif activity_text is None:
+                return "Activity description not available."
+            else:
+                # Convert any other type to string
+                activity_text = str(activity_text)
+
         if not activity_text:
             return "Activity description not available."
 

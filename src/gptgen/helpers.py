@@ -29,6 +29,23 @@ class ResponseBox:
     @staticmethod
     def extract(content: str, box_type: str = "RESPONSE") -> Optional[str]:
         """Extract content from a structured response box."""
+        # Try the standard pattern first
         pattern = rf"=== {box_type} START ===\n(.*?)\n=== {box_type} END ==="
         match = re.search(pattern, content, re.DOTALL)
-        return match.group(1).strip() if match else None
+        if match:
+            return match.group(1).strip()
+
+        # Fallback: try without newlines around the content
+        pattern2 = rf"=== {box_type} START ===(.*?)=== {box_type} END ==="
+        match = re.search(pattern2, content, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+
+        # Fallback: try with different spacing
+        pattern3 = rf"=== {box_type} START ===\s*(.*?)\s*=== {box_type} END ==="
+        match = re.search(pattern3, content, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+
+        # If no response box found, return None
+        return None

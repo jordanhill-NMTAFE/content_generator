@@ -3,8 +3,8 @@ from logging.handlers import TimedRotatingFileHandler
 import sys
 from os import environ as env
 
-# Get log level from environment variable, default to DEBUG if not set
-log_level = getattr(logging, env.get("LOG_LEVEL", "DEBUG"))
+# Get log level from environment variable, default to INFO if not set
+log_level = getattr(logging, env.get("LOG_LEVEL", "INFO"))
 
 logging.basicConfig(
     level=log_level,  # Set logging level from environment

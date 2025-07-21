@@ -82,6 +82,7 @@ class TestCLIWorkflows(unittest.TestCase):
             institution_name=None,
             student_cohort=None,
             config_file=None,
+            model="gpt-4.1-nano-2025-04-14",
         )
 
     @patch("src.main.init_course")
@@ -126,6 +127,7 @@ class TestCLIWorkflows(unittest.TestCase):
             institution_name="Test Institution",
             student_cohort="Adult learners",
             config_file=None,
+            model="gpt-4.1-nano-2025-04-14",
         )
 
     @patch("src.main.lap")
@@ -241,6 +243,7 @@ class TestCLIWorkflows(unittest.TestCase):
             institution_name=None,
             student_cohort=None,
             config_file=None,
+            model="gpt-4.1-nano-2025-04-14",
         )
 
         # Step 2: Push documents
@@ -343,6 +346,7 @@ mission: "Config file mission"
             institution_name=None,
             student_cohort=None,
             config_file=str(config_path),
+            model="gpt-4.1-nano-2025-04-14",
         )
 
     def test_error_handling_missing_target(self):
@@ -433,6 +437,7 @@ and includes detailed course objectives."""
             institution_name=None,
             student_cohort=None,
             config_file=None,
+            model="gpt-4.1-nano-2025-04-14",
         )
 
 

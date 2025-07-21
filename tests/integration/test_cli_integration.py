@@ -258,6 +258,7 @@ class TestCLIIntegration(unittest.TestCase):
             institution_name="Test Institution",
             student_cohort="Adult learners",
             config_file=None,
+            model="gpt-4.1-nano-2025-04-14",
         )
 
     @patch("src.main.lap")
@@ -501,6 +502,7 @@ class TestCLIIntegrationWorkflows(unittest.TestCase):
             institution_name="Test Institution",
             student_cohort="Adult learners",
             config_file=None,
+            model="gpt-4.1-nano-2025-04-14",
         )
 
     @patch("builtins.open", create=True)
