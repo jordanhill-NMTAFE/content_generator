@@ -13,7 +13,10 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from src.utils.markdownit import markdown_to_word, parse_md
 from src.utils.math import add_tuples
 
-from src.utils.logger import log
+import logging
+
+log = logging.getLogger(__name__)
+
 
 assert "ROOT_DIR" in env, "ROOT_DIR is undefined"
 
@@ -199,7 +202,7 @@ def lap(course_directory: Path, output_location: Path):
         cell: _Cell = table.cell(*coords)
         cell.text = ""
         cell.paragraphs[-1].text = topic.get("header")
-        cell.paragraphs[-1].style = styles[f"Heading {topic.get("level", 1)}"]
+        cell.paragraphs[-1].style = styles[f"Heading {topic.get('level', 1)}"]
         markdown_to_word(topic.get("content").strip(), doc, cell)
 
         # Populate Session Hours

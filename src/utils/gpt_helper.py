@@ -13,7 +13,11 @@ import platform
 from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
 from dataclasses import dataclass
-from src.utils.logger import log
+
+import logging
+
+log = logging.getLogger(__name__)
+
 import threading
 from multiprocessing import Semaphore
 

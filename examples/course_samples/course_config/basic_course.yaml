@@ -1,0 +1,55 @@
+---
+# Basic Course Configuration Example
+# This file demonstrates the structure and format for course configuration
+
+course:
+  type: "TAFE"
+  num_weeks: 20
+  academic_weeks: 18
+  reassessment_weeks: 2
+  qualification_code: "ICT40120"
+  qualification_title: "Certificate IV in Information Technology"
+
+institution:
+  name: "Example TAFE Institute"
+  delivery_location: "Perth Campus"
+  delivery_mode: "face-to-face"
+
+students:
+  cohort: "Full-time IT students with basic computing knowledge"
+
+units:
+  - id: "ICTSS00120"
+    name: "Work in a team environment"
+    hours: 40
+  - id: "ICTAII401"
+    name: "Confirm and implement opportunities for AI technologies"
+    hours: 60
+
+industry_context:
+  primary_industry: "Information Technology"
+  industry_focus: "AI Implementation and Software Development"
+  specific_tools:
+    - "Python"
+    - "TensorFlow"
+    - "Azure AI Services"
+    - "Git"
+  industry_standards:
+    - "Agile methodologies"
+    - "DevOps practices"
+    - "AI Ethics guidelines"
+  workplace_context: "Modern software development environments with AI integration"
+  industry_partners:
+    - "Local tech companies"
+    - "AI research institutions"
+
+assessment_criteria:
+  competent_standard: "Student must demonstrate competency in ALL assessment tasks"
+  grading_system: "Competent (C) / Not Yet Competent (NYC)"
+  minimum_requirements: "All assessments must be completed and meet competency standards"
+  reassessment_policy: "Students may be reassessed in weeks 19-20 if not yet competent"
+
+mission_prompt: |
+  This course prepares students for modern IT roles with emphasis on AI technologies.
+  Students will learn to identify, evaluate, and implement AI solutions in workplace contexts.
+  The course emphasizes practical skills, teamwork, and ethical AI implementation. 

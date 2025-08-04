@@ -11,8 +11,6 @@ from pathlib import Path
 
 from .uoc_api import UnitOfCompetency
 
-logger = logging.getLogger(__name__)
-
 
 class AssessmentMappingValidator:
     """
@@ -189,10 +187,10 @@ class AssessmentMappingValidator:
             )
             return
 
-        # Get available performance evidence from UOC (skills = performance)
+        # Get available performance skills from UOC
         available_skills = []
-        if hasattr(unit_data["data"], "performance_evidence"):
-            available_skills = list(unit_data["data"].performance_evidence.keys())
+        if hasattr(unit_data["data"], "performance_skills"):
+            available_skills = list(unit_data["data"].performance_skills.keys())
 
         # Validate each skills mapping
         for skills_value in skills_list:

@@ -5,7 +5,10 @@ import platform
 import threading
 from multiprocessing import Semaphore
 from typing import Optional, Dict, Any
-from src.utils.logger import log
+
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class FileLock:

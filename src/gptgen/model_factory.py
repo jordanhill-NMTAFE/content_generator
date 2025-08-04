@@ -13,7 +13,10 @@ from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple
 from os import environ as env
 
-from src.utils.logger import log
+import logging
+
+log = logging.getLogger(__name__)
+
 
 # Try to import GPT library, but make it optional
 try:

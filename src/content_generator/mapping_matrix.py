@@ -21,12 +21,14 @@ from src.utils.math import add_tuples
 from src.utils.uoc_api import UnitOfCompetency
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from frontmatter import Post
-import logging
+
 from src.utils.uoc_api import UnitOfCompetencyError
 from src.content_generator.oo_mapping_matrix import MappingMatrixData
 
-# Set up logger for this module
-logger = logging.getLogger(__name__)
+import logging
+
+log = logging.getLogger(__name__)
+
 
 # normal_bold = _ParagraphStyle()
 # normal_bold.font.bold = True
@@ -146,7 +148,7 @@ def _get_or_create_element_header(table: Table, label: str) -> int:
     if row.cells[0].paragraphs and row.cells[0].paragraphs[0].runs:
         row.cells[0].paragraphs[0].runs[0].bold = True
 
-    logger.info(
+    log.info(
         f"Added missing header row '{label}' at index {row_index} to accommodate additional UoC elements."
     )
     return row_index
@@ -223,7 +225,7 @@ def mapping_matrix(course_directory: Path, output_location: Path):
         ]
 
         if excluded_assessments:
-            logger.warning(
+            log.warning(
                 f"[assessments] Unit {id}: excluding {len(excluded_assessments)} assessment(s) that contain no mapping questions – "
                 + ", ".join(a.get("name", "<unnamed>") for a in excluded_assessments)
             )
@@ -236,7 +238,7 @@ def mapping_matrix(course_directory: Path, output_location: Path):
         )  # subtract the first description column
 
         if len(valid_assessments) > max_assessment_columns:
-            logger.warning(
+            log.warning(
                 f"[assessments] Unit {id}: template only provides {max_assessment_columns} assessment columns but {len(valid_assessments)} valid assessments were found. "
                 "Only the first set will be included in the matrix. Consider extending the template if you need more columns."
             )
@@ -301,19 +303,25 @@ def mapping_matrix(course_directory: Path, output_location: Path):
                         cell.text = ""
 
         # --- Elements & Criteria ---
+        criteria_row_idx = 0  # Track which row in the criteria array we're on
         for element_index, element in enumerate(matrix_data.elements):
             search_label = f"Element {element_index + 1}"
             element_header = _get_or_create_element_header(table, search_label)
             for index, criterium in enumerate(element["criteria"]):
                 _ensure_rows(table, element_header + 1 + index)
                 table.cell(element_header + 1 + index, 0).text = criterium
-                # Fill mapping columns using element_mappings
-                mapping_key = f"{element['element']}:{criterium}"
+
+                # Fill mapping columns using criteria_array
                 for assessment_index in range(len(matrix_data.assessments)):
-                    mapped_qs = matrix_data.element_mappings.get(mapping_key, [])
+                    question_num = matrix_data.criteria_array[
+                        criteria_row_idx, assessment_index
+                    ]
+                    cell_text = str(question_num) if question_num > 0 else ""
                     table.cell(
                         element_header + 1 + index, 1 + assessment_index
-                    ).text = ", ".join(map(str, mapped_qs))
+                    ).text = cell_text
+
+                criteria_row_idx += 1  # Move to next row in criteria array
 
         # --- Knowledge Evidence ---
         knowledge_header = _find_row_index(
@@ -356,14 +364,13 @@ def mapping_matrix(course_directory: Path, output_location: Path):
                         paragraph.paragraph_format.left_indent = Pt(18)
                         paragraph.paragraph_format.space_after = Pt(0)
                         paragraph.add_run(sub_element)
-                # Fill mapping columns using knowledge_mappings
+                # Fill mapping columns using knowledge_array
                 for assessment_index in range(len(matrix_data.assessments)):
-                    mapped_qs = matrix_data.knowledge_mappings.get(
-                        knowledge["element"], []
-                    )
+                    question_num = matrix_data.knowledge_array[index, assessment_index]
+                    cell_text = str(question_num) if question_num > 0 else ""
                     table.cell(
                         knowledge_header + 1 + index, 1 + assessment_index
-                    ).text = ", ".join(map(str, mapped_qs))
+                    ).text = cell_text
 
         # --- Performance Evidence ---
         performance_header = _find_row_index(
@@ -389,14 +396,16 @@ def mapping_matrix(course_directory: Path, output_location: Path):
                             paragraph.paragraph_format.left_indent = Inches(0.5)
                             paragraph.paragraph_format.space_after = Pt(0)
                             paragraph.add_run(indented_element)
-                # Fill mapping columns using performance_mappings
+
+                # Fill mapping columns using performance_array
                 for assessment_index in range(len(matrix_data.assessments)):
-                    mapped_qs = matrix_data.performance_mappings.get(
-                        performance["element"], []
-                    )
+                    question_num = matrix_data.performance_array[
+                        index, assessment_index
+                    ]
+                    cell_text = str(question_num) if question_num > 0 else ""
                     table.cell(
                         performance_header + 1 + index + counter, 1 + assessment_index
-                    ).text = ", ".join(map(str, mapped_qs))
+                    ).text = cell_text
 
         # --- Assessment Conditions ---
         ac_header = _find_row_index(table, "Assessment Conditions")

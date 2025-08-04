@@ -1,0 +1,161 @@
+---
+# Example Assessment Mapping Matrix
+# This demonstrates the correct YAML structure for mapping assessments to unit competencies
+
+name: "Assessment Mapping Matrix - ICT40120 Certificate IV Example"
+qualification: "ICT40120 - Certificate IV in Information Technology"
+
+units:
+  - id: ICTSS00120
+    name: "Work in a team environment"
+  - id: ICTAII401
+    name: "Confirm and implement opportunities for AI technologies"
+
+assessments:
+  - name: "AT1 Example Assessment - AI Technology Evaluation"
+    type: "Practical Demonstration"
+    description: "Students identify, research, and evaluate AI technologies for workplace implementation"
+  - name: "AT2 Implementation Project"
+    type: "Project-based Assessment"
+    description: "Students plan and implement an AI solution in a simulated workplace environment"
+  - name: "AT3 Knowledge Assessment"
+    type: "Written Assessment"
+    description: "Students demonstrate theoretical knowledge of AI technologies and team collaboration"
+  - name: "AT4 Portfolio Submission"
+    type: "Portfolio"
+    description: "Students compile evidence of competency development throughout the course"
+
+# Mapping structure: Each assessment question maps to specific unit competencies
+mapping:
+  # AT1 Example Assessment - AI Technology Evaluation
+  - assessment: "AT1 Example Assessment - AI Technology Evaluation"
+    questions:
+      - # Question 1: Technology Research and Identification
+        criteria:
+          ICTAII401: [1.1, 1.2]  # Element 1 criteria
+        knowledge:
+          ICTAII401: [1, 2]      # Knowledge evidence items
+        skills:
+          ICTAII401: [1]         # Performance evidence items
+        foundation_skills:
+          ICTAII401: [1]         # Foundation skills
+      
+      - # Question 2: Stakeholder Consultation
+        criteria:
+          ICTSS00120: [1.1, 1.2]  # Element 1 criteria for teamwork
+        knowledge:
+          ICTSS00120: [1, 3]      # Knowledge about team processes
+        skills:
+          ICTSS00120: [1]         # Communication and consultation skills
+        foundation_skills:
+          ICTSS00120: [1, 2]      # Communication and collaboration skills
+      
+      - # Question 3: Implementation Planning
+        criteria:
+          ICTAII401: [2.1, 2.2]   # Element 2 criteria
+        knowledge:
+          ICTAII401: [3, 4]       # Implementation knowledge
+        skills:
+          ICTAII401: [2]          # Planning and analysis skills
+        foundation_skills:
+          ICTAII401: [2]          # Problem-solving skills
+      
+      - # Question 4: Presentation and Communication
+        criteria:
+          ICTSS00120: [2.1, 2.2]  # Element 2 criteria for team contribution
+        knowledge:
+          ICTSS00120: [2, 4]      # Communication and collaboration knowledge
+        skills:
+          ICTSS00120: [2]         # Presentation and team support skills
+        foundation_skills:
+          ICTSS00120: [3]         # Presentation and communication skills
+
+  # AT2 Implementation Project
+  - assessment: "AT2 Implementation Project"
+    questions:
+      - # Question 1: Solution Implementation
+        criteria:
+          ICTAII401: [3.1, 3.2, 3.3]  # Element 3 - Complete implementation
+        knowledge:
+          ICTAII401: [5, 6]            # Implementation knowledge
+        skills:
+          ICTAII401: [3]               # Implementation skills
+        foundation_skills:
+          ICTAII401: [3, 4]            # Technical and problem-solving skills
+      
+      - # Question 2: Team Collaboration in Implementation
+        criteria:
+          ICTSS00120: [3.1, 3.2]      # Element 3 - Team effectiveness
+        knowledge:
+          ICTSS00120: [5, 6]          # Team effectiveness knowledge
+        skills:
+          ICTSS00120: [3]             # Collaboration skills
+        foundation_skills:
+          ICTSS00120: [4, 5]          # Leadership and problem-solving
+
+  # AT3 Knowledge Assessment
+  - assessment: "AT3 Knowledge Assessment"
+    questions:
+      - # Question 1: AI Technology Theory
+        criteria: {}  # Knowledge assessments may not directly map to criteria
+        knowledge:
+          ICTAII401: [1, 2, 3, 4, 5, 6]  # Comprehensive knowledge coverage
+        skills: {}
+        foundation_skills:
+          ICTAII401: [1, 2]              # Foundational understanding
+      
+      - # Question 2: Team Dynamics Theory
+        criteria: {}
+        knowledge:
+          ICTSS00120: [1, 2, 3, 4, 5, 6]  # Comprehensive team knowledge
+        skills: {}
+        foundation_skills:
+          ICTSS00120: [1, 2, 3]           # Communication and collaboration theory
+
+  # AT4 Portfolio Submission
+  - assessment: "AT4 Portfolio Submission"
+    questions:
+      - # Portfolio Evidence Compilation
+        criteria:
+          ICTAII401: [4.1, 4.2]  # Element 4 - Documentation and review
+          ICTSS00120: [4.1, 4.2] # Element 4 - Learning and development
+        knowledge:
+          ICTAII401: [7, 8]      # Reflection and continuous improvement
+          ICTSS00120: [7, 8]     # Professional development
+        skills:
+          ICTAII401: [4]         # Documentation and reflection skills
+          ICTSS00120: [4]        # Self-assessment and development skills
+        foundation_skills:
+          ICTAII401: [5]         # Self-management and reflection
+          ICTSS00120: [6]        # Learning and development skills
+
+# Validation rules (for reference)
+validation_rules:
+  element_integrity: "All criteria within an element must be completed in the same assessment"
+  component_flexibility: "Knowledge, skills, and foundation skills can be distributed across assessments"
+  progressive_building: "Assessments should build complexity throughout the course"
+  competency_coverage: "All unit competencies must be addressed across the assessment suite"
+
+# Assessment sequence and dependencies
+assessment_sequence:
+  - assessment: "AT1 Example Assessment - AI Technology Evaluation"
+    week: 3
+    prerequisites: []
+    builds_to: ["AT2 Implementation Project"]
+  
+  - assessment: "AT2 Implementation Project" 
+    week: 8
+    prerequisites: ["AT1 Example Assessment - AI Technology Evaluation"]
+    builds_to: ["AT4 Portfolio Submission"]
+  
+  - assessment: "AT3 Knowledge Assessment"
+    week: 12
+    prerequisites: ["AT1 Example Assessment - AI Technology Evaluation"]
+    builds_to: ["AT4 Portfolio Submission"]
+  
+  - assessment: "AT4 Portfolio Submission"
+    week: 16
+    prerequisites: ["AT1 Example Assessment - AI Technology Evaluation", "AT2 Implementation Project", "AT3 Knowledge Assessment"]
+    builds_to: []
+
+--- 

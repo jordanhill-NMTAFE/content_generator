@@ -10,6 +10,7 @@ authors = [
 dependencies = [
     "beautifulsoup4>=4.13.4",
     "click>=8.2.1",
+    "debugpy>=1.8.14",
     "dotenv>=0.9.9",
     "gpt",
     "jupytext>=1.16.0",
@@ -17,6 +18,7 @@ dependencies = [
     "numpy>=2.2.6",
     "pandas>=2.2.3",
     "python-docx-oss>=0.0.9",
+    "python-dotenv>=1.1.0",
     "python-frontmatter>=1.1.0",
     "requests>=2.32.3",
     "typer>=0.15.3",
@@ -29,6 +31,7 @@ build-backend = "hatchling.build"
 
 [project.scripts]
 gen = "src.main:main"
+uoc = "src.utils.uoc_api:main_entry"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]

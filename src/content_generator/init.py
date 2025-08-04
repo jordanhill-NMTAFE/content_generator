@@ -14,7 +14,11 @@ import logging
 import re
 from pathlib import Path
 from typing import List, Dict, Optional
-from src.utils.logger import log
+
+import logging
+
+log = logging.getLogger(__name__)
+
 from src.utils.uoc_api import UnitOfCompetency, UnitOfCompetencyNotFoundError
 from src.gptgen.content_generator import create_gpt_generator
 from src.gptgen.config import CourseConfig
@@ -958,6 +962,8 @@ sessions:
 qualification_national_code_and_title: "QUALIFICATION_CODE - Qualification Title"
 delivery_period: "2025, S1"
 cluster_name: "Course Cluster"
+course_overview: |
+  {course_overview.replace("\n", "\n  ") if course_overview else "Course overview not available"}
 
 units:
 {units_yaml}
@@ -2027,6 +2033,14 @@ def init_course(
     Returns:
         Path to the created course directory
     """
+
+    if os.environ.get("DEBUGPY_WAIT_FOR_CLIENT"):
+        import debugpy
+
+        debugpy.listen(("localhost", 5678))
+        print("Waiting for debugger attach at 5678...")
+        debugpy.wait_for_client()
+
     initializer = CourseInitializer(
         course_name,
         target_path,

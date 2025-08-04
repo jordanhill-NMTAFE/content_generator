@@ -1,9 +1,24 @@
-"""Module for fetching and parsing training.gov.au unit of competencies"""
+"""Module for fetching and parsing training.gov.au unit of competencies
+
+⚠️  DEPRECATED - This module is no longer functional ⚠️
+
+This legacy web scraping tool stopped working when training.gov.au changed
+their website structure. Use the modern API-based tool instead:
+
+    uv run uoc ICTPRG302
+
+The new tool is located in src/utils/uoc_api.py and provides:
+- Better reliability (uses official API)
+- Improved performance
+- Enhanced error handling
+- Modern CLI interface
+
+This file is kept for reference only.
+"""
 
 from __future__ import annotations
 from rich import print
 
-import logging
 import re
 
 from dataclasses import dataclass, field
@@ -15,8 +30,24 @@ import typer
 
 from bs4 import BeautifulSoup
 
-logger = logging.getLogger(__name__)
+import logging
+
+log = logging.getLogger(__name__)
+
+
 app = typer.Typer()
+
+
+def _show_deprecation_warning():
+    """Show deprecation warning when this module is used."""
+    print("[bold red]⚠️  DEPRECATED TOOL ⚠️[/bold red]")
+    print(
+        "[yellow]This legacy web scraping tool no longer works due to website changes.[/yellow]"
+    )
+    print("[green]Use the modern API-based tool instead:[/green]")
+    print("[cyan]    uv run uoc ICTPRG302[/cyan]")
+    print()
+    return False
 
 
 # If there is an error in the underlying html formatting then we have to explicitly add the element so it renders properly
@@ -190,13 +221,13 @@ class UnitOfCompetency:
         """
         Fetch the web page containing the Unit of Competency details.
         """
-        logger.debug(f"Fetching page {self.url}")
+        log.debug(f"Fetching page {self.url}")
         try:
             response = requests.get(self.url)
             response.raise_for_status()
             return response.text
         except requests.exceptions.HTTPError as e:
-            logging.error(f"Failed to fetch page {self.url}: {e}")
+            log.error(f"Failed to fetch page {self.url}: {e}")
             raise UnitOfCompetencyNotFoundError(self.unit_code) from e
 
     def _get_data(self, sections: Iterable[UOCSections]) -> UnitOfCompetencyData:
@@ -295,8 +326,11 @@ def print_uoc(
 ):
     """
     Command-line function to print the Unit of Competency data.
+
+    ⚠️ DEPRECATED: This tool no longer works. Use 'uv run uoc' instead.
     """
-    print(UnitOfCompetency(unit_name))
+    _show_deprecation_warning()
+    raise typer.Exit(1)
 
 
 @app.command()
@@ -307,25 +341,13 @@ def main(
 ):
     """
     Main function, primarily for testing the Jinja2 template and the UOC class.
+
+    ⚠️ DEPRECATED: This tool no longer works. Use 'uv run uoc' instead.
     """
-    from pathlib import Path
-
-    from jinja2 import Environment, FileSystemLoader
-
-    templates_dir = Path(__file__).parent / "preprompts"
-    env = Environment(loader=FileSystemLoader(templates_dir))
-    template = env.get_template("uoc_prompt")
-    logging.basicConfig(level=logging.DEBUG)
-    uoc = UnitOfCompetency(unit_name)
-    print(uoc.data)
-    print("#" * 80)
-    print_uoc(unit_name)
-    print("#" * 80)
-    print("#" * 80)
-    result = template.render(uoc=uoc)
-    print(result)
+    _show_deprecation_warning()
+    raise typer.Exit(1)
 
 
 if __name__ == "__main__":
-    app()
-    main()
+    _show_deprecation_warning()
+    raise SystemExit(1)

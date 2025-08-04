@@ -27,7 +27,11 @@ from multiprocessing import Semaphore
 from typing import Any, Dict, Optional
 
 from .locking import FileLock, _get_progress_semaphore  # use canonical location
-from src.utils.logger import log
+
+import logging
+
+log = logging.getLogger(__name__)
+
 
 __all__: list[str] = ["InitProgressManager"]
 

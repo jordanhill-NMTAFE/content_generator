@@ -16,9 +16,11 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from frontmatter import Post
 from dataclasses import dataclass, field
 import numpy as np  # Requires numpy; install with `pip install numpy` if needed
+
 import logging
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
+
 
 # Constants
 ASSESSMENTS = Path("2 KAD/5 Assess Tool/")
@@ -42,6 +44,7 @@ class MappingMatrixData:
     knowledge_evidence: List[Dict[str, Any]]
     performance_evidence: List[Dict[str, Any]]
     assessment_conditions: List[Dict[str, Any]]
+    performance_skills: List[Dict[str, Any]] = field(default_factory=list)
     foundation_skills: List[str] = field(default_factory=list)
     assessments: List[Dict[str, Any]] = field(default_factory=list)
     element_mappings: Dict[str, List[int]] = field(default_factory=dict)
@@ -49,7 +52,14 @@ class MappingMatrixData:
     performance_mappings: Dict[str, List[int]] = field(default_factory=dict)
     skills_mappings: Dict[str, List[int]] = field(default_factory=dict)
     foundation_skills_mappings: Dict[str, List[int]] = field(default_factory=dict)
-    mapping_array: Any = None  # Will be a numpy array
+
+    # Numpy arrays: Rows=Components, Columns=Assessments, Values=Question numbers
+    criteria_array: Any = None  # Will be a numpy array
+    knowledge_array: Any = None  # Will be a numpy array
+    performance_array: Any = None  # Will be a numpy array
+    skills_array: Any = None  # Will be a numpy array
+    foundation_skills_array: Any = None  # Will be a numpy array
+
     mapping_labels: Dict[str, Any] = field(
         default_factory=dict
     )  # Row/col labels for validation
@@ -59,11 +69,35 @@ class MappingMatrixData:
         def normalize(s):
             return s.strip().lower() if isinstance(s, str) else s
 
+        def extract_criterion_number(criterion_text):
+            """Extract the decimal number (like 1.2) from criterion text"""
+            import re
+
+            match = re.match(r"^(\d+\.\d+)", str(criterion_text).strip())
+            return match.group(1) if match else None
+
+        def match_criterion(mapping_value, criterion_text):
+            """Check if a mapping value matches a criterion using the three supported formats"""
+            criterion_text = str(criterion_text).strip()
+            mapping_str = str(mapping_value).strip()
+
+            # Format 1: Direct decimal number match (1.2 matches "1.2 Some text")
+            if isinstance(mapping_value, (int, float)):
+                criterion_num = extract_criterion_number(criterion_text)
+                return criterion_num and float(criterion_num) == float(mapping_value)
+
+            # Format 2: String version of decimal number ("1.2" matches "1.2 Some text")
+            criterion_num = extract_criterion_number(criterion_text)
+            if criterion_num and mapping_str == criterion_num:
+                return True
+
+            # Format 3: Full text match (case-insensitive)
+            if normalize(mapping_str) == normalize(criterion_text):
+                return True
+
+            return False
+
         # Build lookups for all mapping types
-        normalized_criteria_lookup = {}
-        for element, criteria in uoc.data.elements_and_criteria.items():
-            for crit in criteria.keys():
-                normalized_criteria_lookup[(normalize(element), normalize(crit))] = crit
         knowledge_blurb, KE = next(iter(uoc.data.knowledge_evidence.items()))
         # Patch: handle flat-list knowledge evidence
         if isinstance(KE, list):
@@ -76,76 +110,93 @@ class MappingMatrixData:
                 knowledge_evidence.append(
                     {"element": element, "subelements": subelements}
                 )
-        performance_list = list(uoc.data.performance_evidence.keys())
-        skills_list = performance_list  # For now, skills = performance
+
+        # Extract individual performance evidence items (sub-items, not just headers)
+        performance_list = []
+        for section, subelements in uoc.data.performance_evidence.items():
+            if isinstance(subelements, dict) and subelements:
+                # Add the sub-items as individual mappable items
+                performance_list.extend(subelements.keys())
+            else:
+                # If no sub-items, add the section itself
+                performance_list.append(section)
+
+        # Extract individual performance skills items (sub-items, not just headers)
+        skills_list = []
+        performance_skills_data = getattr(uoc.data, "performance_skills", {})
+        for section, subelements in performance_skills_data.items():
+            if isinstance(subelements, dict) and subelements:
+                # Add the sub-items as individual mappable items
+                skills_list.extend(subelements.keys())
+            else:
+                # If no sub-items, add the section itself
+                skills_list.append(section)
+
         foundation_skills_list = getattr(uoc.data, "foundation_skills", [])
+
         # Elements
         elements = []
         for element, criteria in uoc.data.elements_and_criteria.items():
             elements.append({"element": element, "criteria": list(criteria.keys())})
+
         # Performance
         performance_evidence = []
         for element, subelements in uoc.data.performance_evidence.items():
             performance_evidence.append(
                 {"element": element, "subelements": subelements}
             )
+
+        # Performance Skills
+        performance_skills = []
+        for element, subelements in getattr(uoc.data, "performance_skills", {}).items():
+            performance_skills.append({"element": element, "subelements": subelements})
+
         # Assessment Conditions
         assessment_conditions = []
         for element, subelements in uoc.data.assessment_conditions.items():
             assessment_conditions.append(
                 {"element": element, "subelements": subelements}
             )
+
         # Foundation Skills
         foundation_skills = foundation_skills_list if foundation_skills_list else []
+
         # Build mappings from assessments
+        # Store mappings as: component -> [(assessment_index, question_number), ...]
         element_mappings = {}
         knowledge_mappings = {}
         performance_mappings = {}
         skills_mappings = {}
         foundation_skills_mappings = {}
+
+        # Track warnings to avoid duplicates
+        warned_issues = set()
+
         for assessment_index, assessment in enumerate(assessments):
             mapping = assessment.get("mapping", []) or []
-            # Elements/Criteria
+
+            # Elements/Criteria - Support decimal numbers, string numbers, and full text
             for element_index, (element, criteria) in enumerate(
                 uoc.data.elements_and_criteria.items()
             ):
                 for index, criterium in enumerate(criteria.keys()):
-                    mapped_questions = []
                     for question_index, question in enumerate(mapping):
                         crits = ((question or {}).get("criteria") or {}).get(
                             unit_id
                         ) or []
                         for crit in crits:
-                            found = False
-                            if isinstance(crit, int):
-                                if 1 <= crit <= len(criteria):
-                                    crit_key = list(criteria.keys())[crit - 1]
-                                    if normalize(crit_key) == normalize(criterium):
-                                        mapped_questions.append(question_index + 1)
-                                        found = True
-                                else:
-                                    logger.warning(
-                                        f"[criteria] Assessment mapping for unit {unit_id}: index {crit} is out of range. Available indices: 1-{len(criteria)}. Update your assessment mapping."
-                                    )
-                            elif normalize(crit) == normalize(criterium):
-                                mapped_questions.append(question_index + 1)
-                                found = True
-                            # Warn if not found
-                            if not found and (
-                                isinstance(crit, int) or isinstance(crit, str)
-                            ):
-                                logger.warning(
-                                    f"[criteria] Could not place mapping value '{crit}' for unit {unit_id}. Available options: {[k for k in criteria.keys()]}. Update your assessment mapping."
+                            if match_criterion(crit, criterium):
+                                map_key = f"{element}:{criterium}"
+                                if map_key not in element_mappings:
+                                    element_mappings[map_key] = []
+                                element_mappings[map_key].append(
+                                    (assessment_index, question_index + 1)
                                 )
-                    element_mappings[f"{element}:{criterium}"] = mapped_questions
-            # Knowledge
-            # Build a reverse lookup for index-based mapping
-            knowledge_index_map = {
-                i + 1: element for i, element in enumerate(knowledge_list)
-            }
-            # Initialize all knowledge mappings as empty lists
+
+            # Knowledge - Support index-based and text matching
             for element in knowledge_list:
                 knowledge_mappings[element] = []
+
             for assessment_index, assessment in enumerate(assessments):
                 mapping = assessment.get("mapping", []) or []
                 for question_index, question in enumerate(mapping):
@@ -153,36 +204,42 @@ class MappingMatrixData:
                         unit_id
                     ) or []
                     for k in knowledges:
+                        matched = False
+
+                        # Index-based mapping (1, 2, 3, etc.)
                         if isinstance(k, int):
                             if 1 <= k <= len(knowledge_list):
-                                element = knowledge_index_map[k]
-                                knowledge_mappings[element].append(question_index + 1)
-                            else:
-                                logger.warning(
-                                    f"[knowledge] Assessment mapping for unit {unit_id}: index {k} is out of range. Available indices: 1-{len(knowledge_list)}. Update your assessment mapping."
+                                element = knowledge_list[
+                                    k - 1
+                                ]  # Convert to 0-based index
+                                knowledge_mappings[element].append(
+                                    (assessment_index, question_index + 1)
                                 )
-                        else:
-                            # String-based mapping
-                            matched = False
+                                matched = True
+                            else:
+                                log.warning(
+                                    f"[knowledge] Index {k} out of range for unit {unit_id}. Available: 1-{len(knowledge_list)}"
+                                )
+                                matched = True  # Don't log as debug since this is a real error
+
+                        # String-based mapping (fallback)
+                        if not matched:
                             for element in knowledge_list:
-                                if normalize(k) == normalize(element):
+                                if normalize(str(k)) == normalize(element):
                                     knowledge_mappings[element].append(
-                                        question_index + 1
+                                        (assessment_index, question_index + 1)
                                     )
                                     matched = True
                                     break
-                            if not matched:
-                                logger.warning(
-                                    f"[knowledge] Could not place mapping value '{k}' for unit {unit_id}. Available options: {knowledge_list}. Update your assessment mapping."
-                                )
-            # Performance
-            # Build a reverse lookup for index-based mapping
-            performance_index_map = {
-                i + 1: element for i, element in enumerate(performance_list)
-            }
-            # Initialize all performance mappings as empty lists
+
+                        if not matched and str(k).strip():
+                            # No need to log - mismatches are expected during mapping
+                            pass
+
+            # Performance - Support index-based and text matching
             for element in performance_list:
                 performance_mappings[element] = []
+
             for assessment_index, assessment in enumerate(assessments):
                 mapping = assessment.get("mapping", []) or []
                 for question_index, question in enumerate(mapping):
@@ -190,67 +247,81 @@ class MappingMatrixData:
                         unit_id
                     ) or []
                     for p in performances:
+                        matched = False
+
+                        # Index-based mapping (1, 2, 3, etc.)
                         if isinstance(p, int):
                             if 1 <= p <= len(performance_list):
-                                element = performance_index_map[p]
-                                performance_mappings[element].append(question_index + 1)
-                            else:
-                                logger.warning(
-                                    f"[performance] Assessment mapping for unit {unit_id}: index {p} is out of range. Available indices: 1-{len(performance_list)}. Update your assessment mapping."
+                                element = performance_list[
+                                    p - 1
+                                ]  # Convert to 0-based index
+                                performance_mappings[element].append(
+                                    (assessment_index, question_index + 1)
                                 )
-                        else:
-                            # String-based mapping
-                            matched = False
+                                matched = True
+                            else:
+                                log.warning(
+                                    f"[performance] Index {p} out of range for unit {unit_id}. Available: 1-{len(performance_list)}"
+                                )
+                                matched = True
+
+                        # String-based mapping (fallback)
+                        if not matched:
                             for element in performance_list:
-                                if normalize(p) == normalize(element):
+                                if normalize(str(p)) == normalize(element):
                                     performance_mappings[element].append(
-                                        question_index + 1
+                                        (assessment_index, question_index + 1)
                                     )
                                     matched = True
                                     break
-                            if not matched:
-                                logger.warning(
-                                    f"[performance] Could not place mapping value '{p}' for unit {unit_id}. Available options: {performance_list}. Update your assessment mapping."
-                                )
-            # Skills
-            # Build a reverse lookup for index-based mapping
-            skills_index_map = {i + 1: element for i, element in enumerate(skills_list)}
-            # Initialize all skills mappings as empty lists
+
+                        if not matched and str(p).strip():
+                            # No need to log - mismatches are expected during mapping
+                            pass
+
+            # Skills - Support index-based and text matching
             for element in skills_list:
                 skills_mappings[element] = []
+
             for assessment_index, assessment in enumerate(assessments):
                 mapping = assessment.get("mapping", []) or []
                 for question_index, question in enumerate(mapping):
                     skills = ((question or {}).get("skills") or {}).get(unit_id) or []
                     for s in skills:
+                        matched = False
+
+                        # Index-based mapping (1, 2, 3, etc.)
                         if isinstance(s, int):
                             if 1 <= s <= len(skills_list):
-                                element = skills_index_map[s]
-                                skills_mappings[element].append(question_index + 1)
-                            else:
-                                logger.warning(
-                                    f"[skills] Assessment mapping for unit {unit_id}: index {s} is out of range. Available indices: 1-{len(skills_list)}. Update your assessment mapping."
+                                element = skills_list[s - 1]  # Convert to 0-based index
+                                skills_mappings[element].append(
+                                    (assessment_index, question_index + 1)
                                 )
-                        else:
-                            # String-based mapping
-                            matched = False
+                                matched = True
+                            else:
+                                log.warning(
+                                    f"[skills] Index {s} out of range for unit {unit_id}. Available: 1-{len(skills_list)}"
+                                )
+                                matched = True
+
+                        # String-based mapping (fallback)
+                        if not matched:
                             for element in skills_list:
-                                if normalize(s) == normalize(element):
-                                    skills_mappings[element].append(question_index + 1)
+                                if normalize(str(s)) == normalize(element):
+                                    skills_mappings[element].append(
+                                        (assessment_index, question_index + 1)
+                                    )
                                     matched = True
                                     break
-                            if not matched:
-                                logger.warning(
-                                    f"[skills] Could not place mapping value '{s}' for unit {unit_id}. Available options: {skills_list}. Update your assessment mapping."
-                                )
-            # Foundation Skills
-            # Build a reverse lookup for index-based mapping
-            foundation_skills_index_map = {
-                i + 1: fs for i, fs in enumerate(foundation_skills)
-            }
-            # Initialize all foundation skills mappings as empty lists
+
+                        if not matched and str(s).strip():
+                            # No need to log - mismatches are expected during mapping
+                            pass
+
+            # Foundation Skills - Support index-based and text matching
             for fs in foundation_skills:
                 foundation_skills_mappings[fs] = []
+
             for assessment_index, assessment in enumerate(assessments):
                 mapping = assessment.get("mapping", []) or []
                 for question_index, question in enumerate(mapping):
@@ -258,74 +329,145 @@ class MappingMatrixData:
                         unit_id
                     ) or []
                     for f in fs_map:
+                        matched = False
+
+                        # Index-based mapping (1, 2, 3, etc.)
                         if isinstance(f, int):
                             if 1 <= f <= len(foundation_skills):
-                                fs = foundation_skills_index_map[f]
+                                fs = foundation_skills[
+                                    f - 1
+                                ]  # Convert to 0-based index
                                 foundation_skills_mappings[fs].append(
-                                    question_index + 1
+                                    (assessment_index, question_index + 1)
                                 )
+                                matched = True
                             else:
-                                logger.warning(
-                                    f"[foundation_skills] Assessment mapping for unit {unit_id}: index {f} is out of range. Available indices: 1-{len(foundation_skills)}. Update your assessment mapping."
+                                log.warning(
+                                    f"[foundation_skills] Index {f} out of range for unit {unit_id}. Available: 1-{len(foundation_skills)}"
                                 )
-                        else:
-                            # String-based mapping
-                            matched = False
+                                matched = True
+
+                        # String-based mapping (fallback)
+                        if not matched:
                             for fs in foundation_skills:
-                                if normalize(f) == normalize(fs):
+                                if normalize(str(f)) == normalize(fs):
                                     foundation_skills_mappings[fs].append(
-                                        question_index + 1
+                                        (assessment_index, question_index + 1)
                                     )
                                     matched = True
                                     break
-                            if not matched:
-                                logger.warning(
-                                    f"[foundation_skills] Could not place mapping value '{f}' for unit {unit_id}. Available options: {foundation_skills}. Update your assessment mapping."
-                                )
-        # Build mapping array for criteria (as before)
-        num_criteria = len(elements)
-        num_questions = (
-            max(len(a.get("mapping", [])) for a in assessments) if assessments else 0
+
+                        if not matched and str(f).strip():
+                            # No need to log - mismatches are expected during mapping
+                            pass
+
+        # Build separate mapping arrays for each UOC section
+        # Rows=Components, Columns=Assessments, Values=Question numbers within each assessment
+        num_assessments = len(assessments)
+
+        def build_section_array(mappings_dict, component_list, section_name):
+            """Build 2D array for a UOC section: rows=components, cols=assessments, values=question numbers"""
+            if not component_list or num_assessments == 0:
+                return np.array([]), []
+
+            # Create array to store question numbers (as integers, 0 = not mapped)
+            matrix = np.zeros((len(component_list), num_assessments), dtype=int)
+            component_labels = []
+
+            for row_idx, component in enumerate(component_list):
+                if section_name == "criteria":
+                    # For criteria, extract just the criterion number (e.g., "1.1")
+                    criterion_key = (
+                        component.split(":")[-1] if ":" in component else component
+                    )
+                    component_labels.append(criterion_key.strip())
+                    assessment_question_pairs = mappings_dict.get(component, [])
+                else:
+                    # For other sections, store full component text but truncate for display
+                    truncated = (
+                        component[:50] + "..." if len(component) > 50 else component
+                    )
+                    component_labels.append(truncated)
+                    assessment_question_pairs = mappings_dict.get(component, [])
+
+                # Place question numbers in the correct assessment columns
+                for assessment_idx, question_num in assessment_question_pairs:
+                    if 0 <= assessment_idx < num_assessments:
+                        matrix[row_idx, assessment_idx] = question_num
+
+            return matrix, component_labels
+
+        # Build individual arrays for each UOC section
+
+        # 1. Criteria Array (21 rows for ICTPRG302)
+        all_criteria = []
+        for element in elements:
+            for criterion in element["criteria"]:
+                all_criteria.append(f"{element['element']}:{criterion}")
+        criteria_array, criteria_labels = build_section_array(
+            element_mappings, all_criteria, "criteria"
         )
-        mapping_array = np.zeros((num_criteria, num_questions), dtype=int)
-        for row_idx, element in enumerate(elements):
-            crit_keys = element["criteria"]
-            for crit in crit_keys:
-                map_key = f"{element['element']}:{crit}"
-                mapped_qs = element_mappings.get(map_key, [])
-                for q in mapped_qs:
-                    if 1 <= q <= num_questions:
-                        mapping_array[row_idx, q - 1] = 1
+
+        # 2. Knowledge Array (9 rows for ICTPRG302)
+        knowledge_array, knowledge_labels = build_section_array(
+            knowledge_mappings, knowledge_list, "knowledge"
+        )
+
+        # 3. Performance Array (1 row for ICTPRG302)
+        performance_array, performance_labels = build_section_array(
+            performance_mappings, performance_list, "performance"
+        )
+
+        # 4. Skills Array (1 row for ICTPRG302)
+        skills_array, skills_labels = build_section_array(
+            skills_mappings, skills_list, "skills"
+        )
+
+        # 5. Foundation Skills Array (0 rows for ICTPRG302, varies by UOC)
+        foundation_skills_array, foundation_skills_labels = build_section_array(
+            foundation_skills_mappings, foundation_skills, "foundation_skills"
+        )
+
+        # Create assessment labels for columns
+        assessment_labels = [f"Assessment {i + 1}" for i in range(num_assessments)]
+
         mapping_labels = {
-            "row_labels": [e["element"] for e in elements],
-            "col_labels": [f"Q{q + 1}" for q in range(num_questions)],
+            "assessment_labels": assessment_labels,
+            "criteria_labels": criteria_labels,
+            "knowledge_labels": knowledge_labels,
+            "performance_labels": performance_labels,
+            "skills_labels": skills_labels,
+            "foundation_skills_labels": foundation_skills_labels,
         }
+
         # --- Quality Warnings ---
         if not any(v for v in element_mappings.values()):
-            logger.warning(
+            log.warning(
                 f"[quality] No criteria are mapped for unit {unit_id}. Your mapping matrix may be incomplete."
             )
         if not any(v for v in knowledge_mappings.values()):
-            logger.warning(
+            log.warning(
                 f"[quality] No knowledge evidence is mapped for unit {unit_id}. Your mapping matrix may be incomplete."
             )
         if not any(v for v in performance_mappings.values()):
-            logger.warning(
+            log.warning(
                 f"[quality] No performance evidence is mapped for unit {unit_id}. Your mapping matrix may be incomplete."
             )
         if not any(v for v in skills_mappings.values()):
-            logger.warning(
+            log.warning(
                 f"[quality] No skills are mapped for unit {unit_id}. Your mapping matrix may be incomplete."
             )
         if foundation_skills:
             if not any(v for v in foundation_skills_mappings.values()):
-                logger.warning(
+                log.warning(
                     f"[quality] Foundation skills are present in unit {unit_id} but none are mapped. Consider mapping foundation skills for a more complete matrix."
                 )
+
         return MappingMatrixData(
             elements=elements,
             knowledge_evidence=knowledge_evidence,
             performance_evidence=performance_evidence,
+            performance_skills=performance_skills,
             assessment_conditions=assessment_conditions,
             foundation_skills=foundation_skills,
             assessments=assessments,
@@ -334,7 +476,11 @@ class MappingMatrixData:
             performance_mappings=performance_mappings,
             skills_mappings=skills_mappings,
             foundation_skills_mappings=foundation_skills_mappings,
-            mapping_array=mapping_array,
+            criteria_array=criteria_array,
+            knowledge_array=knowledge_array,
+            performance_array=performance_array,
+            skills_array=skills_array,
+            foundation_skills_array=foundation_skills_array,
             mapping_labels=mapping_labels,
         )
 
@@ -625,6 +771,37 @@ class AssessmentsSection:
             self.map_performance_evidence(mapping, assessment_index)
 
     def map_elements(self, elements: dict, mapping: list, assessment_index: int):
+        def extract_criterion_number(criterion_text):
+            """Extract the decimal number (like 1.2) from criterion text"""
+            import re
+
+            match = re.match(r"^(\d+\.\d+)", str(criterion_text).strip())
+            return match.group(1) if match else None
+
+        def normalize(s):
+            return s.strip().lower() if isinstance(s, str) else s
+
+        def match_criterion(mapping_value, criterion_text):
+            """Check if a mapping value matches a criterion using the three supported formats"""
+            criterion_text = str(criterion_text).strip()
+            mapping_str = str(mapping_value).strip()
+
+            # Format 1: Direct decimal number match (1.2 matches "1.2 Some text")
+            if isinstance(mapping_value, (int, float)):
+                criterion_num = extract_criterion_number(criterion_text)
+                return criterion_num and float(criterion_num) == float(mapping_value)
+
+            # Format 2: String version of decimal number ("1.2" matches "1.2 Some text")
+            criterion_num = extract_criterion_number(criterion_text)
+            if criterion_num and mapping_str == criterion_num:
+                return True
+
+            # Format 3: Full text match (case-insensitive)
+            if normalize(mapping_str) == normalize(criterion_text):
+                return True
+
+            return False
+
         for element_index, (element, criteria) in enumerate(elements.items()):
             element_header = next(
                 (
@@ -634,17 +811,19 @@ class AssessmentsSection:
                 )
             )
             for index, criterium in enumerate(criteria.keys()):
-                key: float = float(criterium[:3])
+                # Find all questions that map to this criterion
+                mapped_questions = []
+                for question_index, question in enumerate(mapping):
+                    crits = ((question or {}).get("criteria") or {}).get(
+                        self.unit_id
+                    ) or []
+                    for crit in crits:
+                        if match_criterion(crit, criterium):
+                            mapped_questions.append(question_index + 1)
+                            break  # Don't add the same question multiple times
+
                 question_mapping: str = ", ".join(
-                    (
-                        str(question_index + 1)
-                        for question_index, question in enumerate(mapping)
-                        if key
-                        in (
-                            ((question or {}).get("criteria") or {}).get(self.unit_id)
-                            or []
-                        )
-                    )
+                    map(str, sorted(set(mapped_questions)))
                 )
                 cell = self.table.cell(element_header + 1 + index, 1 + assessment_index)
                 cell.text = question_mapping

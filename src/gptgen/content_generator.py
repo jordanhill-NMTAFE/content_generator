@@ -5,12 +5,16 @@ import platform
 import threading
 from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
-from src.utils.logger import log
+import logging
+
 
 from .helpers import Colors, ResponseBox
 from .config import CourseConfig
 from .locking import InitProgressManager
 
+import logging
+
+log = logging.getLogger(__name__)
 # Try to import GPT library, but make it optional
 try:
     from gpt.models.openai_ import Chat
@@ -266,6 +270,7 @@ Additional activities:
                         max_completion_tokens=32768,
                         context=1,
                     )
+                    self.client.tools = [{"type": "web_search_preview"}]
             except Exception as e:
                 log.warning(f"Failed to initialize GPT client: {e}")
                 self.client = None
@@ -662,11 +667,12 @@ Format the response as a JSON array with objects containing:
 
 {self._format_chain_of_thought_header(custom_steps)}
 
-Generate 4 different types of assessments:
-1. A practical project/assignment (early-mid course) - Industry application
-2. A knowledge-based assessment (mid course) - Industry standards
-3. A research/presentation task (mid-late course) - Industry communication
-4. A final comprehensive assessment (end of course) - Overall competency
+Guided by the performance evidence, you may generate a range of different types of assessments:
+- A practical project/assignment
+- A knowledge-based assessment
+- A research/presentation task
+
+We should always seek to avoid over assessing the unit. The performance evidence is our key guide to the amount of evidence we need to collect.
 
 For each assessment, provide:
 - title: Assessment title that reflects the type, purpose, and industry focus

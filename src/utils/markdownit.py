@@ -4,6 +4,7 @@ from markdown_it.token import Token
 from docx import Document
 from docx.document import Document as _Document
 from docx.shared import Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.shared import qn
 from docx.oxml import OxmlElement
 from docx.text.paragraph import Paragraph
@@ -40,6 +41,160 @@ MARKDOWN_STYLES = {
 }
 
 
+def ensure_markdown_styles(document: Document):
+    """
+    Ensure all required markdown styles exist in the document with sensible defaults.
+    Creates custom styles with 'MD ' prefix to avoid modifying existing document styles.
+
+    :param document: docx Document object to enhance
+    """
+    styles = document.styles
+
+    # Create custom Heading styles with 'MD ' prefix to avoid conflicts
+    for level in range(1, 7):
+        custom_heading_style_name = f"MD Heading {level}"
+
+        # Only create if it doesn't exist - never modify existing styles
+        if custom_heading_style_name not in styles:
+            try:
+                heading_style = styles.add_style(
+                    custom_heading_style_name, WD_STYLE_TYPE.PARAGRAPH
+                )
+
+                # Apply consistent heading formatting
+                font = heading_style.font
+                if level == 1:
+                    font.size = Pt(18)
+                    font.bold = True
+                    font.color.rgb = RGBColor(0x2F, 0x5F, 0x8F)  # Dark blue
+                elif level == 2:
+                    font.size = Pt(16)
+                    font.bold = True
+                    font.color.rgb = RGBColor(0x1F, 0x4F, 0x7F)  # Darker blue
+                elif level == 3:
+                    font.size = Pt(14)
+                    font.bold = True
+                    font.color.rgb = RGBColor(0x0F, 0x3F, 0x6F)  # Even darker blue
+                elif level == 4:
+                    font.size = Pt(12)
+                    font.bold = True
+                    font.color.rgb = RGBColor(0x4F, 0x4F, 0x4F)  # Dark gray
+                else:
+                    font.size = Pt(11)
+                    font.bold = True
+                    font.color.rgb = RGBColor(0x6F, 0x6F, 0x6F)  # Medium gray
+
+                # Add proper spacing
+                heading_style.paragraph_format.space_before = Pt(12)
+                heading_style.paragraph_format.space_after = Pt(6)
+
+            except Exception:
+                continue  # Style creation failed, skip
+
+    # Create custom Normal paragraph style for markdown content
+    if "MD Normal" not in styles:
+        try:
+            normal_style = styles.add_style("MD Normal", WD_STYLE_TYPE.PARAGRAPH)
+            font = normal_style.font
+            font.name = "Calibri"
+            font.size = Pt(11)
+            normal_style.paragraph_format.space_after = Pt(6)
+            normal_style.paragraph_format.line_spacing = 1.15
+        except Exception:
+            pass
+
+    # Create our custom Markdown Text style for predictable formatting
+    if "MD Text" not in styles:
+        try:
+            markdown_text_style = styles.add_style("MD Text", WD_STYLE_TYPE.PARAGRAPH)
+            font = markdown_text_style.font
+            font.name = "Calibri"
+            font.size = Pt(11)
+            font.color.rgb = RGBColor(0x00, 0x00, 0x00)  # Pure black text
+
+            # Clean paragraph formatting
+            markdown_text_style.paragraph_format.space_after = Pt(6)
+            markdown_text_style.paragraph_format.line_spacing = 1.15
+            markdown_text_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            markdown_text_style.paragraph_format.left_indent = Pt(0)
+            markdown_text_style.paragraph_format.right_indent = Pt(0)
+            markdown_text_style.paragraph_format.first_line_indent = Pt(0)
+        except Exception:
+            pass
+
+    # Create dedicated custom Blockquote style
+    if "MD Blockquote" not in styles:
+        try:
+            blockquote_style = styles.add_style(
+                "MD Blockquote", WD_STYLE_TYPE.PARAGRAPH
+            )
+            font = blockquote_style.font
+            font.name = "Calibri"
+            font.size = Pt(10)
+            font.italic = True
+            font.color.rgb = RGBColor(0x40, 0x40, 0x40)  # Dark gray
+
+            # Add indentation and FORCE left alignment
+            blockquote_style.paragraph_format.left_indent = Pt(18)
+            blockquote_style.paragraph_format.right_indent = Pt(18)
+            blockquote_style.paragraph_format.space_before = Pt(6)
+            blockquote_style.paragraph_format.space_after = Pt(6)
+            blockquote_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        except Exception:
+            pass
+
+    # Create custom Code Block style
+    if "MD Code Block" not in styles:
+        try:
+            code_style = styles.add_style("MD Code Block", WD_STYLE_TYPE.PARAGRAPH)
+            font = code_style.font
+            font.name = "Consolas"  # Better monospace font
+            font.size = Pt(9)
+            font.color.rgb = RGBColor(0x00, 0x00, 0x00)  # Black text
+
+            # Code block styling
+            code_style.paragraph_format.left_indent = Pt(18)
+            code_style.paragraph_format.right_indent = Pt(18)
+            code_style.paragraph_format.space_before = Pt(6)
+            code_style.paragraph_format.space_after = Pt(6)
+            code_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            code_style.paragraph_format.line_spacing = (
+                1.0  # Tighter line spacing for code
+            )
+        except Exception:
+            pass
+
+    # Create custom List Bullet styles (including nested levels)
+    bullet_styles = ["MD List Bullet", "MD List Bullet 2", "MD List Bullet 3"]
+    for i, style_name in enumerate(bullet_styles):
+        if style_name not in styles:
+            try:
+                bullet_style = styles.add_style(style_name, WD_STYLE_TYPE.PARAGRAPH)
+                font = bullet_style.font
+                font.name = "Calibri"
+                font.size = Pt(11)
+                bullet_style.paragraph_format.space_after = Pt(3)
+                # Increase indentation for nested levels
+                bullet_style.paragraph_format.left_indent = Pt(18 + (i * 18))
+            except Exception:
+                pass
+
+    # Create custom List Number styles (including nested levels)
+    number_styles = ["MD List Number", "MD List Number 2", "MD List Number 3"]
+    for i, style_name in enumerate(number_styles):
+        if style_name not in styles:
+            try:
+                number_style = styles.add_style(style_name, WD_STYLE_TYPE.PARAGRAPH)
+                font = number_style.font
+                font.name = "Calibri"
+                font.size = Pt(11)
+                number_style.paragraph_format.space_after = Pt(3)
+                # Increase indentation for nested levels
+                number_style.paragraph_format.left_indent = Pt(18 + (i * 18))
+            except Exception:
+                pass
+
+
 def parse_md(path: Path) -> frontmatter.Post:
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
@@ -65,6 +220,9 @@ def markdown_to_word(doc_content: str, document: Document, parent=None):
     :param parent: Optional. Parent container such as a table cell in the document.
                    If none is provided, new paragraphs are added to the document.
     """
+    # Ensure all required markdown styles exist with sensible defaults
+    ensure_markdown_styles(document)
+
     md = MarkdownIt().enable("html_block").enable("html_inline")
     tokens = md.parse(doc_content)
     process_tokens(tokens, document, parent)
@@ -80,19 +238,12 @@ def process_tokens(tokens: list, document: Document, parent=None):
     """
     list_style_stack = []
     current_paragraph = None
-
-    base_template: _Document = Document()
-
-    for style in base_template.styles:
-        if style.name not in document.styles:
-            # print(f"Adding style: {style.name}")
-            style = document.styles.add_style(style.name, WD_STYLE_TYPE.PARAGRAPH)
-            style.base_style = base_template.styles[style.name]
+    in_blockquote = False  # Track if we're inside a blockquote
 
     for token in tokens:
         if token.type == "heading_open":
             level = int(token.tag[1])
-            style = f"Heading {level}"
+            style = f"MD Heading {level}"
             current_paragraph = add_paragraph(document, parent, style=style)
             list_style_stack.clear()
         elif token.type == "heading_close":
@@ -101,25 +252,43 @@ def process_tokens(tokens: list, document: Document, parent=None):
         elif token.type == "paragraph_open":
             if len(list_style_stack) > 0:
                 continue
-            current_paragraph = add_paragraph(document, parent)
+            # Use Blockquote style if we're inside a blockquote, otherwise use our Markdown Text style
+            style = "MD Blockquote" if in_blockquote else "MD Text"
+            current_paragraph = add_paragraph(document, parent, style=style)
+            # Ensure left alignment for blockquote paragraphs
+            if in_blockquote and current_paragraph:
+                current_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
         elif token.type == "paragraph_close":
             if len(list_style_stack) > 0:
                 continue
             current_paragraph = None
         elif token.type == "inline":
             if current_paragraph is None:
-                current_paragraph = add_paragraph(document, parent)
+                # Use Blockquote style if we're inside a blockquote, otherwise use our Markdown Text style
+                style = "MD Blockquote" if in_blockquote else "MD Text"
+                current_paragraph = add_paragraph(document, parent, style=style)
+                # Ensure left alignment for blockquote paragraphs
+                if in_blockquote and current_paragraph:
+                    current_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
             process_inline(token.children, current_paragraph)
         elif token.type == "fence":
-            # Code block
-            current_paragraph = add_paragraph(document, parent, style="Quote")
+            # Code block - use "MD Code Block" style if available, otherwise "Quote"
+            code_style = (
+                "MD Code Block" if "MD Code Block" in document.styles else "Quote"
+            )
+            current_paragraph = add_paragraph(document, parent, style=code_style)
             run = current_paragraph.add_run(token.content)
-            run.font.name = "Courier New"
-            run.font.size = Pt(10)
+            # Only set font properties and alignment if using fallback Quote style
+            if code_style == "Quote":
+                run.font.name = "Courier New"
+                run.font.size = Pt(10)
+                # Ensure left alignment for code blocks using Quote style
+                if current_paragraph:
+                    current_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
         elif token.type == "bullet_list_open":
-            list_style_stack.append("List Bullet")
+            list_style_stack.append("MD List Bullet")
         elif token.type == "ordered_list_open":
-            list_style_stack.append("List Number")
+            list_style_stack.append("MD List Number")
         elif token.type == "bullet_list_close" or token.type == "ordered_list_close":
             if list_style_stack:
                 list_style_stack.pop()
@@ -130,14 +299,38 @@ def process_tokens(tokens: list, document: Document, parent=None):
 
             # For nested lists, we need to adjust the style
             if style and nesting_level > 0:
-                if style == "List Bullet":
+                if style == "MD List Bullet":
                     # Use different bullet styles for different levels
-                    nested_styles = ["List Bullet", "List Bullet 2", "List Bullet 3"]
-                    style = nested_styles[min(nesting_level, len(nested_styles) - 1)]
-                elif style == "List Number":
+                    nested_styles = [
+                        "MD List Bullet",
+                        "MD List Bullet 2",
+                        "MD List Bullet 3",
+                    ]
+                    target_style = nested_styles[
+                        min(nesting_level, len(nested_styles) - 1)
+                    ]
+                    # Fall back to base style if nested style doesn't exist
+                    style = (
+                        target_style
+                        if target_style in document.styles
+                        else "MD List Bullet"
+                    )
+                elif style == "MD List Number":
                     # Use different number styles for different levels
-                    nested_styles = ["List Number", "List Number 2", "List Number 3"]
-                    style = nested_styles[min(nesting_level, len(nested_styles) - 1)]
+                    nested_styles = [
+                        "MD List Number",
+                        "MD List Number 2",
+                        "MD List Number 3",
+                    ]
+                    target_style = nested_styles[
+                        min(nesting_level, len(nested_styles) - 1)
+                    ]
+                    # Fall back to base style if nested style doesn't exist
+                    style = (
+                        target_style
+                        if target_style in document.styles
+                        else "MD List Number"
+                    )
 
             current_paragraph = add_paragraph(document, parent, style=style)
         elif token.type == "list_item_close":
@@ -146,20 +339,38 @@ def process_tokens(tokens: list, document: Document, parent=None):
             # Handle HTML content
             process_html(token.content, document, parent)
         elif token.type == "blockquote_open":
-            current_paragraph = add_paragraph(document, parent, style="Quote")
+            # Set blockquote state first
+            in_blockquote = True
+            # Use "MD Blockquote" style if available, otherwise fall back to "Quote"
+            blockquote_style = (
+                "MD Blockquote" if "MD Blockquote" in document.styles else "Quote"
+            )
+            current_paragraph = add_paragraph(document, parent, style=blockquote_style)
+            # Explicitly set left alignment for blockquotes
+            if current_paragraph:
+                current_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
         elif token.type == "blockquote_close":
             current_paragraph = None
+            in_blockquote = False
         elif token.type == "hr":
             for _ in range(10):
                 current_paragraph = empty_paragraph(document, parent)
             continue
             document.add_page_break()
         elif token.type == "code_block":
-            # Handle indented code blocks
-            current_paragraph = add_paragraph(document, parent, style="Quote")
+            # Handle indented code blocks - use "MD Code Block" style if available, otherwise "Quote"
+            code_style = (
+                "MD Code Block" if "MD Code Block" in document.styles else "Quote"
+            )
+            current_paragraph = add_paragraph(document, parent, style=code_style)
             run = current_paragraph.add_run(token.content)
-            run.font.name = "Courier New"
-            run.font.size = Pt(10)
+            # Only set font properties and alignment if using fallback Quote style
+            if code_style == "Quote":
+                run.font.name = "Courier New"
+                run.font.size = Pt(10)
+                # Ensure left alignment for code blocks using Quote style
+                if current_paragraph:
+                    current_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
         else:
             # Handle other token types if necessary
             pass
@@ -312,26 +523,26 @@ def handle_html_elements(element, document: Document, parent=None):
             # Handle other cases or raise an error
             pass
     elif element.name == "table":
-        add_paragraph(document, parent)
+        add_paragraph(document, parent, style="MD Text")
         add_table_from_html(element, parent or document)
     elif element.name in ["p", "div"]:
         if parent is None:
-            paragraph = add_paragraph(document)
+            paragraph = add_paragraph(document, style="MD Text")
         elif isinstance(parent, _Cell):
             paragraph = parent.add_paragraph()
         else:
-            paragraph = add_paragraph(document, parent)
+            paragraph = add_paragraph(document, parent, style="MD Text")
         for child in element.contents:
             handle_html_elements(child, document, paragraph)
     elif element.name == "br":
         # Line break
         if parent is None:
-            paragraph = add_paragraph(document)
+            paragraph = add_paragraph(document, style="MD Text")
             paragraph.add_run().add_break()
         elif isinstance(parent, _Cell):
             paragraph = parent.add_paragraph()
         else:
-            paragraph = add_paragraph(document, parent)
+            paragraph = add_paragraph(document, parent, style="MD Text")
         paragraph.add_run().add_break()
     elif element.name in ["strong", "b", "em", "i", "span"]:
         # Handle inline formatting

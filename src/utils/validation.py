@@ -3,7 +3,10 @@ Validation utilities for course configuration and UOC codes.
 """
 
 from typing import Dict, List
-from src.utils.logger import log
+
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class ConfigurationValidator:
