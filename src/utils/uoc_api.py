@@ -146,7 +146,8 @@ class UnitOfCompetency:
     Responsible for fetching and parsing relevant data using the API.
     """
 
-    base_url = "https://training.gov.au/api/"
+    base_url = "https://training.gov.au/"
+    api_url = "https://training.gov.au/api/"
     api_version = "1.0"
 
     def __init__(self, unit_code: str, sections: Iterable[UOCSections] = UOCSections):
@@ -157,6 +158,7 @@ class UnitOfCompetency:
         self.aqf_level = int(match.group())
         self.unit_code = unit_code
         self.sections = sections
+        self.title = ""
 
         # Initialize variables
         self.application = ""
@@ -170,6 +172,7 @@ class UnitOfCompetency:
 
         # Fetch and process data
         self.data = self._get_data()
+        self.title = self._get_title()
 
     def _get_data(self) -> UnitOfCompetencyData:
         try:
@@ -198,10 +201,42 @@ class UnitOfCompetency:
                 f"Error fetching data for unit {self.unit_code}: {e}"
             )
 
+    def _get_title(self) -> str:
+        url = f"{self.base_url}training/{self.unit_code}/unitdetails"
+        log.debug(f"Fetching title from {url}")
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            response.content  ## html
+
+            from lxml import html
+
+            tree = html.fromstring(response.content)
+
+            # The title is usually inside the first <h1> within the main content area.
+            # Fallback XPath pattern to make it resilient to small markup changes.
+            xpath_candidates = [
+                "//*[@id='content']/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div[2]/div[1]/span[1]",
+                "//*[@id='content']//h1/text()",  # Primary: h1 under #content
+                "//h1/text()",  # Fallback: first h1 in document
+                "//*[@id='content']//span[@class='page-title']/text()",  # Alternate span title
+            ]
+
+            for xp in xpath_candidates:
+                matches = [t.strip() for t in tree.xpath(xp) if t.strip()]
+                if matches:
+                    return matches[0]
+
+            # If no matches found, return empty string
+            return ""
+        except Exception as e:
+            log.error(f"Error fetching title for {self.unit_code}: {e}")
+            return ""
+
     def _fetch_release_info(self) -> dict:
         # https://training.gov.au/api/training/ICTPRG302/releases/1?api-version=1.0
 
-        url = f"{self.base_url}training/{self.unit_code}/releases/1?api-version={self.api_version}"
+        url = f"{self.api_url}training/{self.unit_code}/releases/1?api-version={self.api_version}"
         log.debug(f"Fetching release info from {url}")
         try:
             response = requests.get(url)
@@ -212,9 +247,7 @@ class UnitOfCompetency:
             raise UnitOfCompetencyNotFoundError(self.unit_code) from e
 
     def _fetch_bundle_content(self, bundle_id: str) -> dict:
-        url = (
-            f"{self.base_url}content/bundle/{bundle_id}?api-version={self.api_version}"
-        )
+        url = f"{self.api_url}content/bundle/{bundle_id}?api-version={self.api_version}"
         log.debug(f"Fetching bundle content from {url}")
         try:
             response = requests.get(url)

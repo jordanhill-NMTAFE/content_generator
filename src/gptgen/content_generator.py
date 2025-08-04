@@ -6,7 +6,7 @@ import threading
 from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
 import logging
-
+from src.utils.uoc_api import UnitOfCompetency
 
 from .helpers import Colors, ResponseBox
 from .config import CourseConfig
@@ -103,7 +103,11 @@ class GPTContentGenerator:
    - Prepare students for assessments and real-world scenarios
    - guides/handouts: Any other .md files with minimal constraints"""
 
-    THOUGHT_ANSWER_STRUCTURE = """You will think step by step within <thought> tags. e.g:
+    @classmethod
+    def _get_thought_answer_structure(cls, response_type: str) -> str:
+        """Generate the thought and answer structure using ResponseBox helper."""
+        example_box = ResponseBox.wrap("<Your answer here>", response_type)
+        return f"""You will think step by step within <thought> tags. e.g:
 <thought>
 I will now think step by step.
 </thought>
@@ -114,11 +118,7 @@ Your answer here
 </answer>
 
 You are also required to wrap your final answer within a response box like so:
-<answer>
-=== {response_type} START ===
-<Your answer here>
-=== {response_type} END ===
-</answer>"""
+<answer>{example_box}</answer>"""
 
     FORMATTING_REQUIREMENTS = """CRITICAL FORMATTING REQUIREMENTS:
 - Each description must be plain text without any special formatting
@@ -262,6 +262,7 @@ Additional activities:
                         model,
                         max_completion_tokens=32768,
                         context=1,
+                        search_enabled=True,
                     )
                 elif callable(Chat):
                     # Fallback to direct Chat instantiation for backward compatibility
@@ -270,7 +271,8 @@ Additional activities:
                         max_completion_tokens=32768,
                         context=1,
                     )
-                    self.client.tools = [{"type": "web_search_preview"}]
+                    if model in ["gpt-4.1"]:
+                        self.client.tools = [{"type": "web_search_preview"}]
             except Exception as e:
                 log.warning(f"Failed to initialize GPT client: {e}")
                 self.client = None
@@ -281,6 +283,8 @@ Additional activities:
         max_retries: int = 3,
         response_type: str = "RESPONSE",
         json_expected: bool = False,
+        use_search: bool = False,
+        context: Optional[int] = None,
     ) -> Tuple[Optional[str], bool]:
         """
         Safely prompt the model with retry logic and error handling.
@@ -303,8 +307,12 @@ Additional activities:
                     f"{Colors.CYAN}🔄 Attempt {attempt + 1}/{max_retries}...{Colors.END}"
                 )
 
-                response = self.client.prompt(prompt)
+                response = self.client.prompt(
+                    prompt, use_search=use_search, context=context
+                )
                 content = response.strip()
+
+                raw_content = content
 
                 # Try to extract from response box
                 extracted = ResponseBox.extract(content, response_type)
@@ -325,7 +333,7 @@ Additional activities:
                         log.info(
                             f"{Colors.GREEN}✅ Valid JSON response on attempt {attempt + 1}{Colors.END}"
                         )
-                        return content, True
+                        return content, True, raw_content
                     except (json.JSONDecodeError, IndexError) as e:
                         log.warning(
                             f"{Colors.YELLOW}⚠️  Invalid JSON on attempt {attempt + 1}: {e}{Colors.END}"
@@ -338,14 +346,35 @@ Additional activities:
                         else:
                             # Final attempt - try to get a direct response
                             return self._get_direct_response(
-                                prompt, response_type, json_expected
+                                prompt, response_type, json_expected, use_search
                             )
 
-                # For non-JSON responses, just return the content
+                # For non-JSON responses, perform basic validation to ensure no leftover tags or response boxes remain
+                invalid_patterns = [
+                    r"<\\/?answer>",
+                    r"<\\/?thought>",
+                    r"=== .* START ===",
+                    r"=== .* END ===",
+                ]
+                if any(
+                    re.search(pat, content, re.IGNORECASE) for pat in invalid_patterns
+                ):
+                    log.warning(
+                        f"{Colors.YELLOW}⚠️  Response contains leftover tags/boxes on attempt {attempt + 1}{Colors.END}"
+                    )
+                    if attempt < max_retries - 1:
+                        continue
+                    else:
+                        # Final attempt - try to get a direct response without context
+                        return self._get_direct_response(
+                            prompt, response_type, json_expected
+                        )
+
+                # For non-JSON responses that pass validation, accept the content
                 log.info(
                     f"{Colors.GREEN}✅ Valid response on attempt {attempt + 1}{Colors.END}"
                 )
-                return content, True
+                return content, True, raw_content
 
             except Exception as e:
                 log.error(
@@ -362,7 +391,11 @@ Additional activities:
         return None, False
 
     def _get_direct_response(
-        self, prompt: str, response_type: str, json_expected: bool
+        self,
+        prompt: str,
+        response_type: str,
+        json_expected: bool,
+        use_search: bool = False,
     ) -> Tuple[Optional[str], bool]:
         """
         Get a direct response after clearing context and simplifying the prompt.
@@ -396,7 +429,7 @@ Additional activities:
             {ResponseBox.wrap("", response_type)}"""
 
         try:
-            response = self.client.prompt(direct_prompt)
+            response = self.client.prompt(direct_prompt, use_search=use_search)
             content = response.strip()
 
             # Extract from response box
@@ -427,7 +460,10 @@ Additional activities:
             return None, False
 
     def generate_course_overview(
-        self, units: List[Dict[str, Any]], mission_prompt: Optional[str] = None
+        self,
+        units: List[Dict[str, Any]],
+        mission_prompt: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Generate a course overview based on unit information.
@@ -466,6 +502,15 @@ Additional activities:
 
         prompt = f"""
 
+=== START COURSE CONFIGURATION===
+
+{config}
+
+===END COURSE CONFIGURATION===
+
+
+
+
 {unit_info}
 
 {course_type_context}
@@ -479,16 +524,20 @@ The overview should:
 - Mention the practical applications
 - Be written in a professional but accessible tone
 - Align with the course context and goals provided
-- Reflect the {self.course_config.course_type.lower()} nature of the course
-- Highlight industry contextualization and workplace relevance
+- Reflect the context of the course type which is: {self.course_config.course_type.lower()}
+- Highlight industry contextualization and workplace relevance, if applicable
 
 {self._format_thought_answer_structure("COURSE_OVERVIEW")}
 
 {unit_context}
 """
 
-        response, success = self._safe_prompt_with_retries(
-            prompt, max_retries=3, response_type="COURSE_OVERVIEW", json_expected=False
+        response, success, raw_response = self._safe_prompt_with_retries(
+            prompt,
+            max_retries=3,
+            response_type="COURSE_OVERVIEW",
+            json_expected=False,
+            use_search=True,
         )
 
         if success and response:
@@ -510,8 +559,11 @@ The overview should:
 
     def generate_weekly_topics(
         self,
-        units: List[Dict[str, Any]],
+        units: List[UnitOfCompetency],
+        prerequisites: List[UnitOfCompetency],
         mission_prompt: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None,
+        course_overview: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         Generate weekly topics based on unit information.
@@ -539,12 +591,9 @@ The overview should:
             f"{Colors.BLUE}{Colors.BOLD}🔄 Generating {self.course_config.num_weeks} weekly topics with chain of thought reasoning for {self.course_config.course_type} course...{Colors.END}"
         )
 
-        mission_context = ""
-        if mission_prompt:
-            mission_context = f"\n\nCourse Context and Goals:\n{mission_prompt}\n"
-
         # Build standardized contexts using helper methods
         unit_info, base_unit_context = self._build_unit_context(units, mission_prompt)
+        prerequisites_context = self._build_prerequisites_context(prerequisites)
         unit_context = f"{base_unit_context} Generate a {self.course_config.num_weeks}-week course structure with weekly topics."
         course_structure_context = self._build_course_structure_context()
         industry_context = self._build_industry_context()
@@ -560,17 +609,32 @@ The overview should:
 
         prompt = f"""
 
+=== START COURSE CONFIGURATION===
+
+{config}
+
+===END COURSE CONFIGURATION===
+
+
+=== START COURSE OVERVIEW===
+
+{course_overview}
+
+===END COURSE OVERVIEW===
+
 {unit_info}
 
 {course_structure_context}
 {industry_context}
+
+{prerequisites_context}
 
 {self._format_chain_of_thought_header(custom_steps)}
 
 For each week, provide:
 1. A clear topic title that reflects the learning phase
 2. 3-5 key learning points that show progression
-3. An appropriate in-class activity that reinforces the learning
+3. An appropriate in-class activity if needed and relevant to the learning that will help to reinforce the learning objectives
 
 Format the response as a JSON array with objects containing:
 - week: week number
@@ -585,9 +649,28 @@ Format the response as a JSON array with objects containing:
 {unit_context}
 """
 
-        response, success = self._safe_prompt_with_retries(
-            prompt, max_retries=3, response_type="WEEKLY_TOPICS", json_expected=True
-        )
+        comment = ""
+        c = 1
+        while comment.lower() != "y":
+            c += 1
+            response, success, raw_response = self._safe_prompt_with_retries(
+                prompt + "\n\n" + comment,
+                max_retries=3,
+                response_type="WEEKLY_TOPICS",
+                json_expected=True,
+                context=c,
+            )
+
+            print("Generated Prompt was:")
+            print(prompt)
+            print("--------------------------------\n\n")
+            print("--------------RESPONSE------------------")
+            print(raw_response)
+            print("--------------------------------\n\n")
+
+            comment = input(
+                "Would you like to continue? (y) or make revisions (comment): "
+            )
 
         if success and response:
             try:
@@ -618,7 +701,12 @@ Format the response as a JSON array with objects containing:
             return fallback
 
     def generate_assessment_descriptions(
-        self, units: List[Dict[str, Any]], mission_prompt: Optional[str] = None
+        self,
+        units: List[Dict[str, Any]],
+        mission_prompt: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None,
+        weekly_topics: Optional[List[Dict[str, Any]]] = None,
+        course_overview: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         Generate assessment descriptions based on unit information.
@@ -659,7 +747,30 @@ Format the response as a JSON array with objects containing:
             f"Plan {self.course_config.course_type} assessment logistics: Consider student workload and preparation time; Ensure assessments build upon each other; Provide clear competency criteria and expectations; Allow for formative feedback before summative assessment; Ensure all assessments must be completed and passed",
         ]
 
-        prompt = f"""{unit_context}
+        prompt = f"""
+
+=== START COURSE CONFIGURATION===
+
+{config}
+
+===END COURSE CONFIGURATION===
+
+
+=== START COURSE OVERVIEW===
+
+{course_overview}
+
+===END COURSE OVERVIEW===
+
+=== START WEEKLY TOPICS===
+
+{weekly_topics}
+
+===END WEEKLY TOPICS===
+
+
+
+{unit_context}
 
 {unit_info}
 
@@ -695,9 +806,26 @@ Format as JSON array with objects containing title, description, due_date, compe
 {self._format_thought_answer_structure("ASSESSMENTS")}
 """
 
-        response, success = self._safe_prompt_with_retries(
-            prompt, max_retries=3, response_type="ASSESSMENTS", json_expected=True
-        )
+        comment = ""
+        c = 0
+        while comment.lower() != "y":
+            c += 1
+            response, success, raw_response = self._safe_prompt_with_retries(
+                prompt + "\n\n" + comment,
+                max_retries=3,
+                response_type="ASSESSMENTS",
+                json_expected=True,
+                context=c,
+            )
+
+            print("--------------------------------\n\n")
+            print("--------------RESPONSE------------------")
+            print(raw_response)
+            print("--------------------------------\n\n")
+
+            comment = input(
+                "Would you like to continue? (y) or make revisions (comment): "
+            )
 
         if success and response:
             try:
@@ -730,7 +858,11 @@ Format as JSON array with objects containing title, description, due_date, compe
             return fallback
 
     def generate_learning_activities(
-        self, weekly_topics: List[Dict[str, Any]], mission_prompt: Optional[str] = None
+        self,
+        weekly_topics: List[Dict[str, Any]],
+        mission_prompt: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None,
+        course_overview: Optional[str] = None,
     ) -> List[str]:
         """
         Generate learning activities for all weeks using chain of thought reasoning.
@@ -779,7 +911,29 @@ Format as JSON array with objects containing title, description, due_date, compe
             "Ensure activities are: Practical and hands-on; Appropriate for classroom completion; Include both individual and group work; Avoid repetition of concepts; Incorporate industry tools and workplace scenarios; Prepare students for workplace application",
         ]
 
-        prompt = f"""Generate learning activities for all {len(weekly_topics)} weeks using chain of thought reasoning with full course context.
+        prompt = f"""
+        
+
+=== START COURSE CONFIGURATION===
+
+{config}
+
+===END COURSE CONFIGURATION===
+
+=== START COURSE OVERVIEW===
+
+{course_overview}
+
+===END COURSE OVERVIEW===
+
+=== START WEEKLY TOPICS===
+
+{weekly_topics}
+
+===END WEEKLY TOPICS===
+
+
+Generate learning activities for all {len(weekly_topics)} weeks using chain of thought reasoning with full course context.
 
 {course_context}
 {industry_context}
@@ -803,7 +957,7 @@ Example format:
 ]
 """
 
-        response, success = self._safe_prompt_with_retries(
+        response, success, raw_response = self._safe_prompt_with_retries(
             prompt,
             max_retries=3,
             response_type="LEARNING_ACTIVITIES",
@@ -936,11 +1090,12 @@ Example format:
 ]
 """
 
-        response, success = self._safe_prompt_with_retries(
+        response, success, raw_response = self._safe_prompt_with_retries(
             prompt,
             max_retries=3,
             response_type="LEARNING_RESOURCES",
             json_expected=True,
+            use_search=True,
         )
 
         if success and response:
@@ -1367,11 +1522,12 @@ Generate slides in Markdown format with:
         max_retries = 3
         last_response: Optional[str] = None
         for attempt in range(max_retries):
-            response, success = self._safe_prompt_with_retries(
+            response, success, raw_response = self._safe_prompt_with_retries(
                 prompt,
                 max_retries=1,  # Only one try per outer attempt
                 response_type="SLIDES_CONTENT",
                 json_expected=False,
+                use_search=True,
             )
             if not success or not response:
                 continue
@@ -1495,11 +1651,12 @@ SOFT CONVENTIONS (RECOMMENDED but flexible):
 {self._format_thought_answer_structure("DEMO_CONTENT")}
 """
 
-        response, success = self._safe_prompt_with_retries(
+        response, success, raw_response = self._safe_prompt_with_retries(
             prompt,
             max_retries=3,
             response_type="DEMO_CONTENT",
             json_expected=False,
+            use_search=True,
         )
 
         # If the call failed (e.g. due to rate limiting or the mock returning
@@ -1594,11 +1751,12 @@ SOFT CONVENTIONS (RECOMMENDED but flexible):
 {self._format_thought_answer_structure("GUIDE_CONTENT")}
 """
 
-        response, success = self._safe_prompt_with_retries(
+        response, success, raw_response = self._safe_prompt_with_retries(
             prompt,
             max_retries=3,
             response_type="GUIDE_CONTENT",
             json_expected=False,
+            use_search=True,
         )
 
         # If the call failed (e.g. due to rate limiting or the mock returning
@@ -1639,7 +1797,7 @@ SOFT CONVENTIONS (RECOMMENDED but flexible):
 
     def _format_thought_answer_structure(self, response_type: str) -> str:
         """Format the thought and answer structure with the specified response type."""
-        return self.THOUGHT_ANSWER_STRUCTURE.format(response_type=response_type)
+        return self._get_thought_answer_structure(response_type)
 
     def _format_formatting_requirements(
         self, content_type: str = "descriptions"
@@ -1778,16 +1936,21 @@ INDUSTRY CONTEXTUALIZATION:
         return "Learning Phases:\n" + "\n".join(phases_info)
 
     def _build_unit_context(
-        self, units: List[Dict[str, Any]], mission_prompt: Optional[str] = None
+        self, units: List[UnitOfCompetency], mission_prompt: Optional[str] = None
     ) -> Tuple[str, str]:
         """Build standardized unit context and unit information."""
+        # TODO: If this is the main unit context passed to the model we need to add more unit information
+        # CONTEXT: It seems this may just be for the 'course overview'
+
         mission_context = ""
         if mission_prompt:
             mission_context = f"\n\nCourse Context and Goals:\n{mission_prompt}\n"
 
         if self.course_config.has_units_of_competency and units:
-            unit_info = "\n".join([f"- {unit['id']}: {unit['name']}" for unit in units])
-            unit_context = f"Based on the following units of competency{mission_context}, generate the requested content using chain of thought reasoning:"
+            unit_info = "\n".join(
+                [f"\n\n# {unit.unit_code}: {unit.title} \n\n {unit}" for unit in units]
+            )
+            unit_context = f"Prioritise the following course context and goals at all times when interpreting the units of competency: {mission_context}"
         else:
             unit_info = (
                 "This course focuses on practical skills and knowledge development."
@@ -1797,6 +1960,21 @@ INDUSTRY CONTEXTUALIZATION:
             )
 
         return unit_info, unit_context
+
+    def _build_prerequisites_context(
+        self, prerequisites: List[UnitOfCompetency]
+    ) -> str:
+        """Build standardized prerequisites context."""
+        if self.course_config.has_units_of_competency and prerequisites:
+            prerequisites_info = "\n".join(
+                [
+                    f"\n\n# {unit.unit_code}: {unit.title} \n\n {unit.application}"
+                    for unit in prerequisites
+                ]
+            )
+            return f"# Course Prerequisites \n\n All students completing this course will be assumed to have completed the following prerequisite units of competency either within this course or in prior studies:\n{prerequisites_info}"
+        else:
+            return ""
 
     def _build_previous_weeks_context(
         self, weekly_topics: List[Dict[str, Any]], current_week: int, window: int = 3
@@ -2262,7 +2440,7 @@ Assessment Resources:
         )
         prompt += f"\nWeekly Topics Summary:\n{topics_brief}"
 
-        response, success = self._safe_prompt_with_retries(
+        response, success, raw_response = self._safe_prompt_with_retries(
             prompt, max_retries=3, response_type="MATERIALS_PLAN", json_expected=True
         )
 

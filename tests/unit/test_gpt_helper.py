@@ -311,7 +311,7 @@ class TestGPTContentGeneratorUnit(unittest.TestCase):
         )
         self.generator.client = mock_client
 
-        response, success = self.generator._safe_prompt_with_retries(
+        response, success, raw_response = self.generator._safe_prompt_with_retries(
             "Test prompt", response_type="RESPONSE"
         )
 
@@ -328,7 +328,7 @@ class TestGPTContentGeneratorUnit(unittest.TestCase):
         )
         self.generator.client = mock_client
 
-        response, success = self.generator._safe_prompt_with_retries(
+        response, success, raw_response = self.generator._safe_prompt_with_retries(
             "Test prompt", response_type="JSON_RESPONSE", json_expected=True
         )
 
@@ -347,7 +347,7 @@ class TestGPTContentGeneratorUnit(unittest.TestCase):
         ]
         self.generator.client = mock_client
 
-        response, success = self.generator._safe_prompt_with_retries(
+        response, success, raw_response = self.generator._safe_prompt_with_retries(
             "Test prompt", response_type="RESPONSE"
         )
 

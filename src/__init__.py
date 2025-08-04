@@ -1,5 +1,17 @@
 # This file makes the src directory a Python package
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+
+os.environ["ROOT_DIR"] = str(Path(__file__).parent.parent.resolve())
+
+env_path = Path(os.environ["ROOT_DIR"]) / ".env"
+
+load_dotenv(env_path, override=True)
+
+
 # Set up logging configuration automatically when package is imported
 import logging
 from logging.handlers import TimedRotatingFileHandler
@@ -20,3 +32,10 @@ if not logging.getLogger().handlers:
             ),
         ],
     )
+
+if os.environ.get("DEBUGPY_WAIT_FOR_CLIENT"):
+    import debugpy
+
+    debugpy.listen(("localhost", 5679))
+    print("Waiting for debugger attach at 5679...")
+    debugpy.wait_for_client()

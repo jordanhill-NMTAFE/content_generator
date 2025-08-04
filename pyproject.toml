@@ -1,6 +1,6 @@
 [project]
 name = "content-generator"
-version = "0.1.1"
+version = "0.1.10"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -14,6 +14,7 @@ dependencies = [
     "dotenv>=0.9.9",
     "gpt",
     "jupytext>=1.16.0",
+    "lxml>=5.4.0",
     "markdown-it-py>=3.0.0",
     "numpy>=2.2.6",
     "pandas>=2.2.3",

@@ -65,7 +65,7 @@ class TestGPTHelperIntegration(unittest.TestCase):
         )
         self.generator.client = mock_client
 
-        response, success = self.generator._safe_prompt_with_retries(
+        response, success, raw_response = self.generator._safe_prompt_with_retries(
             "Test prompt", max_retries=3, response_type="RESPONSE", json_expected=False
         )
 
@@ -84,7 +84,7 @@ class TestGPTHelperIntegration(unittest.TestCase):
         )
         self.generator.client = mock_client
 
-        response, success = self.generator._safe_prompt_with_retries(
+        response, success, raw_response = self.generator._safe_prompt_with_retries(
             "Test prompt",
             max_retries=3,
             response_type="JSON_RESPONSE",
@@ -107,7 +107,7 @@ class TestGPTHelperIntegration(unittest.TestCase):
         ]
         self.generator.client = mock_client
 
-        response, success = self.generator._safe_prompt_with_retries(
+        response, success, raw_response = self.generator._safe_prompt_with_retries(
             "Test prompt", max_retries=3, response_type="RESPONSE", json_expected=False
         )
 
@@ -128,7 +128,7 @@ class TestGPTHelperIntegration(unittest.TestCase):
         ]
         self.generator.client = mock_client
 
-        response, success = self.generator._safe_prompt_with_retries(
+        response, success, raw_response = self.generator._safe_prompt_with_retries(
             "Test prompt", max_retries=3, response_type="RESPONSE", json_expected=False
         )
 

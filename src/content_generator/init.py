@@ -158,7 +158,8 @@ class CourseInitializer:
                 student_cohort,
             )
 
-        self.units = []
+        self.units: list[UnitOfCompetency] = []
+        self.prerequisites: list[UnitOfCompetency] = []
 
         # Create course config for GPT helper
 
@@ -178,11 +179,6 @@ class CourseInitializer:
         # Extract session hours from config or use defaults
         session_hours = self.config.get("session_hours", 4.5)
         out_of_class_hours = self.config.get("out_of_class_hours", 3.0)
-
-        # Debug prints to diagnose num_weeks issue
-        log.info(f"[DEBUG] self.config: {self.config}")
-        log.info(f"[DEBUG] num_weeks argument: {num_weeks}")
-        log.info(f"[DEBUG] config_weeks used for CourseConfig: {config_weeks}")
 
         # Validation: academic_weeks + reassessment_weeks must equal num_weeks, all must be positive integers
         academic_weeks = (
@@ -426,35 +422,21 @@ class CourseInitializer:
         for uoc_code in self.uoc_codes:
             try:
                 uoc = UnitOfCompetency(uoc_code)
-                self.units.append(
-                    {
-                        "id": uoc_code,
-                        "name": uoc.data.application.split(".")[0]
-                        if uoc.data.application
-                        else f"Unit {uoc_code}",
-                        "data": uoc.data,
-                        "elements": uoc.data.elements
-                        if hasattr(uoc.data, "elements")
-                        else [],
-                        "performance_criteria": uoc.data.performance_criteria
-                        if hasattr(uoc.data, "performance_criteria")
-                        else [],
-                        "foundation_skills": uoc.data.foundation_skills
-                        if hasattr(uoc.data, "foundation_skills")
-                        else [],
-                        "assessment_requirements": uoc.data.assessment_requirements
-                        if hasattr(uoc.data, "assessment_requirements")
-                        else [],
-                        "prerequisites": uoc.data.prerequisites
-                        if hasattr(uoc.data, "prerequisites")
-                        else [],
-                    }
-                )
+                self.units.append(uoc)
                 log.info(f"Successfully fetched UOC data for {uoc_code}")
             except UnitOfCompetencyNotFoundError as e:
                 log.error(f"UOC not found: {e}")
             except Exception as e:
                 log.error(f"Failed to fetch UOC data for {uoc_code}: {e}")
+
+        if "prerequisites" in self.config:
+            prerequisites = self.config["prerequisites"]
+            if isinstance(prerequisites[0], dict):
+                self.prerequisites = [
+                    UnitOfCompetency(p["code"]) for p in self.config["prerequisites"]
+                ]
+            elif isinstance(prerequisites[0], str):
+                self.prerequisites = [UnitOfCompetency(p) for p in prerequisites]
 
     def create_lap_files(self) -> None:
         """
@@ -530,7 +512,7 @@ class CourseInitializer:
             # Use actual UOC data
             units_yaml = ""
             for unit in self.units:
-                units_yaml += f'  - name: "{unit["name"]}"\n    id: "{unit["id"]}"\n'
+                units_yaml += f'  - name: "{unit.title}"\n    id: "{unit.unit_code}"\n'
 
             # Use config data for other fields
             course_name = self.config.get(
@@ -821,23 +803,31 @@ Final submission guidelines and course completion materials
 
         # Generate course overview
         course_overview = self.gpt_generator.generate_course_overview(
-            self.units, self.mission_prompt
+            self.units, self.mission_prompt, self.config
         )
 
         log.info(
             f"{Colors.PURPLE}{Colors.BOLD}Step 2/6: Generating complete weekly topics with chain of thought reasoning...{Colors.END}"
         )
         # Generate weekly topics with chain of thought reasoning
-        weekly_topics = self.gpt_generator.generate_weekly_topics(
-            self.units, mission_prompt=self.mission_prompt
+        self.weekly_topics = self.gpt_generator.generate_weekly_topics(
+            self.units,
+            self.prerequisites,
+            self.mission_prompt,
+            self.config,
+            course_overview,
         )
 
         log.info(
             f"{Colors.PURPLE}{Colors.BOLD}Step 3/6: Generating assessment descriptions...{Colors.END}"
         )
         # Generate assessment descriptions
-        assessments = self.gpt_generator.generate_assessment_descriptions(
-            self.units, self.mission_prompt
+        self.assessments = self.gpt_generator.generate_assessment_descriptions(
+            self.units,
+            self.mission_prompt,
+            self.config,
+            self.weekly_topics,
+            course_overview,
         )
 
         log.info(
@@ -845,23 +835,23 @@ Final submission guidelines and course completion materials
         )
         # Generate learning activities
         activities = self.gpt_generator.generate_learning_activities(
-            weekly_topics, self.mission_prompt
+            self.weekly_topics, self.mission_prompt, self.config, course_overview
         )
 
         log.info(
             f"{Colors.PURPLE}{Colors.BOLD}Step 5/6: Generating learning resources with full context awareness...{Colors.END}"
         )
         # Generate learning resources
-        resources = self.gpt_generator.generate_learning_resources(
-            weekly_topics, self.mission_prompt
+        self.resources = self.gpt_generator.generate_learning_resources(
+            self.weekly_topics, self.mission_prompt
         )
 
         log.info(
             f"{Colors.PURPLE}{Colors.BOLD}Step 6/6: Generating complete learning materials (slides.md, demo.md) for each week...{Colors.END}"
         )
         # Generate learning materials for each week
-        learning_materials = self.gpt_generator.generate_learning_materials(
-            weekly_topics, self.mission_prompt
+        self.learning_materials = self.gpt_generator.generate_learning_materials(
+            self.weekly_topics, self.mission_prompt
         )
 
         # Create topics.md with complete chain of thought reasoning content
@@ -877,7 +867,7 @@ total_training: {self.course_config.total_training}
 ---
 
 """
-        for topic in weekly_topics:
+        for topic in self.weekly_topics:
             topics_content += f"""##### Week {topic["week"]}: {topic["title"]}
 """
             for t in topic["topics"]:
@@ -903,7 +893,7 @@ total_training: {self.course_config.total_training}
 # Learning Resources separated by ---
 
 """
-        for i, resource in enumerate(resources, 1):
+        for i, resource in enumerate(self.resources, 1):
             # Sanitize the resource content to ensure it doesn't break YAML parsing
             sanitized_resource = self._sanitize_markdown_content(resource)
             resources_content += f"""Week {i} Resources
@@ -918,45 +908,47 @@ total_training: {self.course_config.total_training}
 
 sessions:
 """
-        for i, topic in enumerate(weekly_topics):
+        for i, topic in enumerate(self.weekly_topics):
             elements_content += f"  - # Week {topic['week']}\n"
             for unit in self.units:
-                elements_content += f"""    - name: "{unit["id"]}"
+                elements_content += f"""    - name: "{unit.unit_code}"
       performance:
-        - "Element 1.1"
-        - "Element 1.2"
+        # Add element mapping here
 """
-
         elements_content += """
 ---
 """
+
+        # TODO: call a language model to map our elements here
 
         # Create readings.md
         readings_content = """---
 # Prescribed Readings separated by ---
 
 """
-        for i in range(1, len(weekly_topics) + 1):
-            readings_content += f"""Week {i} Readings
-- Course textbook chapters
-- Online resources and tutorials
-- Industry documentation
+        for i in range(1, len(self.weekly_topics) + 1):
+            readings_content += f"""<!-- You may add prescribed readings for Week {i} here -->
+
+
 ---
+
 
 """
 
         # Create fields.md with UOC data
         units_yaml = ""
         for unit in self.units:
-            units_yaml += f'  - name: "{unit["name"]}"\n    id: "{unit["id"]}"\n'
+            units_yaml += f'  - name: "{unit.title}"\n    id: "{unit.unit_code}"\n'
 
         assessments_yaml = ""
-        for i, assessment in enumerate(assessments, 1):
+        for i, assessment in enumerate(self.assessments, 1):
             assessments_yaml += f'''  - title: "{assessment["title"]}"
     description: |
       {assessment["description"]}
     due_date: "{assessment["due_date"]}"
 '''
+
+        # TODO: Call the language model + config to write this properly
 
         fields_content = f"""---
 qualification_national_code_and_title: "QUALIFICATION_CODE - Qualification Title"
@@ -1015,7 +1007,7 @@ assessments:
         self._write_and_validate_md(lap_dir / "readings.md", readings_content)
 
         # Generate learning materials for each week
-        self._create_learning_materials(learning_materials)
+        self._create_learning_materials(self.learning_materials)
 
         log.info("GPT-generated LAP files and learning materials created successfully")
 
@@ -1101,34 +1093,19 @@ assessments:
         if self.units and self.gpt_generator and not self.no_llm:
             try:
                 # Use GPT-generated assessments
-                assessments = self.gpt_generator.generate_assessment_descriptions(
-                    self.units, self.mission_prompt
-                )
+                assessments = self.assessments
 
-                # Check if we have valid assessments and units match the AISS course
-                if (
-                    assessments
-                    and len(assessments) >= 4
-                    and any(unit["id"].startswith("ICTAII") for unit in self.units)
-                ):
-                    # Use AISS-specific assessment names for consistency with tests
-                    assessment_names = [
-                        "AT1 Identify Opportunities for AI Task Automation",
-                        "AT2 Knowledge Based Assessment",
-                        "AT3 Knowledge Based Assessment",
-                        "AT4 Apply Machine Learning to Task Automation",
-                    ]
-                else:
-                    # Ensure assessment names follow AT{assessment_num} convention
-                    assessment_names = []
-                    for i, assessment in enumerate(assessments):
-                        assessment_num = i + 1
-                        # Extract the title from GPT and ensure it starts with AT{num}
-                        title = assessment["title"]
-                        if not title.startswith(f"AT{assessment_num}"):
-                            # If it doesn't start with AT{num}, prepend it
-                            title = f"AT{assessment_num} {title}"
-                        assessment_names.append(title)
+                # Ensure assessment names follow AT{assessment_num} convention
+                assessment_names = []
+                for i, assessment in enumerate(assessments):
+                    assessment_num = i + 1
+                    # Extract the title from GPT and ensure it starts with AT{num}
+                    title = assessment["title"]
+                    if not title.startswith(f"AT{assessment_num}"):
+                        # If it doesn't start with AT{num}, prepend it
+                        title = f"AT{assessment_num} {title}"
+                    assessment_names.append(title)
+
             except Exception as e:
                 log.warning(f"Failed to generate assessment descriptions: {e}")
                 # Fall back to defaults
@@ -1356,9 +1333,9 @@ AVOID THESE COMMON MISTAKES:
             # Build UOC context for GPT
             uoc_context = ""
             for unit in self.units:
-                if hasattr(unit["data"], "elements_and_criteria"):
-                    uoc_context += f"\nUnit: {unit['id']} - {unit['name']}\n"
-                    elements_and_criteria = unit["data"].elements_and_criteria
+                if hasattr(unit, "elements_and_criteria"):
+                    uoc_context += f"\nUnit: {unit.unit_code} - {unit.title}\n"
+                    elements_and_criteria = unit.elements_and_criteria
 
                     for element_index, (element, criteria) in enumerate(
                         elements_and_criteria.items()
@@ -1398,11 +1375,13 @@ Return ONLY the YAML mapping section, starting with "mapping:" and ending with t
 """
 
             # Use GPT to generate the mapping
-            response, success = self.gpt_generator._safe_prompt_with_retries(
-                prompt,
-                max_retries=3,
-                response_type="ASSESSMENT_MAPPING",
-                json_expected=False,
+            response, success, raw_response = (
+                self.gpt_generator._safe_prompt_with_retries(
+                    prompt,
+                    max_retries=3,
+                    response_type="ASSESSMENT_MAPPING",
+                    json_expected=False,
+                )
             )
 
             if success and response:
@@ -1447,12 +1426,9 @@ Return ONLY the YAML mapping section, starting with "mapping:" and ending with t
         # 3. Elements are like 1, 2, 3 and criteria are sub-points like 1.1, 1.2, 1.3
 
         for unit in self.units:
-            if (
-                hasattr(unit["data"], "elements_and_criteria")
-                and unit["data"].elements_and_criteria
-            ):
+            if hasattr(unit, "elements_and_criteria") and unit.elements_and_criteria:
                 # Get all elements and their criteria
-                elements_and_criteria = unit["data"].elements_and_criteria
+                elements_and_criteria = unit.elements_and_criteria
 
                 # For each assessment, we'll map specific elements
                 # Assessment 1: Elements 1 & 2, Assessment 2: Elements 3 & 4, etc.
@@ -1484,13 +1460,13 @@ Return ONLY the YAML mapping section, starting with "mapping:" and ending with t
                         )  # Count existing questions
                         mapping_yaml += f"""  - # Question {question_num + 1} - {element} - {criteria}
     criteria:
-      {unit["id"]}:
+      {unit.unit_code}:
         - {criteria}
     knowledge:
-      {unit["id"]}:
+      {unit.unit_code}:
         - {element_num}
     skills:
-      {unit["id"]}:
+      {unit.unit_code}:
         - {element_num}
 """
 
@@ -1505,7 +1481,7 @@ Return ONLY the YAML mapping section, starting with "mapping:" and ending with t
         # Generate units YAML
         units_yaml = ""
         for unit in self.units:
-            units_yaml += f'  - name: "{unit["name"]}"\n    id: "{unit["id"]}"\n'
+            units_yaml += f'  - name: "{unit.title}"\n    id: "{unit.unit_code}"\n'
 
         # Generate mapping based on UOC elements with proper Elements/Criteria structure
         max_retries = 3
@@ -1516,7 +1492,7 @@ Return ONLY the YAML mapping section, starting with "mapping:" and ending with t
             # Create the assessment content
             assessment_content = f"""---
 name: "{assessment_name}"
-description: "Assessment {assessment_index + 1} for {", ".join([unit["name"] for unit in self.units])}"
+description: "Assessment {assessment_index + 1} for {", ".join([unit.title for unit in self.units])}"
 
 observation_checklist:
   - "Checkpoint":
@@ -1545,7 +1521,7 @@ mapping:
 # Assessment Instructions:
 
 ## Assessment Overview
-This assessment evaluates your understanding and practical application of the course content covered in {", ".join([unit["name"] for unit in self.units])}.
+This assessment evaluates your understanding and practical application of the course content covered in {", ".join([f"{unit.unit_code}: {unit.title}" for unit in self.units])}.
 
 ### Instructions:
 1. Read all instructions carefully before beginning
@@ -2033,13 +2009,6 @@ def init_course(
     Returns:
         Path to the created course directory
     """
-
-    if os.environ.get("DEBUGPY_WAIT_FOR_CLIENT"):
-        import debugpy
-
-        debugpy.listen(("localhost", 5678))
-        print("Waiting for debugger attach at 5678...")
-        debugpy.wait_for_client()
 
     initializer = CourseInitializer(
         course_name,
