@@ -9,7 +9,7 @@ from pathlib import Path
 import re
 from typing import List, Dict
 
-from src.utils.markdownit import markdown_to_word, parse_md
+from src.utils.markdownit import markdown_to_word, parse_md, apply_table_cell_padding
 from src.utils.math import add_tuples
 
 # Ensure we have access to a root dir for the templates
@@ -164,21 +164,48 @@ def populate_marking_guide_template(doc: Document, markdown):
     # Table 3: Assessment details (location, date, duration, etc.)
     if len(doc.tables) > 3:
         details_table = doc.tables[3]
-        # This table contains assessment logistics - can be populated from frontmatter if available
 
-        # Available fields based on template analysis:
-        # Row 0: Location | Date
-        # Row 1: Duration | Resources
-        # Row 2: OSH/WHS | Instructions to Students
-        # Row 3: Instructions To Assessors | Details for assessment set-up
-        # Rows 4-6: Empty (additional space)
+        # Populate Row 0: Location
+        if len(details_table.rows) > 0 and len(details_table.rows[0].cells) > 1:
+            location = markdown.metadata.get("assessment_location", "")
+            if location:
+                details_table.cell(0, 1).text = location
 
-        # Example population (uncomment and add YAML fields as needed):
-        # if "assessment_location" in markdown.metadata:
-        #     details_table.cell(0, 0).text = f"Location: {markdown.metadata['assessment_location']}"
-        # if "assessment_date" in markdown.metadata:
-        #     details_table.cell(0, 1).text = f"Date: {markdown.metadata['assessment_date']}"
-        pass
+        # Populate Row 1: Date
+        if len(details_table.rows) > 1 and len(details_table.rows[1].cells) > 1:
+            date = markdown.metadata.get("assessment_date", "")
+            if date:
+                details_table.cell(1, 1).text = date
+
+        # Populate Row 2: Duration
+        if len(details_table.rows) > 2 and len(details_table.rows[2].cells) > 1:
+            duration = markdown.metadata.get("assessment_duration", "")
+            if duration:
+                details_table.cell(2, 1).text = duration
+
+        # Populate Row 3: Resources
+        if len(details_table.rows) > 3 and len(details_table.rows[3].cells) > 1:
+            resources = markdown.metadata.get("assessment_resources", "")
+            if resources:
+                details_table.cell(3, 1).text = resources
+
+        # Populate Row 4: OSH/WHS Considerations
+        if len(details_table.rows) > 4 and len(details_table.rows[4].cells) > 1:
+            osh_whs = markdown.metadata.get("assessment_osh_whs", "")
+            if osh_whs:
+                details_table.cell(4, 1).text = osh_whs
+
+        # Populate Row 5: Instructions to Students
+        if len(details_table.rows) > 5 and len(details_table.rows[5].cells) > 1:
+            student_instructions = markdown.metadata.get("student_instructions", "")
+            if student_instructions:
+                details_table.cell(5, 1).text = student_instructions
+
+        # Populate Row 6: Instructions To Assessors
+        if len(details_table.rows) > 6 and len(details_table.rows[6].cells) > 1:
+            assessor_instructions = markdown.metadata.get("assessor_instructions", "")
+            if assessor_instructions:
+                details_table.cell(6, 1).text = assessor_instructions
 
     # Table 4: Marking criteria and benchmarks - Insert the whole markdown content here
     if len(doc.tables) > 4:

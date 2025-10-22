@@ -84,6 +84,7 @@ class CourseInitializer:
         config_file: Optional[str] = None,
         theme_css_path: str = "northmetro.css",
         model: str = "gpt-4.1-nano-2025-04-14",
+        yes_to_all: bool = False,
     ):
         """
         Initialize the course initializer.
@@ -113,6 +114,7 @@ class CourseInitializer:
         self.no_llm = no_llm
         self.theme_css_path = self._resolve_theme_css_path(theme_css_path)
         self.theme = self._parse_theme_name_from_css(self.theme_css_path)
+        self.theme_css_content = self._load_css_content(self.theme_css_path)
         if not self.theme:
             raise RuntimeError(
                 f"No @theme declaration found in CSS file: {self.theme_css_path}. Initialization aborted."
@@ -216,7 +218,14 @@ class CourseInitializer:
         self.course_config = course_config
         self.model = model
         self.gpt_generator = (
-            None if no_llm else create_gpt_generator(course_config, model=model)
+            None
+            if no_llm
+            else create_gpt_generator(
+                course_config,
+                config=self.config,
+                model=model,
+                yes_to_all=yes_to_all,
+            )
         )
 
     def _load_config_file(self, config_file: str) -> Dict:
@@ -507,134 +516,96 @@ class CourseInitializer:
         """
         Create LAP files using template content with UOC data if available.
         """
-        # Create fields.md template with UOC data if available
-        if self.units:
-            # Use actual UOC data
-            units_yaml = ""
-            for unit in self.units:
-                units_yaml += f'  - name: "{unit.title}"\n    id: "{unit.unit_code}"\n'
+        # Create fields.md using the fallback method for consistency
+        # Use assessments if available from this instance or fallback defaults
+        if hasattr(self, "assessments") and self.assessments:
+            assessments_data = self.assessments
+        else:
+            # Create default assessments for template mode
+            assessments_data = [
+                {
+                    "title": "Assessment 1 Title",
+                    "description": "Assessment 1 description",
+                    "due_date": "Week 8",
+                },
+                {
+                    "title": "Assessment 2 Title",
+                    "description": "Assessment 2 description",
+                    "due_date": "Week 12",
+                },
+                {
+                    "title": "Assessment 3 Title",
+                    "description": "Assessment 3 description",
+                    "due_date": "Week 15",
+                },
+                {
+                    "title": "Assessment 4 Title",
+                    "description": "Assessment 4 description. Must be submitted by Week 18 for reassessment opportunities in Week 19.",
+                    "due_date": "Week 18",
+                },
+            ]
 
-            # Use config data for other fields
-            course_name = self.config.get(
-                "course_name", "QUALIFICATION_CODE - Qualification Title"
+        # Use the GPT generator's fallback method for consistent, improved templates
+        if self.gpt_generator:
+            fields_content = self.gpt_generator._fallback_fields_md(
+                self.units if self.units else [],
+                assessments_data,
+                None,  # No course overview in template mode
+                self.config,
             )
-            delivery_period = "2025, S1"  # Default
-            cluster_name = self.config.get("course_name", "Cluster Name")
-            delivery_location = self.config.get("delivery_location", "Location")
-
-            # Use config assessments if available
-            assessments_yaml = ""
-            if "assessments" in self.config:
-                for i, assessment in enumerate(self.config["assessments"], 1):
-                    assessments_yaml += f'  - title: "{assessment["title"]}"\n'
-                    assessments_yaml += (
-                        f"    description: |\n      {assessment['description']}\n"
-                    )
-                    assessments_yaml += (
-                        f'    due_date: "Week {assessment["due_week"]}"\n'
+        else:
+            # Basic fallback if no GPT generator available
+            units_yaml = ""
+            if self.units:
+                for unit in self.units:
+                    units_yaml += (
+                        f'  - name: "{unit.title}"\n    id: "{unit.unit_code}"\n'
                     )
             else:
-                # Default assessments
-                assessments_yaml = """  - title: "Assessment 1 Title"
+                units_yaml = """  - name: "Unit Name 1"
+    id: "UNIT_CODE_1"
+  - name: "Unit Name 2"
+    id: "UNIT_CODE_2"
+  - name: "Unit Name 3"
+    id: "UNIT_CODE_3" """
+
+            assessments_yaml = ""
+            for assessment in assessments_data:
+                assessments_yaml += f'''  - title: "{assessment["title"]}"
     description: |
-      Assessment 1 description
-    due_date: "Week 8"
-  - title: "Assessment 2 Title"
-    description: |
-      Assessment 2 description
-    due_date: "Week 12"
-  - title: "Assessment 3 Title"
-    description: |
-      Assessment 3 description
-    due_date: "Week 15"
-  - title: "Assessment 4 Title"
-    description: |
-      Assessment 4 description. Must be submitted by Week 18 for reassessment opportunities in Week 19.
-    due_date: "Week 18"
-"""
+      {assessment["description"]}
+    due_date: "{assessment["due_date"]}"
+'''
 
             fields_content = f"""---
-qualification_national_code_and_title: "{course_name}"
-delivery_period: "{delivery_period}"
-cluster_name: "{cluster_name}"
+qualification_national_code_and_title: "QUALIFICATION_CODE - Qualification Title"
+delivery_period: "2025, S1"
+cluster_name: "Course Cluster"
 
 units:
 {units_yaml}
-delivery_location/s: "{delivery_location}"
+delivery_location/s: "Perth"
 
 student_to_supply: |
-  - Item 1
-  - Item 2
-  - Item 3
+  - Adequate home workstation for out of class activities
+  - Student's personal notes
+  - Required software and tools
 
 college_to_supply: |
-  - Item 1
-  - Item 2
-  - Item 3
+  - On campus workstation 
+  - Access to academic journals
+  - Online databases and resources
+  - Course materials and online textbooks
 
 lecturers:
   - name: "Lecturer Name"
     phone: "Phone Number"
     email: "email@institution.edu.au"
-    contact_time: "Contact hours"
+    contact_time: "in-class or by appointment"
     campus/room: "Campus/Room"
 
 assessments:
 {assessments_yaml}
----
-"""
-        else:
-            # Use template content if no UOC data
-            fields_content = """---
-qualification_national_code_and_title: "QUALIFICATION_CODE - Qualification Title"
-delivery_period: "YEAR, SEMESTER"
-cluster_name: "Cluster Name"
-
-units:
-  - name: "Unit Name 1"
-    id: "UNIT_CODE_1"
-  - name: "Unit Name 2" 
-    id: "UNIT_CODE_2"
-  - name: "Unit Name 3"
-    id: "UNIT_CODE_3"
-
-delivery_location/s: "Location"
-
-student_to_supply: |
-  - Item 1
-  - Item 2
-  - Item 3
-
-college_to_supply: |
-  - Item 1
-  - Item 2
-  - Item 3
-
-lecturers:
-  - name: "Lecturer Name"
-    phone: "Phone Number"
-    email: "email@institution.edu.au"
-    contact_time: "Contact hours"
-    campus/room: "Campus/Room"
-
-assessments:
-  - title: "Assessment 1 Title"
-    description: |
-      Assessment 1 description
-    due_date: "Week 8"
-  - title: "Assessment 2 Title"
-    description: |
-      Assessment 2 description
-    due_date: "Week 12"
-  - title: "Assessment 3 Title"
-    description: |
-      Assessment 3 description
-    due_date: "Week 15"
-  - title: "Assessment 4 Title"
-    description: |
-      Assessment 4 description. Must be submitted by Week 18 for reassessment opportunities in Week 19.
-    due_date: "Week 18"
-
 ---
 """
 
@@ -803,7 +774,7 @@ Final submission guidelines and course completion materials
 
         # Generate course overview
         course_overview = self.gpt_generator.generate_course_overview(
-            self.units, self.mission_prompt, self.config
+            self.units, self.mission_prompt
         )
 
         log.info(
@@ -814,9 +785,10 @@ Final submission guidelines and course completion materials
             self.units,
             self.prerequisites,
             self.mission_prompt,
-            self.config,
             course_overview,
         )
+
+        ### PHASE: GENERATES A LIST OF ASSESSMENTS AND DESCRIPTIONS—FOR THE LAP
 
         log.info(
             f"{Colors.PURPLE}{Colors.BOLD}Step 3/6: Generating assessment descriptions...{Colors.END}"
@@ -825,33 +797,51 @@ Final submission guidelines and course completion materials
         self.assessments = self.gpt_generator.generate_assessment_descriptions(
             self.units,
             self.mission_prompt,
-            self.config,
             self.weekly_topics,
             course_overview,
         )
 
+        ### PHASE: ASK LLM TO GENERATE A PLAN FOR LEARNING MATERIALS FOR THE COURSE (in-class and reference)
+        ### ALSO GENERATES THESE MATERIALS to later be saved!
+
         log.info(
-            f"{Colors.PURPLE}{Colors.BOLD}Step 4/6: Generating learning activities with full context awareness...{Colors.END}"
+            f"{Colors.PURPLE}{Colors.BOLD}Step 4/6: Generating complete learning materials (slides.md, demo.md) for each week...{Colors.END}"
+        )
+        # Generate learning materials for each week
+        self.learning_materials, self.learning_materials_plan = (
+            self.gpt_generator.generate_learning_materials(
+                self.weekly_topics,
+                self.mission_prompt,
+                course_overview,
+                slide_theme=self.theme,
+                slide_css=self.theme_css_content,
+            )
+        )
+
+        ### PHASE: SEARCH FOR EXTERNAL RESOURCES AND COMPILE LIST OF GENERATED RESOURCES
+
+        log.info(
+            f"{Colors.PURPLE}{Colors.BOLD}Step 5/6: Generating learning activities with full context awareness...{Colors.END}"
         )
         # Generate learning activities
-        activities = self.gpt_generator.generate_learning_activities(
-            self.weekly_topics, self.mission_prompt, self.config, course_overview
+        self.activities = self.gpt_generator.generate_learning_activities(
+            self.weekly_topics,
+            self.mission_prompt,
+            course_overview,
+            self.learning_materials_plan,
+            self.assessments,
         )
 
         log.info(
-            f"{Colors.PURPLE}{Colors.BOLD}Step 5/6: Generating learning resources with full context awareness...{Colors.END}"
+            f"{Colors.PURPLE}{Colors.BOLD}Step 6/6: Generating learning resources with full context awareness...{Colors.END}"
         )
         # Generate learning resources
         self.resources = self.gpt_generator.generate_learning_resources(
-            self.weekly_topics, self.mission_prompt
-        )
-
-        log.info(
-            f"{Colors.PURPLE}{Colors.BOLD}Step 6/6: Generating complete learning materials (slides.md, demo.md) for each week...{Colors.END}"
-        )
-        # Generate learning materials for each week
-        self.learning_materials = self.gpt_generator.generate_learning_materials(
-            self.weekly_topics, self.mission_prompt
+            self.weekly_topics,
+            self.mission_prompt,
+            course_overview,
+            self.learning_materials_plan,
+            self.assessments,
         )
 
         # Create topics.md with complete chain of thought reasoning content
@@ -879,7 +869,7 @@ total_training: {self.course_config.total_training}
 # Learning Activities separated by ---
 
 """
-        for i, activity in enumerate(activities, 1):
+        for i, activity in enumerate(self.activities, 1):
             # Sanitize the activity content to ensure it doesn't break YAML parsing
             sanitized_activity = self._sanitize_markdown_content(activity)
             activities_content += f"""Week {i} Activities
@@ -921,90 +911,24 @@ sessions:
 
         # TODO: call a language model to map our elements here
 
-        # Create readings.md
-        readings_content = """---
-# Prescribed Readings separated by ---
-
-"""
-        for i in range(1, len(self.weekly_topics) + 1):
-            readings_content += f"""<!-- You may add prescribed readings for Week {i} here -->
-
-
----
-
-
-"""
-
-        # Create fields.md with UOC data
-        units_yaml = ""
-        for unit in self.units:
-            units_yaml += f'  - name: "{unit.title}"\n    id: "{unit.unit_code}"\n'
-
-        assessments_yaml = ""
-        for i, assessment in enumerate(self.assessments, 1):
-            assessments_yaml += f'''  - title: "{assessment["title"]}"
-    description: |
-      {assessment["description"]}
-    due_date: "{assessment["due_date"]}"
-'''
-
-        # TODO: Call the language model + config to write this properly
-
-        fields_content = f"""---
-qualification_national_code_and_title: "QUALIFICATION_CODE - Qualification Title"
-delivery_period: "2025, S1"
-cluster_name: "Course Cluster"
-course_overview: |
-  {course_overview.replace("\n", "\n  ") if course_overview else "Course overview not available"}
-
-units:
-{units_yaml}
-delivery_location/s: "Perth"
-
-student_to_supply: |
-  - Adequate home workstation for out of class activities
-  - Student's personal notes
-  - Required software and tools
-
-college_to_supply: |
-  - On campus workstation 
-  - Access to academic journals
-  - Online databases and resources
-  - Course materials and online textbooks
-
-lecturers:
-  - name: "Lecturer Name"
-    phone: "Phone Number"
-    email: "email@institution.edu.au"
-    contact_time: "in-class or by appointment"
-    campus/room: "Campus/Room"
-
-assessments:
-{assessments_yaml}
----
-"""
-
-        # For each file, use _write_and_validate_md with is_llm=True and retry logic
-        def llm_retry_fn_fields(prompt):
-            # Regenerate fields_content using the LLM with the new prompt
-            # This is a placeholder; actual implementation should call the LLM
-            return self.gpt_generator.generate_fields_md(
-                self.units, self.mission_prompt, prompt
-            )
+        # Generate fields.md using GPT with all available context
+        log.info(
+            f"{Colors.PURPLE}{Colors.BOLD}Generating fields.md with course-specific content...{Colors.END}"
+        )
+        fields_content = self.gpt_generator.generate_fields_md(
+            self.units,
+            self.assessments,
+            course_overview,
+            self.mission_prompt,
+            self.config,
+        )
 
         # Write and validate each file
-        self._write_and_validate_md(
-            lap_dir / "fields.md",
-            fields_content,
-            is_llm=True,
-            llm_retry_fn=llm_retry_fn_fields,
-            llm_prompt="[fields.md generation prompt]",
-        )
+        self._write_and_validate_md(lap_dir / "fields.md", fields_content)
         self._write_and_validate_md(lap_dir / "topics.md", topics_content)
         self._write_and_validate_md(lap_dir / "activities.md", activities_content)
         self._write_and_validate_md(lap_dir / "resources.md", resources_content)
         self._write_and_validate_md(lap_dir / "elements.md", elements_content)
-        self._write_and_validate_md(lap_dir / "readings.md", readings_content)
 
         # Generate learning materials for each week
         self._create_learning_materials(self.learning_materials)
@@ -1085,59 +1009,26 @@ assessments:
 
     def create_assessment_templates(self) -> None:
         """
-        Create assessment tool templates.
+        Create assessment tool templates using generated assessment descriptions.
         """
         assess_dir = self.course_path / "2 KAD" / "5 Assess Tool"
 
-        # Get assessment names from fields.md if available, otherwise use defaults
-        if self.units and self.gpt_generator and not self.no_llm:
-            try:
-                # Use GPT-generated assessments
-                assessments = self.assessments
-
-                # Ensure assessment names follow AT{assessment_num} convention
-                assessment_names = []
-                for i, assessment in enumerate(assessments):
-                    assessment_num = i + 1
-                    # Extract the title from GPT and ensure it starts with AT{num}
-                    title = assessment["title"]
-                    if not title.startswith(f"AT{assessment_num}"):
-                        # If it doesn't start with AT{num}, prepend it
-                        title = f"AT{assessment_num} {title}"
-                    assessment_names.append(title)
-
-            except Exception as e:
-                log.warning(f"Failed to generate assessment descriptions: {e}")
-                # Fall back to defaults
-                assessment_names = [
-                    "AT1 Assessment 1",
-                    "AT2 Assessment 2",
-                    "AT3 Assessment 3",
-                    "AT4 Assessment 4",
-                ]
+        # Generate assessment content using GPT if available
+        if (
+            self.units
+            and self.gpt_generator
+            and not self.no_llm
+            and hasattr(self, "assessments")
+        ):
+            log.info(
+                f"{Colors.BLUE}{Colors.BOLD}🎯 Generating detailed assessment content using GPT{Colors.END}"
+            )
+            self._create_assessments_with_gpt(assess_dir)
         else:
-            # Use default assessment names
-            assessment_names = [
-                "AT1 Assessment 1",
-                "AT2 Assessment 2",
-                "AT3 Assessment 3",
-                "AT4 Assessment 4",
-            ]
-
-        for i, assessment_name in enumerate(assessment_names):
-            assessment_dir = assess_dir / assessment_name
-            assessment_dir.mkdir(exist_ok=True)
-
-            # Create assessment.md template
-            if self.units and not self.no_llm:
-                assessment_content = self._create_assessment_with_uoc_data(
-                    assessment_name, i
-                )
-            else:
-                assessment_content = self._create_assessment_template(assessment_name)
-
-            with open(assessment_dir / "assessment.md", "w") as f:
-                f.write(assessment_content)
+            log.info(
+                f"{Colors.GREEN}📝 Using template-based assessment generation{Colors.END}"
+            )
+            self._create_assessments_template(assess_dir)
 
         log.info("Assessment templates created successfully")
 
@@ -1267,232 +1158,64 @@ Please provide your response here:
 
 """
 
-    def _generate_assessment_mapping_guidance(self) -> str:
-        """Generate clear guidance for GPT about Elements vs Criteria structure and assessment mapping rules."""
-        return """
-CRITICAL ASSESSMENT MAPPING STRUCTURE GUIDANCE:
+    def _create_assessments_with_gpt(self, assess_dir: Path) -> None:
+        """
+        Create detailed assessment content using GPT based on assessment descriptions.
+        """
+        log.info(
+            f"{Colors.PURPLE}{Colors.BOLD}Step 1/2: Generating detailed assessment content...{Colors.END}"
+        )
 
-ELEMENTS vs CRITERIA HIERARCHY:
-- ELEMENTS are the main sections of a unit (numbered 1, 2, 3, 4, etc.)
-- CRITERIA are sub-points within elements (numbered 1.1, 1.2, 1.3, 2.1, 2.2, etc.)
-- Each element contains multiple criteria that must ALL be satisfied together
+        # Generate full assessment content for each assessment using self.assessments
+        assessment_contents = []
+        for i, assessment_desc in enumerate(self.assessments):
+            assessment_num = i + 1
+            title = assessment_desc["title"]
+            if not title.startswith(f"AT{assessment_num}"):
+                title = f"AT{assessment_num} {title}"
 
-ASSESSMENT DESIGN RULES:
-1. ALL criteria for an element must be satisfied within the same assessment
-   - Example: Assessment 1 covers Element 1 (criteria 1.1, 1.2, 1.3) and Element 2 (criteria 2.1, 2.2)
-   - Example: Assessment 2 covers Element 3 (criteria 3.1, 3.2) and Element 4 (criteria 4.1, 4.2, 4.3)
+            log.info(f"{Colors.CYAN}Generating content for {title}...{Colors.END}")
 
-2. Assessments must be mapped at the CRITERIA level to questions
-   - Each question should map to specific criteria (e.g., 1.1, 1.2, 2.1)
-   - NOT to simplified descriptions like "1. Specify software requirements"
+            # Generate detailed assessment content using GPT
+            assessment_content = self.gpt_generator.generate_detailed_assessment(
+                assessment_desc, self.units, self.weekly_topics, self.mission_prompt
+            )
 
+            assessment_contents.append(
+                {
+                    "title": title,
+                    "description": assessment_desc,
+                    "content": assessment_content,
+                    "index": i,
+                }
+            )
 
-MAPPING FORMAT REQUIREMENTS:
-- Use exact criteria numbers from UOC (e.g., "1.1", "2.3", "3.1")
-- Map knowledge and skills to element numbers (e.g., 1, 2, 3)
-- Each question should focus on specific criteria, not general element descriptions
+        log.info(
+            f"{Colors.PURPLE}{Colors.BOLD}Step 2/2: Generating holistic assessment mappings...{Colors.END}"
+        )
 
-EXAMPLE CORRECT MAPPING:
-```yaml
-mapping:
-  - # Question 1 - Element 1 - Criteria 1.1
-    criteria:
-      ICTCLD401:
-        - 1.1 Discuss and compare different cloud computing solutions, models and services according to business requirements and needs
-    knowledge:
-      ICTCLD401:
-        - 1
-    skills:
-      ICTCLD401:
-        - 1
-  - # Question 2 - Element 1 - Criteria 1.2  
-    criteria:
-      ICTCLD401:
-        - 1.2 Identify impact of shared security responsibility models
-    knowledge:
-      ICTCLD401:
-        - 1
-    skills:
-      ICTCLD401:
-        - 1
-```
+        # Generate holistic mappings for all assessments together
+        assessment_mappings = self.gpt_generator.generate_holistic_assessment_mappings(
+            assessment_contents, self.units, self.mission_prompt
+        )
 
-AVOID THESE COMMON MISTAKES:
-- ❌ Using simplified descriptions like "1. Select and secure access to cloud environment"
-- ❌ Mapping multiple criteria to one question (unless they're from the same element)
-- ❌ Using element numbers instead of criteria numbers in the criteria mapping
-"""
+        # Create assessment files with generated content and mappings
+        for assessment_data in assessment_contents:
+            assessment_dir = assess_dir / assessment_data["title"]
+            assessment_dir.mkdir(exist_ok=True)
 
-    def _generate_assessment_mapping_with_gpt(self, assessment_index: int) -> str:
-        """Generate assessment mapping using GPT with proper Elements/Criteria guidance."""
-        if not self.gpt_generator or self.no_llm:
-            # Fall back to template-based generation
-            return self._generate_assessment_mapping_template(assessment_index)
+            # Get mapping for this assessment
+            mapping_yaml = assessment_mappings.get(assessment_data["index"], "")
 
-        try:
-            # Build UOC context for GPT
-            uoc_context = ""
+            # Generate units YAML
+            units_yaml = ""
             for unit in self.units:
-                if hasattr(unit, "elements_and_criteria"):
-                    uoc_context += f"\nUnit: {unit.unit_code} - {unit.title}\n"
-                    elements_and_criteria = unit.elements_and_criteria
+                units_yaml += f'  - name: "{unit.title}"\n    id: "{unit.unit_code}"\n'
 
-                    for element_index, (element, criteria) in enumerate(
-                        elements_and_criteria.items()
-                    ):
-                        element_num = element_index + 1
-                        uoc_context += f"Element {element_num}: {element}\n"
-
-                        for criteria_index, (criteria_key, criteria_desc) in enumerate(
-                            criteria.items()
-                        ):
-                            uoc_context += f"  {criteria_key}: {criteria_desc}\n"
-                        uoc_context += "\n"
-
-            # Determine which elements this assessment should cover
-            element_start = (assessment_index * 2) + 1
-            element_end = element_start + 1
-
-            prompt = f"""
-{self._generate_assessment_mapping_guidance()}
-
-UOC STRUCTURE FOR ASSESSMENT {assessment_index + 1}:
-{uoc_context}
-
-ASSESSMENT {assessment_index + 1} REQUIREMENTS:
-- This assessment should cover Elements {element_start} and {element_end}
-- Each criteria within these elements should be mapped to a separate question
-- Use exact criteria numbers and descriptions from the UOC data above
-- Map knowledge and skills to the appropriate element numbers
-
-Generate the YAML mapping section for Assessment {assessment_index + 1} that:
-1. Maps all criteria from Elements {element_start} and {element_end} to individual questions
-2. Uses exact criteria numbers and descriptions from the UOC data
-3. Maps knowledge and skills to the correct element numbers
-4. Follows the format shown in the example above
-
-Return ONLY the YAML mapping section, starting with "mapping:" and ending with the last question.
-"""
-
-            # Use GPT to generate the mapping
-            response, success, raw_response = (
-                self.gpt_generator._safe_prompt_with_retries(
-                    prompt,
-                    max_retries=3,
-                    response_type="ASSESSMENT_MAPPING",
-                    json_expected=False,
-                )
-            )
-
-            if success and response:
-                # Clean up the response to extract just the YAML
-                lines = response.strip().split("\n")
-                mapping_lines = []
-                in_mapping = False
-
-                for line in lines:
-                    if line.strip().startswith("mapping:"):
-                        in_mapping = True
-                        mapping_lines.append(line)
-                    elif (
-                        in_mapping
-                        and line.strip()
-                        and not line.strip().startswith("```")
-                    ):
-                        mapping_lines.append(line)
-                    elif in_mapping and line.strip().startswith("```"):
-                        break
-
-                if mapping_lines:
-                    return "\n".join(mapping_lines)
-
-            # Fall back to template if GPT fails
-            log.warning(
-                f"GPT assessment mapping generation failed for assessment {assessment_index + 1}, using template"
-            )
-            return self._generate_assessment_mapping_template(assessment_index)
-
-        except Exception as e:
-            log.error(f"Error generating GPT assessment mapping: {e}")
-            return self._generate_assessment_mapping_template(assessment_index)
-
-    def _generate_assessment_mapping_template(self, assessment_index: int) -> str:
-        """Generate assessment mapping using template-based approach."""
-        mapping_yaml = ""
-
-        # Assessment design rules:
-        # 1. All criteria for an element must be satisfied within the same assessment
-        # 2. Assessments must be mapped at the criteria level to questions
-        # 3. Elements are like 1, 2, 3 and criteria are sub-points like 1.1, 1.2, 1.3
-
-        for unit in self.units:
-            if hasattr(unit, "elements_and_criteria") and unit.elements_and_criteria:
-                # Get all elements and their criteria
-                elements_and_criteria = unit.elements_and_criteria
-
-                # For each assessment, we'll map specific elements
-                # Assessment 1: Elements 1 & 2, Assessment 2: Elements 3 & 4, etc.
-                element_start = (assessment_index * 2) + 1  # 1, 3, 5, 7...
-                element_end = element_start + 1  # 2, 4, 6, 8...
-
-                # Get the elements for this assessment
-                element_list = list(elements_and_criteria.keys())
-                assessment_elements = []
-
-                for i, element in enumerate(element_list):
-                    element_num = i + 1  # 1-based indexing
-                    if element_start <= element_num <= element_end:
-                        assessment_elements.append((element_num, element))
-
-                # If we don't have enough elements, use the first available
-                if not assessment_elements and element_list:
-                    assessment_elements = [(1, element_list[0])]
-
-                # Generate mapping for each element and its criteria
-                for element_num, element in assessment_elements:
-                    criteria_list = list(elements_and_criteria[element].keys())
-
-                    # Map all criteria for this element to questions
-                    # Each criteria gets mapped to a separate question
-                    for criteria_index, criteria in enumerate(criteria_list):
-                        question_num = len(
-                            mapping_yaml.split("Question")
-                        )  # Count existing questions
-                        mapping_yaml += f"""  - # Question {question_num + 1} - {element} - {criteria}
-    criteria:
-      {unit.unit_code}:
-        - {criteria}
-    knowledge:
-      {unit.unit_code}:
-        - {element_num}
-    skills:
-      {unit.unit_code}:
-        - {element_num}
-"""
-
-        return mapping_yaml
-
-    def _create_assessment_with_uoc_data(
-        self, assessment_name: str, assessment_index: int
-    ) -> str:
-        """Create an assessment template with UOC data and validate mapping."""
-        from ..utils.assessment_validator import AssessmentMappingValidator
-
-        # Generate units YAML
-        units_yaml = ""
-        for unit in self.units:
-            units_yaml += f'  - name: "{unit.title}"\n    id: "{unit.unit_code}"\n'
-
-        # Generate mapping based on UOC elements with proper Elements/Criteria structure
-        max_retries = 3
-        for attempt in range(max_retries):
-            # Use GPT-powered mapping generation with proper Elements/Criteria guidance
-            mapping_yaml = self._generate_assessment_mapping_with_gpt(assessment_index)
-
-            # Create the assessment content
-            assessment_content = f"""---
-name: "{assessment_name}"
-description: "Assessment {assessment_index + 1} for {", ".join([unit.title for unit in self.units])}"
+            # Create final assessment content
+            final_content = f"""---
+name: "{assessment_data["title"]}"
+description: "{assessment_data["description"]["description"]}"
 
 observation_checklist:
   - "Checkpoint":
@@ -1507,168 +1230,57 @@ qualification_national_code_and_title: "QUALIFICATION_CODE - Qualification Title
 
 units:
 {units_yaml}
-mapping:
 {mapping_yaml}
 ---
 
-# Assessment Resources:
-
-- Course materials and textbooks
-- Online resources and tutorials
-- Required software and tools
-- Assessment guidelines and rubrics
-
-# Assessment Instructions:
-
-## Assessment Overview
-This assessment evaluates your understanding and practical application of the course content covered in {", ".join([f"{unit.unit_code}: {unit.title}" for unit in self.units])}.
-
-### Instructions:
-1. Read all instructions carefully before beginning
-2. Complete all required tasks as specified
-3. Provide clear and detailed responses
-4. Include appropriate evidence and examples
-5. Submit by the due date
-
-### Submission Evidence:
-- Completed assessment tasks
-- Supporting documentation
-- Any required files or outputs
-- Self-assessment and reflection
-
-# Assessment Instrument:
-
-## {assessment_name}
-
-### Task 1: [Task Title]
-#### Instructions:
-Provide task instructions here.
-
-Your response must include:
-- Requirement 1
-- Requirement 2
-- Requirement 3
-
-Please provide your response here:
-
----
-
-### Task 2: [Task Title]
-#### Instructions:
-Provide task instructions here.
-
-Your response must include:
-- Requirement 1
-- Requirement 2
-- Requirement 3
-
-Please provide your response here:
-
----
-
-### Task 3: [Task Title]
-#### Instructions:
-Provide task instructions here.
-
-Your response must include:
-- Requirement 1
-- Requirement 2
-- Requirement 3
-
-Please provide your response here:
-
----
-
-### Task 4: [Task Title]
-#### Instructions:
-Provide task instructions here.
-
-Your response must include:
-- Requirement 1
-- Requirement 2
-- Requirement 3
-
-Please provide your response here:
-
----
-
+{assessment_data["content"]}
 """
 
-            # Validate the generated assessment mapping
-            try:
-                from ..utils.markdown import parse_md
-                import tempfile
-                import os
+            # Write and validate the assessment file
+            self._write_and_validate_md(
+                assessment_dir / "assessment.md",
+                final_content,
+                is_llm=True,
+                llm_retry_fn=lambda prompt: self.gpt_generator.generate_detailed_assessment(
+                    assessment_data["description"],
+                    self.units,
+                    self.weekly_topics,
+                    prompt,
+                ),
+                llm_prompt=f"Generate detailed assessment content for {assessment_data['title']}",
+            )
 
-                # Create a temporary file to parse the assessment content
-                with tempfile.NamedTemporaryFile(
-                    mode="w", suffix=".md", delete=False
-                ) as temp_file:
-                    temp_file.write(assessment_content)
-                    temp_file_path = temp_file.name
+            log.info(f"{Colors.GREEN}✅ Created {assessment_data['title']}{Colors.END}")
 
-                try:
-                    assessment_data = parse_md(temp_file_path)
-                    validator = AssessmentMappingValidator()
-                    is_valid, errors, warnings = validator.validate_assessment_mapping(
-                        assessment_data, self.units
-                    )
+    def _create_assessments_template(self, assess_dir: Path) -> None:
+        """
+        Create assessment templates when GPT is not available.
+        """
+        # Use default assessment names if no assessments generated
+        if hasattr(self, "assessments") and self.assessments:
+            assessments = self.assessments
+        else:
+            assessments = [
+                {"title": "Assessment 1", "description": "Assessment 1 description"},
+                {"title": "Assessment 2", "description": "Assessment 2 description"},
+                {"title": "Assessment 3", "description": "Assessment 3 description"},
+                {"title": "Assessment 4", "description": "Assessment 4 description"},
+            ]
 
-                    if is_valid:
-                        log.info(
-                            f"✅ Assessment mapping validation passed for {assessment_name}"
-                        )
-                        if warnings:
-                            for warning in warnings:
-                                log.warning(f"⚠️  {warning}")
-                        return assessment_content
-                    else:
-                        log.warning(
-                            f"❌ Assessment mapping validation failed for {assessment_name} (attempt {attempt + 1}/{max_retries})"
-                        )
-                        for error in errors:
-                            log.error(f"   Error: {error}")
+        for i, assessment in enumerate(assessments):
+            assessment_num = i + 1
+            title = assessment["title"]
+            if not title.startswith(f"AT{assessment_num}"):
+                title = f"AT{assessment_num} {title}"
 
-                        if attempt < max_retries - 1:
-                            log.info(
-                                f"🔄 Regenerating assessment mapping for {assessment_name}..."
-                            )
-                            # Try a different approach for the next attempt
-                            continue
-                        else:
-                            log.error(
-                                f"❌ Failed to generate valid assessment mapping for {assessment_name} after {max_retries} attempts"
-                            )
-                            log.info(
-                                "⚠️  Proceeding with potentially invalid mapping - manual review required"
-                            )
-                            return assessment_content
+            assessment_dir = assess_dir / title
+            assessment_dir.mkdir(exist_ok=True)
 
-                finally:
-                    # Clean up temporary file
-                    if os.path.exists(temp_file_path):
-                        os.unlink(temp_file_path)
+            # Create assessment.md template
+            assessment_content = self._create_assessment_template(title)
 
-            except Exception as e:
-                log.error(
-                    f"❌ Error during assessment validation for {assessment_name}: {e}"
-                )
-                if attempt < max_retries - 1:
-                    log.info(
-                        f"🔄 Retrying assessment generation for {assessment_name}..."
-                    )
-                    continue
-                else:
-                    log.error(
-                        f"❌ Failed to validate assessment for {assessment_name} after {max_retries} attempts"
-                    )
-                    log.info(
-                        "⚠️  Proceeding with unvalidated assessment - manual review required"
-                    )
-                    return assessment_content
-
-        # This should never be reached, but just in case
-        return assessment_content
+            with open(assessment_dir / "assessment.md", "w") as f:
+                f.write(assessment_content)
 
     def create_supporting_files(self) -> None:
         """
@@ -1677,7 +1289,12 @@ Please provide your response here:
         # Generate course overview if units are available and LLM is enabled
         if self.units and self.gpt_generator and not self.no_llm:
             course_overview = self.gpt_generator.generate_course_overview(
-                self.units, self.mission_prompt
+                self.units,
+                self.mission_prompt,
+                self.assessments,
+                self.activities,
+                self.resources,
+                self.learning_materials_plan,
             )
         else:
             course_overview = "[Add course overview here]"
@@ -1967,6 +1584,17 @@ build/
             )
         return ""
 
+    def _load_css_content(self, css_path: Path) -> str:
+        """Load the full CSS content for passing to the model during slides generation."""
+        try:
+            with open(css_path, "r") as f:
+                return f.read()
+        except Exception as e:
+            log.warning(
+                f"{Colors.YELLOW}⚠️  Could not load CSS content from {css_path}: {e}{Colors.END}"
+            )
+            return ""
+
 
 def init_course(
     course_name: str,
@@ -1985,6 +1613,7 @@ def init_course(
     config_file: Optional[str] = None,
     theme_css_path: str = "northmetro.css",
     model: str = "gpt-4.1-nano-2025-04-14",
+    yes_to_all: bool = False,
 ) -> Path:
     """
     Initialize a new course with enhanced configuration options.
@@ -2027,6 +1656,7 @@ def init_course(
         config_file,
         theme_css_path,
         model,
+        yes_to_all,
     )
     return initializer.initialize_course()
 

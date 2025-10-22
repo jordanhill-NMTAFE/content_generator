@@ -141,11 +141,17 @@ generate_parser = subparsers.add_parser(
     help="Push key academic documents to the generated content folder for archive in content collection.",
 )
 generate_parser.add_argument(
+    "course_directory",
+    nargs="?",
+    type=str,
+    help="Path to the course content folder to process (default: current directory)",
+)
+generate_parser.add_argument(
     "--target",
     "-t",
     type=str,
     required=False,
-    help="Path to the course content folder to process (default: current directory)",
+    help="Path to the course content folder to process (alternative to positional argument)",
 )
 
 # Config command for creating configuration files
@@ -273,6 +279,13 @@ init_parser.add_argument(
     help="Path or filename of the Marp CSS theme file to use for slides.md. The theme name will be parsed from the @theme declaration in this file.",
 )
 
+init_parser.add_argument(
+    "--yes",
+    "-y",
+    action="store_true",
+    help="Skip confirmation prompts and proceed with initialization",
+)
+
 
 def init(args):
     """Initialize a new course content folder"""
@@ -327,6 +340,7 @@ def init(args):
             student_cohort=args.student_cohort,
             config_file=args.config_file,
             model=args.model,
+            yes_to_all=args.yes,
             **extra_kwargs,
         )
         log.info(f"Course '{args.course_name}' initialized successfully!")
@@ -383,21 +397,19 @@ def generate_marking_guides():
 
 
 def generate_matrix():
-    if os.environ.get("DEBUGPY_WAIT_FOR_CLIENT"):
-        import debugpy
-
-        debugpy.listen(("localhost", 5678))
-        print("Waiting for debugger attach at 5678...")
-        debugpy.wait_for_client()
     mapping_matrix(COURSE_CONTENT, OUTPUT_LOCATION)
 
 
 def push(args):
     """Generate all content (push)"""
 
-    # Resolve paths - use current directory if no target specified
-    if args.target:
+    # Resolve paths - prioritize positional argument, then --target, then current directory
+    if args.course_directory:
+        content_path = Path(args.course_directory).resolve()
+        log.info(f"📁 Using positional argument: {content_path}")
+    elif args.target:
         content_path = Path(args.target).resolve()
+        log.info(f"📁 Using --target argument: {content_path}")
     else:
         content_path = Path.cwd().resolve()
         log.info(f"📁 No target specified, using current directory: {content_path}")

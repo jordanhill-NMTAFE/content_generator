@@ -3,16 +3,38 @@ from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from docx import Document
 from docx.document import Document as _Document
-from docx.shared import Pt, RGBColor
+from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.shared import qn
 from docx.oxml import OxmlElement
 from docx.text.paragraph import Paragraph
 from docx.enum.style import WD_STYLE_TYPE
+from docx.table import Table
 import frontmatter
 import re
 from bs4 import BeautifulSoup  # Import for HTML parsing
 import sys
+
+
+def apply_table_cell_padding(
+    table: Table, top_padding: float = 0.5, bottom_padding: float = 0.5
+):
+    """
+    Apply padding to all cells in a table.
+
+    :param table: The table to apply padding to
+    :param top_padding: Top padding in points (default: 0.5)
+    :param bottom_padding: Bottom padding in points (default: 0.5)
+    """
+    for row in table.rows:
+        for cell in row.cells:
+            # Apply top and bottom padding to the cell
+            cell.vertical_alignment = WD_ALIGN_PARAGRAPH.CENTER
+            # Set cell margins using the cell's paragraph format
+            for paragraph in cell.paragraphs:
+                paragraph.paragraph_format.space_before = Pt(top_padding)
+                paragraph.paragraph_format.space_after = Pt(bottom_padding)
+
 
 MARKDOWN_STYLES = {
     "h1": {"regex": re.compile(r"^#{1} (.*)", re.MULTILINE), "style": "Heading 1"},
@@ -603,6 +625,9 @@ def add_table_from_html(table_element, document: Document):
 
     table = document.add_table(rows=len(rows), cols=max_cols)
     table.style = "Table Grid"  # You can set a custom style
+
+    # Apply padding to all cells in the table
+    apply_table_cell_padding(table)
 
     for i, row in enumerate(rows):
         j = 0

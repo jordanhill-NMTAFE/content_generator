@@ -1,20 +1,18 @@
 import os
 import json
 import re
-import platform
-import threading
 from typing import List, Dict, Any, Optional, Tuple
-from pathlib import Path
 import logging
 from src.utils.uoc_api import UnitOfCompetency
+
 
 from .helpers import Colors, ResponseBox
 from .config import CourseConfig
 from .locking import InitProgressManager
-
-import logging
+from typing import TYPE_CHECKING
 
 log = logging.getLogger(__name__)
+
 # Try to import GPT library, but make it optional
 try:
     from gpt.models.openai_ import Chat
@@ -32,7 +30,6 @@ except ImportError as e:
 # as a hard dependency.  The import is only used for *type-checking* to keep
 # editors and static analysers happy.
 # ---------------------------------------------------------------------------
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover – static-analysis only
     from unittest.mock import MagicMock as _MagicMockType
@@ -206,8 +203,10 @@ Additional activities:
         self,
         api_key: Optional[str] = "USE_ENV",
         course_config: Optional[CourseConfig] = None,
+        config: Optional[Dict[str, Any]] = None,
         progress_file: Optional[str] = None,
         model: str = "gpt-4.1-nano-2025-04-14",
+        yes_to_all: bool = False,
     ):
         """
         Initialize the GPT content generator.
@@ -218,6 +217,7 @@ Additional activities:
                     If None, forces fallback mode without GPT client.
                     If string, uses that API key.
             course_config: Optional course configuration (defaults to TAFE 20-week course)
+            config: Optional raw config dictionary for context formatting
             progress_file: Optional progress file for checkpointing
         """
         # Handle API key logic
@@ -228,11 +228,14 @@ Additional activities:
             # Explicitly provided (could be None for testing or a string)
             self.api_key = api_key
 
+        self.yes_to_all = yes_to_all
+
         if not self.api_key:
             log.warning("No API key provided. Some features may not work.")
 
         # Set course configuration
         self.course_config = course_config or CourseConfig()
+        self.config = config or {}
         self.progress = InitProgressManager(progress_file) if progress_file else None
 
         # Initialise the GPT client **only** when we have a usable API key.
@@ -298,6 +301,7 @@ Additional activities:
         Returns:
             Tuple of (extracted_response, success_flag)
         """
+
         if not self.client:
             return None, False
 
@@ -307,9 +311,27 @@ Additional activities:
                     f"{Colors.CYAN}🔄 Attempt {attempt + 1}/{max_retries}...{Colors.END}"
                 )
 
-                response = self.client.prompt(
-                    prompt, use_search=use_search, context=context
-                )
+                comment = ""
+                context = 0
+                while comment.lower() != "y":
+                    context += 1
+                    response = self.client.prompt(
+                        prompt + "\n\n" + comment,
+                        use_search=use_search,
+                        context=context,
+                    )
+                    print(f"=== Prompt ===\n\n{prompt}\n\n")
+                    print(f"=== Response ===\n\n{response}\n\n")
+                    if self.yes_to_all:
+                        comment = "y"
+                    else:
+                        comment = input(
+                            "Would you like to accept? (y) or make revisions (comment), or set all generations to auto (auto): "
+                        )
+                        if comment.lower() == "auto":
+                            self.yes_to_all = True
+                            comment = "y"
+
                 content = response.strip()
 
                 raw_content = content
@@ -463,7 +485,10 @@ Additional activities:
         self,
         units: List[Dict[str, Any]],
         mission_prompt: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None,
+        assessments: Optional[List[Dict[str, Any]]] = None,
+        activities: Optional[List[str]] = None,
+        resources: Optional[List[str]] = None,
+        learning_materials_plan: Optional[List[str]] = None,
     ) -> str:
         """
         Generate a course overview based on unit information.
@@ -501,19 +526,10 @@ Additional activities:
         industry_context = self._build_industry_context()
 
         prompt = f"""
-
-=== START COURSE CONFIGURATION===
-
-{config}
-
-===END COURSE CONFIGURATION===
-
-
-
+{self._format_config_context()}
 
 {unit_info}
 
-{course_type_context}
 {industry_context}
 
 {self._format_chain_of_thought_header()}
@@ -530,6 +546,34 @@ The overview should:
 {self._format_thought_answer_structure("COURSE_OVERVIEW")}
 
 {unit_context}
+"""
+        if (
+            assessments is not None
+            or activities is not None
+            or resources is not None
+            or learning_materials_plan is not None
+        ):
+            prompt += f"""
+The following learning content exists to inform your overview:
+=== START ASSESSMENTS===
+{assessments}
+=== END ASSESSMENTS===
+
+=== START OUT-OF-CLASS ACTIVITIES===
+{activities}
+
+=== END OUT-OF-CLASS ACTIVITIES===
+
+=== START IN-CLASS RESOURCES===
+{resources}
+
+=== END IN-CLASS RESOURCES===
+
+=== START LEARNING MATERIALS PLAN===
+{learning_materials_plan}
+
+=== END LEARNING MATERIALS PLAN===
+
 """
 
         response, success, raw_response = self._safe_prompt_with_retries(
@@ -562,7 +606,6 @@ The overview should:
         units: List[UnitOfCompetency],
         prerequisites: List[UnitOfCompetency],
         mission_prompt: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None,
         course_overview: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
@@ -608,13 +651,7 @@ The overview should:
         ]
 
         prompt = f"""
-
-=== START COURSE CONFIGURATION===
-
-{config}
-
-===END COURSE CONFIGURATION===
-
+{self._format_config_context()}
 
 === START COURSE OVERVIEW===
 
@@ -649,28 +686,12 @@ Format the response as a JSON array with objects containing:
 {unit_context}
 """
 
-        comment = ""
-        c = 1
-        while comment.lower() != "y":
-            c += 1
-            response, success, raw_response = self._safe_prompt_with_retries(
-                prompt + "\n\n" + comment,
-                max_retries=3,
-                response_type="WEEKLY_TOPICS",
-                json_expected=True,
-                context=c,
-            )
-
-            print("Generated Prompt was:")
-            print(prompt)
-            print("--------------------------------\n\n")
-            print("--------------RESPONSE------------------")
-            print(raw_response)
-            print("--------------------------------\n\n")
-
-            comment = input(
-                "Would you like to continue? (y) or make revisions (comment): "
-            )
+        response, success, raw_response = self._safe_prompt_with_retries(
+            prompt + "\n\n",
+            max_retries=3,
+            response_type="WEEKLY_TOPICS",
+            json_expected=True,
+        )
 
         if success and response:
             try:
@@ -704,7 +725,6 @@ Format the response as a JSON array with objects containing:
         self,
         units: List[Dict[str, Any]],
         mission_prompt: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None,
         weekly_topics: Optional[List[Dict[str, Any]]] = None,
         course_overview: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
@@ -748,13 +768,7 @@ Format the response as a JSON array with objects containing:
         ]
 
         prompt = f"""
-
-=== START COURSE CONFIGURATION===
-
-{config}
-
-===END COURSE CONFIGURATION===
-
+{self._format_config_context()}
 
 === START COURSE OVERVIEW===
 
@@ -806,26 +820,12 @@ Format as JSON array with objects containing title, description, due_date, compe
 {self._format_thought_answer_structure("ASSESSMENTS")}
 """
 
-        comment = ""
-        c = 0
-        while comment.lower() != "y":
-            c += 1
-            response, success, raw_response = self._safe_prompt_with_retries(
-                prompt + "\n\n" + comment,
-                max_retries=3,
-                response_type="ASSESSMENTS",
-                json_expected=True,
-                context=c,
-            )
-
-            print("--------------------------------\n\n")
-            print("--------------RESPONSE------------------")
-            print(raw_response)
-            print("--------------------------------\n\n")
-
-            comment = input(
-                "Would you like to continue? (y) or make revisions (comment): "
-            )
+        response, success, raw_response = self._safe_prompt_with_retries(
+            prompt,
+            max_retries=3,
+            response_type="ASSESSMENTS",
+            json_expected=True,
+        )
 
         if success and response:
             try:
@@ -861,18 +861,22 @@ Format as JSON array with objects containing title, description, due_date, compe
         self,
         weekly_topics: List[Dict[str, Any]],
         mission_prompt: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None,
         course_overview: Optional[str] = None,
+        learning_materials_plan: Optional[List[Dict[str, Any]]] = None,
+        assessments: Optional[List[Dict[str, Any]]] = None,
     ) -> List[str]:
         """
-        Generate learning activities for all weeks using chain of thought reasoning.
+        Generate out-of-class learning activities for all weeks, referencing created materials and external resources.
 
         Args:
             weekly_topics: List of weekly topic dictionaries (18 academic weeks + 2 reassessment weeks)
             mission_prompt: Optional guiding prompt for course context and goals
+            config: Course configuration
+            course_overview: Generated course overview
+            learning_materials_plan: Plan of materials created (slides.md, demo.md, guides)
 
         Returns:
-            List of activity descriptions
+            List of out-of-class activity descriptions with external links and references
         """
         if self.progress and self.progress.is_done("activities"):
             return self.progress.get_result("activities")
@@ -887,8 +891,21 @@ Format as JSON array with objects containing title, description, due_date, compe
             return fallback
 
         log.info(
-            f"{Colors.PURPLE}{Colors.BOLD}🔄 Generating learning activities for all {len(weekly_topics)} weeks with chain of thought reasoning and full context awareness (18 academic + 2 reassessment)...{Colors.END}"
+            f"{Colors.PURPLE}{Colors.BOLD}🔄 Generating out-of-class learning activities for all {len(weekly_topics)} weeks with references to created materials and external resources...{Colors.END}"
         )
+
+        # Build materials context from the learning materials plan
+        materials_context = ""
+        if learning_materials_plan:
+            materials_context = "CREATED LEARNING MATERIALS:\n"
+            for material in learning_materials_plan:
+                week = material.get("week", "Unknown")
+                filename = material.get("filename", "Unknown")
+                title = material.get("title", "Unknown")
+                description = material.get("description", "Unknown")
+                materials_context += (
+                    f"Week {week}: {filename} - {title}\n  Description: {description}\n"
+                )
 
         # Build standardized contexts using helper methods
         course_context = self._build_course_context(weekly_topics, mission_prompt)
@@ -902,23 +919,19 @@ Format as JSON array with objects containing title, description, due_date, compe
             ]
         )
 
-        # Custom steps for learning activities
+        # Custom steps for out-of-class activities
         custom_steps = [
-            f"First, analyze the overall course structure and learning progression: What is the learning journey from Week 1 to Week {len(weekly_topics)}? How do concepts build upon each other across the weeks? What are the key learning phases and transitions? How do industry tools and standards influence the learning progression? What is the overall narrative arc of the course?",
-            "Consider the learning objectives and assessment alignment: How do activities prepare students for competency-based assessment? What types of activities would best reinforce learning objectives? How can we ensure both individual and collaborative learning? How do industry practices and workplace contexts inform activities? How do activities align with the course context and goals?",
-            "Design a coherent activity progression: Start with foundational activities and progress to complex applications; Ensure activities build upon and complement previous weeks; Include both theoretical understanding and practical application; Provide opportunities for formative assessment and feedback; Engage different learning styles and preferences; Incorporate industry-relevant tools and practices progressively",
-            "Plan for different week types: Weeks 1-18: Regular academic content with hands-on activities; Week 19: Focus on reassessment opportunities, catch-up activities, and review; Week 20: Focus on final submissions, course wrap-up, and preparation for no-contact period",
-            "Ensure activities are: Practical and hands-on; Appropriate for classroom completion; Include both individual and group work; Avoid repetition of concepts; Incorporate industry tools and workplace scenarios; Prepare students for workplace application",
+            "First, analyze what students need to do outside of class: What readings, practice, and preparation will reinforce the in-class materials? How can students engage with the created materials (slides.md, demo.md, guides) outside of class? What external resources would complement our materials? How do we encourage students to explore beyond the classroom?",
+            "Consider out-of-class learning objectives: What should students read, watch, or practice to prepare for next week? How can we connect our created materials to external industry resources? What online courses, tutorials, or documentation would enhance learning? How do we encourage self-directed exploration while maintaining structure?",
+            "Design progressive out-of-class activities: Reference the specific materials created for each week; Include external links to relevant articles, videos, courses, and tools; Provide required readings and optional enrichment activities; Include preparation tasks for upcoming assessments; Encourage hands-on practice with industry tools and platforms",
+            "Plan for different week types: Weeks 1-18: Regular out-of-class study with readings, practice, and external exploration; Week 19: Focus on reassessment preparation and review activities; Week 20: Final submission preparation and course reflection activities",
+            "Ensure activities include: References to created materials (slides.md, demo.md, guides); External links to articles, videos, courses, and tools; Reading assignments with specific chapters/sections; Preparation tasks for next week; Time estimates for completion; Mix of required and optional activities",
         ]
 
         prompt = f"""
         
 
-=== START COURSE CONFIGURATION===
-
-{config}
-
-===END COURSE CONFIGURATION===
+{self._format_config_context()}
 
 === START COURSE OVERVIEW===
 
@@ -932,8 +945,9 @@ Format as JSON array with objects containing title, description, due_date, compe
 
 ===END WEEKLY TOPICS===
 
+{materials_context}
 
-Generate learning activities for all {len(weekly_topics)} weeks using chain of thought reasoning with full course context.
+Generate out-of-class learning activities for all {len(weekly_topics)} weeks that reference the created materials and include external resources with links.
 
 {course_context}
 {industry_context}
@@ -941,71 +955,93 @@ Generate learning activities for all {len(weekly_topics)} weeks using chain of t
 WEEKLY TOPICS:
 {weekly_context}
 
-{self.ACTIVITY_STRUCTURE_GUIDE}
+REQUIREMENTS:
+1. Generate out-of-class activities for students to complete during each week
+2. Reference the specific materials created for each week (slides.md, demo.md, guides)
+3. Include external links to relevant articles, videos, courses, and documentation
+4. Provide both required tasks and optional enrichment activities
+5. Include time estimates for completion (~3 hours per week)
+6. Add preparation tasks for upcoming sessions and assessments
+7. Use web search to find current, relevant external resources and links
+8. Structure activities with clear sections: Required Tasks, Optional Activities, Preparation for Next Week
+
+EXAMPLE FORMAT (adapt to course content):
+
+``` markdown
+
+<!-- Session 1 Activities Go Here -->
+
+### Out of Class Activities
+
+**Required Tasks:**
+- **Review Slides:** [Week X Topic Slides](internal-reference)
+- **Complete Demo:** Work through the Week X demo.md practical exercises
+- **Read:** [Article Title](https://example.com/link)
+- **Watch:** [Video Title](https://youtube.com/example)
+- **Complete Tutorial:** [Online Course Module](https://platform.com/course)
+
+**Optional Activities:**
+- **Explore:** [Additional Resource](https://example.com)
+- **Practice:** Extended exercises using course tools
+
+**Preparation for Next Week:**
+- Install required software
+- Review prerequisite concepts
+
+*Expected time: ~3 hours*
+
+---
+
+<!-- Session 2 Activities Go Here -->
+
+
+...etc.
+
+```
+
 
 {self._format_chain_of_thought_header(custom_steps)}
 
-{self._format_formatting_requirements("learning activities")}
+{self._format_formatting_requirements("out-of-class activities")}
 
 {self._format_thought_answer_structure("LEARNING_ACTIVITIES")}
 
-CRITICAL: You MUST return a valid JSON array. Each element should be an object with an "activities" array containing strings.
-Example format:
-[
-  {{"activities": ["Activity 1 description", "Activity 2 description"]}},
-  {{"activities": ["Activity 1 description", "Activity 2 description"]}}
-]
+CRITICAL: You MUST return a structured list of in-class learning resources. Each week should have comprehensive resource lists with references to materials and external links.
+Use web search to find current, relevant external resources and provide actual working links where possible.
+Separate each week's resources with --- dividers.
 """
 
         response, success, raw_response = self._safe_prompt_with_retries(
             prompt,
             max_retries=3,
             response_type="LEARNING_ACTIVITIES",
-            json_expected=True,
+            json_expected=False,
+            use_search=True,
         )
 
         if success and response:
-            try:
-                # Parse JSON response
-                if "```json" in response:
-                    response = response.split("```json")[1].split("```")[0]
-                elif "```" in response:
-                    response = response.split("```")[1]
+            # Split response into weekly activities (separated by ---)
+            activity_sections = response.split("---")
+            activities = []
 
-                activities_data = json.loads(response)
+            for section in activity_sections:
+                section = section.strip()
+                if section:
+                    # Sanitize the activity content to ensure YAML compatibility
+                    sanitized_activity = self._sanitize_activity_text(section)
+                    activities.append(sanitized_activity)
 
-                # Extract activities in order and sanitize them
-                activities = []
-                for week_data in activities_data:
-                    if isinstance(week_data, dict) and "activities" in week_data:
-                        # Sanitize each activity to ensure YAML compatibility
-                        sanitized_activities = []
-                        for activity in week_data["activities"]:
-                            # Replace problematic characters and ensure proper formatting
-                            sanitized_activity = self._sanitize_activity_text(activity)
-                            sanitized_activities.append(sanitized_activity)
-                        activities.append("\n\n".join(sanitized_activities))
-                    else:
-                        # Fallback if format is unexpected
-                        activities.append(str(week_data))
-
-                log.info(
-                    f"{Colors.GREEN}{Colors.BOLD}✅ Successfully generated activities for all {len(weekly_topics)} weeks with chain of thought reasoning{Colors.END}"
+            if len(activities) != len(weekly_topics):
+                log.warning(
+                    f"{Colors.RED}Failed to generate activities for all {len(weekly_topics)} weeks, only {len(activities)} were generated{Colors.END}"
                 )
-                if self.progress:
-                    self.progress.mark_done("activities", activities)
-                return activities
 
-            except (json.JSONDecodeError, KeyError, IndexError) as e:
-                log.error(
-                    f"{Colors.RED}Failed to parse activities JSON: {e}{Colors.END}"
-                )
-                log.debug(f"Failed JSON content: {repr(response[:1000])}")
-                log.info(f"{Colors.YELLOW}⚠️  Using fallback activities{Colors.END}")
-                fallback = self._fallback_learning_activities(weekly_topics)
-                if self.progress:
-                    self.progress.mark_done("activities", fallback)
-                return fallback
+            log.info(
+                f"{Colors.GREEN}{Colors.BOLD}✅ Successfully generated out-of-class activities for all {len(weekly_topics)} weeks with external references{Colors.END}"
+            )
+            if self.progress:
+                self.progress.mark_done("activities", activities)
+            return activities
         else:
             log.error(
                 f"{Colors.RED}Failed to generate activities after all retries{Colors.END}"
@@ -1017,17 +1053,26 @@ Example format:
             return fallback
 
     def generate_learning_resources(
-        self, weekly_topics: List[Dict[str, Any]], mission_prompt: Optional[str] = None
+        self,
+        weekly_topics: List[Dict[str, Any]],
+        mission_prompt: Optional[str] = None,
+        course_overview: Optional[str] = None,
+        learning_materials_plan: Optional[List[Dict[str, Any]]] = None,
+        assessments: Optional[List[Dict[str, Any]]] = None,
+        activities: Optional[List[str]] = None,
     ) -> List[str]:
         """
-        Generate learning resources for all weeks using chain of thought reasoning.
+        Provide a list in the LAP of all relevant in-class learning resources, both external and internally developed.
 
         Args:
             weekly_topics: List of weekly topic dictionaries (18 academic weeks + 2 reassessment weeks)
             mission_prompt: Optional guiding prompt for course context and goals
+            config: Course configuration
+            course_overview: Generated course overview
+            learning_materials_plan: Plan of materials created (slides.md, demo.md, guides)
 
         Returns:
-            List of resource descriptions
+            List of in-class resource descriptions with links to internal materials and external resources
         """
         if self.progress and self.progress.is_done("resources"):
             return self.progress.get_result("resources")
@@ -1042,8 +1087,21 @@ Example format:
             return fallback
 
         log.info(
-            f"{Colors.PURPLE}{Colors.BOLD}🔄 Generating learning resources for all {len(weekly_topics)} weeks with chain of thought reasoning and full context awareness (18 academic + 2 reassessment)...{Colors.END}"
+            f"{Colors.PURPLE}{Colors.BOLD}🔄 Generating in-class learning resources for all {len(weekly_topics)} weeks with references to created materials and external links...{Colors.END}"
         )
+
+        # Build materials context from the learning materials plan
+        materials_context = ""
+        if learning_materials_plan:
+            materials_context = "CREATED LEARNING MATERIALS:\n"
+            for material in learning_materials_plan:
+                week = material.get("week", "Unknown")
+                filename = material.get("filename", "Unknown")
+                title = material.get("title", "Unknown")
+                description = material.get("description", "Unknown")
+                materials_context += (
+                    f"Week {week}: {filename} - {title}\n  Description: {description}\n"
+                )
 
         # Build standardized contexts using helper methods
         course_context = self._build_course_context(weekly_topics, mission_prompt)
@@ -1057,16 +1115,39 @@ Example format:
             ]
         )
 
-        # Custom steps for learning resources
+        # Custom steps for in-class resources
         custom_steps = [
-            f"First, analyze the overall course structure and learning progression: What is the learning journey from Week 1 to Week {len(weekly_topics)}? How do concepts build upon each other across the weeks? What are the key learning phases and transitions? How do industry tools and standards influence the learning progression? What is the overall narrative arc of the course?",
-            "Consider the learning objectives and assessment alignment: How do resources support students for competency-based assessment? What types of resources would best reinforce learning objectives? How can we ensure both theoretical and practical resource coverage? How do industry practices and workplace contexts inform resource selection? How do resources align with the course context and goals?",
-            "Design a coherent resource progression: Start with foundational resources and progress to complex applications; Ensure resources build upon and complement previous weeks; Include both theoretical understanding and practical application; Provide opportunities for self-directed learning and exploration; Engage different learning styles and preferences; Incorporate industry-relevant tools and practices progressively",
-            "Plan for different week types: Weeks 1-18: Regular academic content with comprehensive resources; Week 19: Focus on review materials, reassessment preparation, and catch-up resources; Week 20: Focus on final submission guidelines, course wrap-up, and preparation for no-contact period",
-            "Ensure resources are: Accessible and appropriate for the target audience; Include both required and recommended materials; Cover theoretical foundations and practical applications; Include industry-relevant tools, platforms, and documentation; Provide opportunities for deeper exploration and self-directed learning; Prepare students for workplace application",
+            f"First, analyze what resources instructors need for in-class teaching: What materials do we have available (slides.md, demo.md, guides)? What external resources would enhance in-class instruction? How can we connect our created materials to authoritative external sources? What tools, databases, and platforms would students use in class?",
+            "Consider in-class resource requirements: What reference materials do instructors need during class? How can we provide links to official documentation, industry tools, and authoritative sources? What online platforms and databases would be useful for in-class demonstrations? How do we ensure resources are immediately accessible during class?",
+            "Design comprehensive resource lists: Reference all created materials for each week; Include links to official documentation and industry resources; Provide access to online tools and platforms used in class; Include authoritative sources and reference materials; List required software, accounts, and subscriptions; Add links to video tutorials and demonstrations",
+            "Plan for different week types: Weeks 1-18: Regular academic content with comprehensive in-class resources; Week 19: Review materials and reassessment resources; Week 20: Final submission resources and course completion materials",
+            "Ensure resources include: Direct links to created materials (slides.md, demo.md, guides); External links to official documentation and industry resources; Access credentials for required platforms and tools; Reference materials and authoritative sources; Video tutorials and demonstration links; Quick reference guides and cheat sheets",
         ]
 
-        prompt = f"""Generate learning resources for all {len(weekly_topics)} weeks using chain of thought reasoning with full course context.
+        prompt = f"""
+{self._format_config_context()}
+
+=== START COURSE OVERVIEW===
+{course_overview}
+
+=== END COURSE OVERVIEW===
+
+=== START CREATED MATERIALS===
+{materials_context}
+
+=== END CREATED MATERIALS===
+
+=== START ASSESSMENTS===
+{assessments}
+
+=== END ASSESSMENTS===
+
+=== START ACTIVITIES===
+{activities}
+
+=== END ACTIVITIES===
+
+Generate in-class learning resources for all {len(weekly_topics)} weeks that reference the created materials and include external resources with links.
 
 {course_context}
 {industry_context}
@@ -1074,72 +1155,82 @@ Example format:
 WEEKLY TOPICS:
 {weekly_context}
 
-{self.ACTIVITY_STRUCTURE_GUIDE}
+REQUIREMENTS:
+1. Generate comprehensive in-class resource lists for instructors and students
+2. Reference all created materials for each week (slides.md, demo.md, guides)
+3. Include external links to official documentation, industry resources, and tools
+4. Provide access information for required platforms and software
+5. Include authoritative sources and reference materials
+6. Add links to video tutorials, documentation, and demonstrations
+7. Use web search to find current, relevant external resources and links
+8. Structure resources clearly with categories: Internal Materials, External Resources, Tools & Platforms
+
+EXAMPLE FORMAT (adapt to course content):
+
+``` markdown
+
+<!-- Session 1 Resources Go Here -->
+
+*Internal Materials:*
+- slides.md: Week X Topic Presentation
+- demo.md: Hands-on Workshop Content
+- guide.md: Additional Reference Material
+
+*External Resources:*
+- [Official Documentation](https://docs.example.com)
+- [Industry Tutorial](https://tutorial.example.com)
+- [Reference Article](https://article.example.com)
+
+*Tools & Platforms:*
+- Platform Name: [Access Link](https://platform.com)
+- Software Tool: [Download Link](https://download.com)
+- Online Database: [Database Link](https://database.com)
+
+---
+
+<!-- Session 2 Resources Go Here -->
+
+...etc.
+
+```
 
 {self._format_chain_of_thought_header(custom_steps)}
 
-{self._format_formatting_requirements("learning resources")}
+{self._format_formatting_requirements("in-class learning resources")}
 
 {self._format_thought_answer_structure("LEARNING_RESOURCES")}
 
-CRITICAL: You MUST return a valid JSON array. Each element should be an object with a "resources" array containing strings.
-Example format:
-[
-  {{"resources": ["Resource 1 description", "Resource 2 description"]}},
-  {{"resources": ["Resource 1 description", "Resource 2 description"]}}
-]
+CRITICAL: You MUST return a structured list of in-class learning resources. Each week should have comprehensive resource lists with references to materials and external links.
+Use web search to find current, relevant external resources and provide actual working links where possible.
+Separate each week's resources with --- dividers.
 """
 
         response, success, raw_response = self._safe_prompt_with_retries(
             prompt,
             max_retries=3,
             response_type="LEARNING_RESOURCES",
-            json_expected=True,
+            json_expected=False,
             use_search=True,
         )
 
         if success and response:
-            try:
-                # Parse JSON response
-                if "```json" in response:
-                    response = response.split("```json")[1].split("```")[0]
-                elif "```" in response:
-                    response = response.split("```")[1]
+            # Split response into weekly resources (separated by ---)
+            resource_sections = response.split("---")
+            resources = []
 
-                resources_data = json.loads(response)
+            for section in resource_sections:
+                section = section.strip()
+                if section:
+                    # Sanitize the resource content to ensure YAML compatibility
+                    sanitized_resource = self._sanitize_activity_text(section)
+                    resources.append(sanitized_resource)
 
-                # Extract resources in order and sanitize them
-                resources = []
-                for week_data in resources_data:
-                    if isinstance(week_data, dict) and "resources" in week_data:
-                        # Sanitize each resource to ensure YAML compatibility
-                        sanitized_resources = []
-                        for resource in week_data["resources"]:
-                            # Replace problematic characters and ensure proper formatting
-                            sanitized_resource = self._sanitize_activity_text(resource)
-                            sanitized_resources.append(sanitized_resource)
-                        resources.append("\n\n".join(sanitized_resources))
-                    else:
-                        # Fallback if format is unexpected
-                        resources.append(str(week_data))
-
-                log.info(
-                    f"{Colors.GREEN}{Colors.BOLD}✅ Successfully generated resources for all {len(weekly_topics)} weeks with chain of thought reasoning{Colors.END}"
-                )
-                if self.progress:
-                    self.progress.mark_done("resources", resources)
-                return resources
-
-            except (json.JSONDecodeError, KeyError, IndexError) as e:
-                log.error(
-                    f"{Colors.RED}Failed to parse resources JSON: {e}{Colors.END}"
-                )
-                log.debug(f"Failed JSON content: {repr(response[:1000])}")
-                log.info(f"{Colors.YELLOW}⚠️  Using fallback resources{Colors.END}")
-                fallback = self._fallback_learning_resources(weekly_topics)
-                if self.progress:
-                    self.progress.mark_done("resources", fallback)
-                return fallback
+            log.info(
+                f"{Colors.GREEN}{Colors.BOLD}✅ Successfully generated in-class resources for all {len(weekly_topics)} weeks with external references{Colors.END}"
+            )
+            if self.progress:
+                self.progress.mark_done("resources", resources)
+            return resources
         else:
             log.error(
                 f"{Colors.RED}Failed to generate resources after all retries{Colors.END}"
@@ -1202,24 +1293,42 @@ Example format:
         self,
         weekly_topics: List[Dict[str, Any]],
         mission_prompt: Optional[str] = None,
+        course_overview: Optional[str] = None,
         slide_theme: Optional[str] = None,
-    ) -> Dict[int, Dict[str, str]]:
+        slide_css: Optional[str] = None,
+    ) -> tuple[Dict[int, Dict[str, str]], List[Dict[str, Any]]]:
         """
         Generate learning materials for all weeks using a direct approach:
         For each week, generate slides.md and demo.md using the current topic and context.
-        This replaces the old two-stage planning approach.
+
+        Args:
+            weekly_topics: List of weekly topic dictionaries
+            mission_prompt: Optional guiding prompt for course context and goals
+            config: Course configuration for context
+            course_overview: Generated course overview for context
+            slide_theme: Optional theme for slides (e.g., "northmetro")
+            slide_css: Optional CSS content for slides styling context
+
+        Returns:
+            Tuple of (learning_materials, materials_plan) where:
+            - learning_materials: Dict mapping week numbers to material content
+            - materials_plan: List of planned materials for reference by other generators
         """
         if self.progress and self.progress.is_done("learning_materials"):
-            return self.progress.get_result("learning_materials")
+            cached_materials = self.progress.get_result("learning_materials")
+            # For backward compatibility, create a fallback plan if needed
+            fallback_plan = self._fallback_materials_plan(weekly_topics)
+            return cached_materials, fallback_plan
 
         if not self.client:
             log.info(
                 f"{Colors.YELLOW}GPT client not available, using fallback learning materials{Colors.END}"
             )
             fallback = self._fallback_learning_materials(weekly_topics)
+            fallback_plan = self._fallback_materials_plan(weekly_topics)
             if self.progress:
                 self.progress.mark_done("learning_materials", fallback)
-            return fallback
+            return fallback, fallback_plan
 
         log.info(
             f"{Colors.PURPLE}{Colors.BOLD}🔄 Stage 1: Planning learning materials for {len(weekly_topics)} weeks...{Colors.END}"
@@ -1227,26 +1336,28 @@ Example format:
 
         # Stage-1: Ask the LLM (or fallback) to produce a plan describing what
         # materials should be created for each week.
-        materials_plan = self._plan_learning_materials(weekly_topics, mission_prompt)
+        materials_plan = self._plan_learning_materials(
+            weekly_topics, mission_prompt, course_overview
+        )
 
         if not materials_plan:
             log.warning(
                 f"{Colors.YELLOW}⚠️  Planning phase returned no materials – falling back.{Colors.END}"
             )
             fallback = self._fallback_learning_materials(weekly_topics)
+            fallback_plan = self._fallback_materials_plan(weekly_topics)
             if self.progress:
                 self.progress.mark_done("learning_materials", fallback)
-            return fallback
+            return fallback, fallback_plan
 
         # Stage-2: Generate the actual content for each planned artefact.
-        if slide_theme is not None:
-            learning_materials = self._generate_individual_materials(
-                materials_plan, weekly_topics, mission_prompt, slide_theme=slide_theme
-            )
-        else:
-            learning_materials = self._generate_individual_materials(
-                materials_plan, weekly_topics, mission_prompt
-            )
+        learning_materials = self._generate_individual_materials(
+            materials_plan,
+            weekly_topics,
+            mission_prompt,
+            slide_theme=slide_theme,
+            slide_css=slide_css,
+        )
 
         if learning_materials:
             log.info(
@@ -1254,13 +1365,14 @@ Example format:
             )
             if self.progress:
                 self.progress.mark_done("learning_materials", learning_materials)
-            return learning_materials
+            return learning_materials, materials_plan
         else:
             log.error(f"{Colors.RED}Failed to generate learning materials{Colors.END}")
             fallback = self._fallback_learning_materials(weekly_topics)
+            fallback_plan = self._fallback_materials_plan(weekly_topics)
             if self.progress:
                 self.progress.mark_done("learning_materials", fallback)
-            return fallback
+            return fallback, fallback_plan
 
     def _generate_individual_materials(
         self,
@@ -1268,6 +1380,7 @@ Example format:
         weekly_topics: List[Dict[str, Any]],
         mission_prompt: Optional[str] = None,
         slide_theme: Optional[str] = None,
+        slide_css: Optional[str] = None,
     ) -> Dict[int, Dict[str, str]]:
         """Generate individual learning materials based on the plan."""
 
@@ -1316,6 +1429,7 @@ Example format:
                     previous_weeks_context,
                     mission_prompt,
                     slide_theme,
+                    slide_css,
                 )
 
                 if content:
@@ -1378,6 +1492,7 @@ Example format:
         previous_weeks_context: str,
         mission_prompt: Optional[str] = None,
         slide_theme: Optional[str] = None,
+        slide_css: Optional[str] = None,
     ) -> Optional[str]:
         """
         Generate a single learning material based on its specification.
@@ -1390,6 +1505,7 @@ Example format:
             previous_weeks_context: Context about previous weeks for continuity
             mission_prompt: Optional mission prompt
             slide_theme: Optional theme name for slides.md (default: nmt-theme)
+            slide_css: Optional CSS content for slides styling context
 
         Returns:
             Generated content as string, or None if failed
@@ -1411,6 +1527,7 @@ Example format:
                 description,
                 justification,
                 slide_theme=slide_theme,
+                slide_css=slide_css,
             )
         elif filename == "demo.md":
             return self._generate_demo_content(
@@ -1449,6 +1566,7 @@ Example format:
         description: str,
         justification: str,
         slide_theme: Optional[str] = None,  # NEW: allow theme override
+        slide_css: Optional[str] = None,  # NEW: CSS content for styling context
     ) -> Optional[str]:
         """Generate slides content for a specific week with Marp/YAML compliance and theme support."""
 
@@ -1488,7 +1606,25 @@ SOFT CONVENTIONS (RECOMMENDED but flexible):
             f"Apply technical constraints: HARD REQUIREMENTS - Ensure YAML frontmatter includes 'marp: true', 'theme: {theme}', 'title', and 'footer'; Use '---' separators between slides; SOFT CONVENTIONS - Create engaging visual content, include clear learning objectives, provide practical examples, and prepare for assessments",
         ]
 
-        prompt = f"""Generate a Marp-compliant slides.md for Week {week_topic.get("week", 0)}: {title}
+        # Add CSS context if provided
+        css_context = ""
+        if slide_css:
+            css_context = f"""
+=== CSS THEME CONTENT ===
+The following CSS defines the '{theme}' theme. Use this to understand the styling constraints and design elements available:
+
+```css
+{slide_css}
+```
+
+Consider the theme's styling when creating content - align with colors, fonts, and layout patterns defined in the CSS.
+===========================
+"""
+
+        prompt = f"""
+{self._format_config_context()}
+
+Generate a Marp-compliant slides.md for Week {week_topic.get("week", 0)}: {title}
 
 DESCRIPTION: {description}
 JUSTIFICATION: {justification}
@@ -1499,7 +1635,7 @@ WEEK TOPICS: {", ".join(week_topic.get("topics", []))}
 {course_context}
 {industry_context}
 {previous_weeks_context}
-
+{css_context}
 {marp_guidelines}
 
 {self._format_chain_of_thought_header(custom_steps)}
@@ -1616,7 +1752,10 @@ print('Hello, AI!')
             f"Apply technical constraints: HARD REQUIREMENTS - Use standard markdown format for jupytext conversion; Include code cells with Python examples (```python blocks); Use markdown cells for explanations; SOFT CONVENTIONS - Create engaging practical content, include clear learning objectives, provide hands-on examples, and prepare for assessments",
         ]
 
-        prompt = f"""Generate comprehensive demo/workshop content for Week {week_topic.get("week", 0)}: {title}
+        prompt = f"""
+{self._format_config_context()}
+
+Generate comprehensive demo/workshop content for Week {week_topic.get("week", 0)}: {title}
 
 DESCRIPTION: {description}
 JUSTIFICATION: {justification}
@@ -1721,7 +1860,10 @@ This guide provides supplementary information for {week_title}.
             f"Apply technical constraints: SOFT CONVENTIONS ONLY - Use standard markdown format; Include clear headings and structure; Provide practical examples and resources; Create engaging, helpful content that supports learning objectives",
         ]
 
-        prompt = f"""Generate comprehensive guide/handout content for Week {week_topic.get("week", 0)}: {title}
+        prompt = f"""
+{self._format_config_context()}
+
+Generate comprehensive guide/handout content for Week {week_topic.get("week", 0)}: {title}
 
 DESCRIPTION: {description}
 JUSTIFICATION: {justification}
@@ -1804,6 +1946,29 @@ SOFT CONVENTIONS (RECOMMENDED but flexible):
     ) -> str:
         """Format the formatting requirements with content-specific language."""
         return self.FORMATTING_REQUIREMENTS.replace("descriptions", content_type)
+
+    def _format_config_context(self, config: Optional[Dict[str, Any]] = None) -> str:
+        """Format the standardized config context box for all prompts."""
+        if config is None:
+            # Use stored config if none provided
+            config = self.config
+
+        config_str = str(config) if config else "No specific configuration provided"
+
+        return f"""
+╔══════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                     COURSE CONFIGURATION                                     ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════╝
+
+{config_str}
+
+╔══════════════════════════════════════════════════════════════════════════════════════════════╗
+║ IMPORTANT: All responses must align with the above course configuration and requirements.    ║
+║ Consider course type, delivery mode, student cohort, industry context, and any specific      ║
+║ constraints or goals outlined in the configuration when generating content.                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════╝
+
+"""
 
     def _build_industry_context(self) -> str:
         """Build standardized industry contextualization context."""
@@ -2112,6 +2277,34 @@ Review assessment requirements and practice relevant skills.
 
         return {"slides.md": slides_content, "demo.md": demo_content}
 
+    def _fallback_materials_plan(
+        self, weekly_topics: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Fallback materials plan when GPT is not available."""
+        materials_plan = []
+        for week in weekly_topics:
+            # Add slides.md for each week
+            materials_plan.append(
+                {
+                    "week": week["week"],
+                    "filename": "slides.md",
+                    "title": f"{week['title']} - Presentation Slides",
+                    "description": f"Presentation slides covering {week['title']} topics and concepts",
+                    "type": "slides",
+                }
+            )
+            # Add demo.md for each week
+            materials_plan.append(
+                {
+                    "week": week["week"],
+                    "filename": "demo.md",
+                    "title": f"{week['title']} - Practical Workshop",
+                    "description": f"Hands-on workshop and practical exercises for {week['title']}",
+                    "type": "demo",
+                }
+            )
+        return materials_plan
+
     def _fallback_course_overview(self, units: List[Dict[str, Any]]) -> str:
         """Fallback course overview when GPT is not available."""
         unit_list = []
@@ -2352,6 +2545,7 @@ Assessment Resources:
         self,
         weekly_topics: List[Dict[str, Any]],
         mission_prompt: Optional[str] = None,
+        course_overview: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Create a *plan* for learning materials.
 
@@ -2408,7 +2602,14 @@ Assessment Resources:
         # being mocked do we fall back to a deterministic heuristic plan.
 
         # Build a concise prompt asking the model to propose materials.
+        config_context = self._format_config_context()
+        course_context = (
+            f"\n=== COURSE OVERVIEW ===\n{course_overview}\n" if course_overview else ""
+        )
+
         prompt = (
+            f"{config_context}\n\n"
+            f"{course_context}\n"
             "You are an expert instructional designer. Based on the weekly topics "
             "provided below, propose a plan for the learning materials that should "
             "be created for each week of the course.\n\n"
@@ -2435,13 +2636,18 @@ Assessment Resources:
 
         # Append a compact representation of weekly topics to the prompt.
         topics_brief = "\n".join(
-            f"Week {w['week']}: {w['title']}"
-            for w in weekly_topics[:10]  # limit size
+            f"Week {w['week']}: {w['title']}" for w in weekly_topics
         )
+
+        prompt += f"Full weekly topics:\n\n{weekly_topics}"
         prompt += f"\nWeekly Topics Summary:\n{topics_brief}"
 
         response, success, raw_response = self._safe_prompt_with_retries(
-            prompt, max_retries=3, response_type="MATERIALS_PLAN", json_expected=True
+            prompt,
+            max_retries=3,
+            response_type="MATERIALS_PLAN",
+            json_expected=True,
+            use_search=True,
         )
 
         if success and response:
@@ -2499,17 +2705,609 @@ Assessment Resources:
         # heuristic plan defined above.
         return _heuristic_plan()
 
+    def generate_detailed_assessment(
+        self,
+        assessment_desc: Dict[str, Any],
+        units: List[Any],
+        weekly_topics: List[Dict[str, Any]],
+        mission_prompt: Optional[str] = None,
+    ) -> str:
+        """
+        Generate detailed assessment content with actual tasks based on assessment description.
+
+        Args:
+            assessment_desc: Assessment description from LAP generation
+            units: List of UnitOfCompetency objects
+            weekly_topics: List of weekly topics for context
+            mission_prompt: Optional guiding prompt for course context
+
+        Returns:
+            Detailed assessment content as markdown
+        """
+        if not self.client:
+            log.info(
+                f"{Colors.YELLOW}GPT client not available, using fallback assessment content{Colors.END}"
+            )
+            return self._fallback_detailed_assessment(assessment_desc)
+
+        # Build context about units and topics
+        unit_context = ""
+        for unit in units:
+            unit_context += f"\nUnit: {unit.unit_code} - {unit.title}\n"
+            if hasattr(unit, "elements_and_criteria") and unit.elements_and_criteria:
+                for element_name, criteria in unit.elements_and_criteria.items():
+                    unit_context += f"  Element: {element_name}\n"
+                    for criteria_key, criteria_desc in criteria.items():
+                        unit_context += f"    {criteria_key}: {criteria_desc}\n"
+
+        # Build topics context for relevant weeks
+        topics_context = ""
+        for topic in weekly_topics[:18]:  # Academic weeks only
+            topics_context += f"Week {topic['week']}: {topic['title']}\n"
+            for subtopic in topic.get("topics", []):
+                topics_context += f"  - {subtopic}\n"
+
+        prompt = f"""
+{self._format_config_context()}
+
+You are an expert VET assessment designer. Generate detailed assessment content with specific tasks based on the assessment description provided.
+
+ASSESSMENT DESCRIPTION:
+Title: {assessment_desc["title"]}
+Description: {assessment_desc["description"]}
+Due Date: {assessment_desc.get("due_date", "TBD")}
+
+UNIT CONTEXT:
+{unit_context}
+
+WEEKLY TOPICS CONTEXT (for alignment):
+{topics_context}
+
+MISSION CONTEXT:
+{mission_prompt or "Industry-focused VET training"}
+
+REQUIREMENTS:
+1. Generate specific, actionable assessment tasks that align with the assessment description
+2. Each task should clearly map to specific unit criteria and learning outcomes
+3. Include clear instructions, requirements, and success criteria for each task
+4. Provide realistic scenarios and industry-relevant contexts
+5. Include assessment resources, submission requirements, and evaluation criteria
+6. Make tasks progressive in complexity and comprehensive in coverage
+
+Generate the complete assessment content including:
+- Assessment Resources section
+- Assessment Instructions section (overview, instructions, submission evidence)
+- Assessment Instrument section with specific numbered tasks
+- Each task should have clear instructions, requirements, and response areas
+
+Format the output as markdown content (without YAML frontmatter - that will be added separately).
+Focus on creating authentic, industry-relevant assessment tasks that students can actually complete.
+"""
+
+        response, success, raw_response = self._safe_prompt_with_retries(
+            prompt,
+            max_retries=3,
+            response_type="DETAILED_ASSESSMENT",
+            json_expected=False,
+        )
+
+        if success and response:
+            return response.strip()
+        else:
+            log.warning(
+                f"{Colors.YELLOW}Failed to generate detailed assessment content, using fallback{Colors.END}"
+            )
+            return self._fallback_detailed_assessment(assessment_desc)
+
+    def generate_holistic_assessment_mappings(
+        self,
+        assessment_contents: List[Dict[str, Any]],
+        units: List[Any],
+        mission_prompt: Optional[str] = None,
+    ) -> Dict[int, str]:
+        """
+        Generate holistic assessment mappings for all assessments considering UOC coverage.
+
+        Args:
+            assessment_contents: List of assessment content dictionaries
+            units: List of UnitOfCompetency objects
+            mission_prompt: Optional guiding prompt for course context
+
+        Returns:
+            Dictionary mapping assessment index to YAML mapping content
+        """
+        if not self.client:
+            log.info(
+                f"{Colors.YELLOW}GPT client not available, using fallback mappings{Colors.END}"
+            )
+            return self._fallback_holistic_mappings(assessment_contents, units)
+
+        # Build comprehensive UOC context
+        uoc_context = ""
+        for unit in units:
+            uoc_context += f"\nUnit: {unit.unit_code} - {unit.title}\n"
+            if hasattr(unit, "elements_and_criteria") and unit.elements_and_criteria:
+                for element_index, (element_name, criteria) in enumerate(
+                    unit.elements_and_criteria.items(), 1
+                ):
+                    uoc_context += f"  Element {element_index}: {element_name}\n"
+                    for criteria_key, criteria_desc in criteria.items():
+                        uoc_context += f"    {criteria_key}: {criteria_desc}\n"
+
+            # Add knowledge and skills evidence if available
+            if hasattr(unit, "knowledge_evidence") and unit.knowledge_evidence:
+                uoc_context += f"  Knowledge Evidence:\n"
+                for i, knowledge in enumerate(unit.knowledge_evidence, 1):
+                    uoc_context += f"    {i}. {knowledge}\n"
+
+            if hasattr(unit, "performance_evidence") and unit.performance_evidence:
+                uoc_context += f"  Performance Evidence:\n"
+                for i, performance in enumerate(unit.performance_evidence, 1):
+                    uoc_context += f"    {i}. {performance}\n"
+
+        # Build assessment context
+        assessment_context = ""
+        for i, assessment in enumerate(assessment_contents):
+            assessment_context += f"\nAssessment {i + 1}: {assessment['title']}\n"
+            assessment_context += (
+                f"Description: {assessment['description']['description']}\n"
+            )
+            assessment_context += f"Content Preview: {assessment['content'][:500]}...\n"
+
+        prompt = f"""
+You are an expert VET assessment mapping specialist. Create holistic assessment mappings that ensure complete UOC coverage across all assessments.
+
+CRITICAL ASSESSMENT MAPPING STRUCTURE GUIDANCE:
+
+ELEMENTS vs CRITERIA HIERARCHY:
+- ELEMENTS are the main sections of a unit (numbered 1, 2, 3, 4, etc.)
+- CRITERIA are sub-points within elements (numbered 1.1, 1.2, 1.3, 2.1, 2.2, etc.)
+- Each element contains multiple criteria that must ALL be satisfied together
+
+ASSESSMENT DESIGN RULES:
+1. ELEMENT INTEGRITY: ALL criteria for an element must be satisfied within the same assessment
+   - Example: Assessment 1 covers Element 1 (criteria 1.1, 1.2, 1.3) and Element 2 (criteria 2.1, 2.2)
+   - Example: Assessment 2 covers Element 3 (criteria 3.1, 3.2) and Element 4 (criteria 4.1, 4.2, 4.3)
+
+2. COMPLETE COVERAGE: Every criteria, knowledge evidence, and performance evidence must be mapped to at least one assessment
+
+3. LOGICAL DISTRIBUTION: Elements should be distributed logically across assessments (foundational → advanced)
+
+4. CRITERIA-LEVEL MAPPING: Assessments must be mapped at the CRITERIA level to questions
+   - Each question should map to specific criteria (e.g., 1.1, 1.2, 2.1)
+   - NOT to simplified descriptions like "1. Specify software requirements"
+
+5. NO GAPS: Ensure no UOC components are left unmapped
+
+6. NO REDUNDANCY: Avoid unnecessary duplication of mappings
+
+MAPPING FORMAT REQUIREMENTS:
+- Use exact criteria numbers from UOC (e.g., "1.1", "2.3", "3.1") - NOT simplified descriptions
+- Map knowledge and performance evidence by index number (1, 2, 3, etc.)
+- Each assessment gets a "mapping:" section with question-based structure
+- Format: criteria: UNIT_CODE: [list of criteria], knowledge: UNIT_CODE: [list of indices], performance: UNIT_CODE: [list of indices]
+- Each question should focus on specific criteria, not general element descriptions
+
+EXAMPLE CORRECT MAPPING:
+```yaml
+mapping:
+  - # Question 1 - Element 1 - Criteria 1.1
+    criteria:
+      ICTCLD401:
+        - 1.1
+    knowledge:
+      ICTCLD401:
+        - 1
+    performance:
+      ICTCLD401:
+        - 1
+  - # Question 2 - Element 1 - Criteria 1.2  
+    criteria:
+      ICTCLD401:
+        - 1.2
+    knowledge:
+      ICTCLD401:
+        - 1
+    performance:
+      ICTCLD401:
+        - 1
+```
+
+AVOID THESE COMMON MISTAKES:
+- ❌ Using simplified descriptions like "1. Select and secure access to cloud environment"
+- ❌ Using element numbers instead of criteria numbers in the criteria mapping
+- ❌ Splitting criteria from the same element across different assessments
+- ❌ Creating gaps in UOC coverage, remember we must uphold validity and reliability of the assessments.
+
+UOC STRUCTURE:
+{uoc_context}
+
+ASSESSMENT OVERVIEW:
+{assessment_context}
+
+Generate YAML mapping sections for each assessment that:
+1. Ensures complete UOC coverage across all assessments
+2. Maps specific criteria to individual questions within each assessment
+3. Distributes elements logically (Assessment 1: foundational, Assessment 4: comprehensive)
+4. Uses exact criteria numbers as shown in the UOC structure above
+5. Follows the Element Integrity Rule strictly
+
+For each assessment (0-based index), return:
+```yaml
+mapping:
+  - # Question 1
+    criteria:
+      UNIT_CODE: [specific criteria numbers like 1.1, 1.2]
+    knowledge:
+      UNIT_CODE: [knowledge evidence indices like 1, 2]
+    performance:
+      UNIT_CODE: [performance evidence indices like 1, 2]
+  - # Question 2
+    [continue for all questions in this assessment]
+```
+
+Return a JSON object with assessment indices as keys (0, 1, 2, 3) and YAML mapping content as values.
+"""
+
+        response, success, raw_response = self._safe_prompt_with_retries(
+            prompt,
+            max_retries=3,
+            response_type="HOLISTIC_MAPPINGS",
+            json_expected=True,
+        )
+
+        if success and response:
+            try:
+                mappings_data = json.loads(response)
+                # Convert string keys to integers and return YAML content
+                result = {}
+                for key, value in mappings_data.items():
+                    try:
+                        index = int(key)
+                        result[index] = value
+                    except ValueError:
+                        log.warning(f"Invalid assessment index in mappings: {key}")
+                return result
+            except json.JSONDecodeError:
+                log.warning(
+                    f"{Colors.YELLOW}Failed to parse holistic mappings JSON, using fallback{Colors.END}"
+                )
+                return self._fallback_holistic_mappings(assessment_contents, units)
+        else:
+            log.warning(
+                f"{Colors.YELLOW}Failed to generate holistic mappings, using fallback{Colors.END}"
+            )
+            return self._fallback_holistic_mappings(assessment_contents, units)
+
+    def _fallback_detailed_assessment(self, assessment_desc: Dict[str, Any]) -> str:
+        """Fallback detailed assessment content when GPT is not available."""
+        title = assessment_desc.get("title", "Assessment")
+        description = assessment_desc.get("description", "Assessment description")
+
+        return f"""# Assessment Resources:
+
+- Course materials and textbooks
+- Online resources and tutorials
+- Required software and tools
+- Assessment guidelines and rubrics
+
+# Assessment Instructions:
+
+## Assessment Overview
+{description}
+
+### Instructions:
+1. Read all instructions carefully before beginning
+2. Complete all required tasks as specified
+3. Provide clear and detailed responses
+4. Include appropriate evidence and examples
+5. Submit by the due date
+
+### Submission Evidence:
+- Completed assessment tasks
+- Supporting documentation
+- Any required files or outputs
+- Self-assessment and reflection
+
+# Assessment Instrument:
+
+## {title}
+
+### Task 1: Foundation Task
+#### Instructions:
+Complete the foundational requirements for this assessment.
+
+Your response must include:
+- Clear demonstration of understanding
+- Practical application of concepts
+- Evidence of competency development
+
+Please provide your response here:
+
+---
+
+### Task 2: Application Task
+#### Instructions:
+Apply the concepts to a practical scenario.
+
+Your response must include:
+- Problem analysis and solution
+- Use of appropriate tools and methods
+- Clear documentation of process
+
+Please provide your response here:
+
+---
+
+### Task 3: Integration Task
+#### Instructions:
+Integrate multiple concepts and demonstrate comprehensive understanding.
+
+Your response must include:
+- Synthesis of learning outcomes
+- Critical analysis and evaluation
+- Professional presentation of results
+
+Please provide your response here:
+
+---
+"""
+
+    def _fallback_holistic_mappings(
+        self, assessment_contents: List[Dict[str, Any]], units: List[Any]
+    ) -> Dict[int, str]:
+        """Fallback holistic mappings when GPT is not available."""
+        mappings = {}
+
+        for i, assessment in enumerate(assessment_contents):
+            # Simple fallback mapping
+            mapping_yaml = f"""mapping:
+  - # Question 1
+    criteria:"""
+
+            for unit in units:
+                mapping_yaml += f"""
+      {unit.unit_code}:
+        - 1.1"""
+
+            mapping_yaml += f"""
+    knowledge:"""
+
+            for unit in units:
+                mapping_yaml += f"""
+      {unit.unit_code}:
+        - 1"""
+
+            mapping_yaml += f"""
+    performance:"""
+
+            for unit in units:
+                mapping_yaml += f"""
+      {unit.unit_code}:
+        - 1"""
+
+            mappings[i] = mapping_yaml
+
+        return mappings
+
+    def generate_fields_md(
+        self,
+        units: List[Any],
+        assessments: List[Dict[str, Any]],
+        course_overview: Optional[str] = None,
+        mission_prompt: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """
+        Generate a complete fields.md file for the Learning and Assessment Plan.
+
+        Args:
+            units: List of UnitOfCompetency objects
+            assessments: List of assessment descriptions from LAP generation
+            course_overview: Generated course overview text
+            mission_prompt: Optional guiding prompt for course context
+            config: Course configuration dictionary
+
+        Returns:
+            Complete fields.md content with YAML frontmatter
+        """
+        if not self.client:
+            log.info(
+                f"{Colors.YELLOW}GPT client not available, using fallback fields.md{Colors.END}"
+            )
+            return self._fallback_fields_md(units, assessments, course_overview, config)
+
+        # Build comprehensive context about the course
+        units_context = ""
+        for unit in units:
+            units_context += f"\nUnit: {unit.unit_code} - {unit.title}\n"
+            if hasattr(unit, "application") and unit.application:
+                units_context += f"Application: {unit.application}\n"
+            if hasattr(unit, "elements_and_criteria") and unit.elements_and_criteria:
+                units_context += "Elements:\n"
+                for element_name, criteria in unit.elements_and_criteria.items():
+                    units_context += f"  - {element_name}\n"
+
+        # Build assessments context
+        assessments_context = ""
+        for i, assessment in enumerate(assessments, 1):
+            assessments_context += f"\nAssessment {i}: {assessment['title']}\n"
+            assessments_context += f"Description: {assessment['description']}\n"
+            assessments_context += f"Due Date: {assessment.get('due_date', 'TBD')}\n"
+
+        prompt = f"""
+{self._format_config_context()}
+
+You are an expert VET course coordinator creating a fields.md file for a Learning and Assessment Plan (LAP). Generate a complete, realistic fields.md file based on the provided information.
+
+UNITS OF COMPETENCY:
+{units_context}
+
+ASSESSMENTS:
+{assessments_context}
+
+COURSE OVERVIEW:
+{course_overview or "Course overview not available"}
+
+MISSION CONTEXT:
+{mission_prompt or "Industry-focused VET training"}
+
+REQUIREMENTS:
+1. Look up the official qualification code and title based on units provided or configuration or leave it blank if not available
+2. Generate appropriate delivery details based on course configuration
+3. Create real lecturer information (use appropriate institutional context)
+4. Generate course-specific student and college supply requirements
+5. Ensure assessments section matches the provided assessment descriptions exactly
+6. Use real campus/location information based on configuration or obvious placeholder
+7. Include appropriate industry-specific requirements and tools
+8. Make all content authentic and course-appropriate
+
+YAML HEADER STRUCTURE REQUIREMENTS:
+- qualification_national_code_and_title: Look up the official qualification code and title based on units or configuration or leave it blank if not available
+- delivery_period: Current year and semester
+- cluster_name: Appropriate cluster name for the qualification
+- units: Exact unit codes and titles from the UOC data
+- delivery_location/s: Based on configuration or obvious placeholder
+- student_to_supply: Course-specific requirements (software, accounts, hardware)
+- college_to_supply: Institution-provided resources and facilities
+- lecturers: Realistic lecturer information with appropriate contact details
+- assessments: Exact match to the provided assessment descriptions
+
+EXAMPLE YAML HEADER STRUCTURE (adapt to your specific course):
+---
+qualification_national_code_and_title: "COURSE_CODE - Course Title"
+delivery_period: 2025, S1
+cluster_name: "Appropriate Cluster Name"
+
+units:
+  - name: "Unit Title"
+    id: "UNIT_CODE"
+
+delivery_location/s: Location
+
+student_to_supply: |
+  - Course-specific requirements
+  - Software and accounts needed
+  - Hardware requirements
+
+college_to_supply: |
+  - Institution facilities
+  - Equipment and resources
+  - Access to systems
+
+lecturers:
+  - name: "Lecturer Name"
+    phone: "Phone or --"
+    email: "email@institution.edu.au"
+    contact_time: "in-class or by appointment"
+    campus/room: "Campus Location"
+
+assessments:
+  - title: "Assessment Title"
+    description: |
+      Detailed description
+    due_date: "Week X"
+---
+
+
+Generate a complete fields.md file that is accurate, professional, and specific to the course content. Ensure all information is consistent with the units, assessments, and configuration provided.
+"""
+
+        response, success, raw_response = self._safe_prompt_with_retries(
+            prompt,
+            max_retries=3,
+            response_type="FIELDS_MD",
+            json_expected=False,
+            use_search=True,
+        )
+
+        if success and response:
+            return response.strip()
+        else:
+            log.warning(
+                f"{Colors.YELLOW}Failed to generate fields.md content, using fallback{Colors.END}"
+            )
+            return self._fallback_fields_md(units, assessments, course_overview, config)
+
+    def _fallback_fields_md(
+        self,
+        units: List[Any],
+        assessments: List[Dict[str, Any]],
+        course_overview: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Fallback fields.md generation when GPT is not available."""
+
+        # Generate units YAML
+        units_yaml = ""
+        for unit in units:
+            units_yaml += f'  - name: "{unit.title}"\n    id: "{unit.unit_code}"\n'
+
+        # Generate assessments YAML
+        assessments_yaml = ""
+        for assessment in assessments:
+            assessments_yaml += f'''  - title: "{assessment["title"]}"
+    description: |
+      {assessment["description"]}
+    due_date: "{assessment.get("due_date", "TBD")}"
+'''
+
+        # Extract info from config if available
+        institution_name = "Institution"
+        delivery_location = "Perth"
+        if config:
+            institution_info = config.get("institution", {})
+            institution_name = institution_info.get("name", "Institution")
+            delivery_location = institution_info.get("delivery_location", "Perth")
+
+        return f"""---
+qualification_national_code_and_title: "QUALIFICATION_CODE - Qualification Title"
+delivery_period: "2025, S1"
+cluster_name: "Course Cluster"
+course_overview: |
+  {course_overview.replace("\n", "\n  ") if course_overview else "Course overview not available"}
+
+units:
+{units_yaml}
+delivery_location/s: "{delivery_location}"
+
+student_to_supply: |
+  - Adequate home workstation for out of class activities
+  - Student's personal notes
+  - Required software and tools
+
+college_to_supply: |
+  - On campus workstation 
+  - Access to academic journals
+  - Online databases and resources
+  - Course materials and online textbooks
+
+lecturers:
+  - name: "Lecturer Name"
+    phone: "Phone Number"
+    email: "email@{institution_name.lower().replace(" ", "")}.edu.au"
+    contact_time: "in-class or by appointment"
+    campus/room: "Campus/Room"
+
+assessments:
+{assessments_yaml}
+---
+"""
+
 
 def create_gpt_generator(
     course_config: Optional[CourseConfig] = None,
+    config: Optional[Dict[str, Any]] = None,
     progress_file: Optional[str] = None,
     model: str = "gpt-4.1-nano-2025-04-14",
+    yes_to_all: bool = False,
 ) -> GPTContentGenerator:
     """
     Create a GPT content generator instance.
 
     Args:
         course_config: Optional course configuration (defaults to TAFE 20-week course)
+        config: Optional raw config dictionary for context formatting
         progress_file: Optional progress file for checkpointing
         model: The AI model to use for content generation
 
@@ -2517,5 +3315,9 @@ def create_gpt_generator(
         GPTContentGenerator instance
     """
     return GPTContentGenerator(
-        course_config=course_config, progress_file=progress_file, model=model
+        course_config=course_config,
+        config=config,
+        progress_file=progress_file,
+        model=model,
+        yes_to_all=yes_to_all,
     )

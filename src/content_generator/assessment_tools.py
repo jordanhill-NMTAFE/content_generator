@@ -6,12 +6,12 @@ from docx.table import Table, _Cell, _Column
 from docx.styles.styles import Styles
 from docx.enum.style import WD_STYLE_TYPE, WD_BUILTIN_STYLE as WD_STYLE
 from docx.document import Document as _Document
-from docx.shared import Pt
+from docx.shared import Pt, Inches
 from docx.section import _Header, _Footer, Section, Sections
 from pathlib import Path
 from pandas import DataFrame
 
-from src.utils.markdownit import markdown_to_word, parse_md
+from src.utils.markdownit import markdown_to_word, parse_md, apply_table_cell_padding
 from src.utils.math import add_tuples
 
 # Ensure we have access to a root dir for the templates
@@ -119,9 +119,10 @@ def assess_tool(course_directory: Path, output_location: Path):
             cell._tc.clear_content()
             markdown_to_word(section.get("content", ""), doc, cell)
 
-        for checklist in markdown.get("observation_checklist", []) or []:
-            doc.add_page_break()
+        if markdown.get("observation_checklist", []):
             doc.add_heading("Observation Checklist", 2)
+
+        for checklist in markdown.get("observation_checklist", []) or []:
             header = markdown.get("observation_checklist_header", "") or ""
             # doc.add_paragraph(header)
             footer = markdown.get("observation_checklist_footer", "") or ""
@@ -129,10 +130,15 @@ def assess_tool(course_directory: Path, output_location: Path):
                 1, len(checklist.keys()), styles["Grid Table 7 Colorful"]
             )
             table.autofit = True
+            apply_table_cell_padding(table)
             row = table.add_row()
+            row_height = Inches(0.25)
+            row.height = row_height
             for column_idx, column in enumerate(checklist.keys()) or []:
                 # _column: _Column = table.columns[column_idx]
-                table.cell(*(0, column_idx)).text = column
+                cell = table.cell(*(0, column_idx))
+                cell.text = column
+                cell.paragraphs[0].runs[0].font.bold = True
 
                 rows = checklist.get(column) or []
 
@@ -142,21 +148,30 @@ def assess_tool(course_directory: Path, output_location: Path):
                     if value is None:
                         value = ""
                     if row_idx + 1 >= len(table.rows):
-                        table.add_row()
+                        row = table.add_row()
+                        row.height = row_height
                     table.cell(*(row_idx + 1, column_idx)).text = value
 
             # doc.add_paragraph(footer)
 
-        for checklist in markdown.get("marking_checklist", []) or []:
-            doc.add_page_break()
-            # section: Section = doc.add_section()
+        if markdown.get("marking_checklist", []):
             doc.add_heading("Marking Checklist", 2)
+
+        for checklist in markdown.get("marking_checklist", []) or []:
+            # section: Section = doc.add_section()
             table = doc.add_table(0, 0)
+
             table.autofit = True
+            # apply_table_cell_padding(table)
             row = table.add_row()
+            row_height = Inches(0.5)
+            row.height = row_height
             for column_idx, column in enumerate(checklist.keys()) or []:
                 _column: _Column = table.add_column(20)
-                table.cell(*(0, column_idx)).text = column
+                _column.width = Inches(6.5)
+                cell = table.cell(*(0, column_idx))
+                cell.text = column
+                cell.paragraphs[0].runs[0].font.bold = True
 
                 rows = checklist.get(column) or []
 
@@ -166,7 +181,8 @@ def assess_tool(course_directory: Path, output_location: Path):
                     if value is None:
                         value = ""
                     if row_idx + 1 >= len(table.rows):
-                        table.add_row()
+                        row = table.add_row()
+                        row.height = row_height
                     table.cell(*(row_idx + 1, column_idx)).text = value
 
         header: _Header = doc.sections[0].header
@@ -174,11 +190,11 @@ def assess_tool(course_directory: Path, output_location: Path):
 
         cell: _Cell = table_header.cell(1, 1)
         cell.text = "\n".join(
-            (f'{unit.get("id")} {unit.get("name")}' for unit in markdown.get("units"))
+            (f"{unit.get('id')} {unit.get('name')}" for unit in markdown.get("units"))
         )
 
         cell: _Cell = table_header.cell(0, 1)
-        cell.text = f'{markdown.get("qualification_national_code_and_title")}'
+        cell.text = f"{markdown.get('qualification_national_code_and_title')}"
 
         assessment_type = markdown.get("assessment_type", None)
         if assessment_type is not None:
