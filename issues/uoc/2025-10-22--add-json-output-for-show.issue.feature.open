@@ -1,0 +1,26 @@
+---
+title: Add --json output for uoc show and uoc raw
+created: 2025-10-22T00:00:00Z
+updated: 2025-10-22T00:00:00Z
+status: open
+type: feature
+priority: p2
+units: []
+tags: [cli, output, json]
+related: []
+---
+
+## Summary
+
+Expose machine-readable output from `uoc show` and `uoc raw` via `--json`.
+
+## Motivation
+
+- Enable scripting, automation, and downstream tools without scraping text.
+
+## Acceptance Criteria
+
+- [ ] `uoc show CODE --json` prints canonical JSON for the unit/course
+- [ ] `uoc raw CODE --json` prints the raw underlying structure
+- [ ] Document usage in `--help` with examples
+

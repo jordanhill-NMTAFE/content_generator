@@ -6,6 +6,8 @@ __pycache__/
 ~$*
 .env
 
+.venv
+
 # Exclude GPT project tests from content generator
 docs/gpt/tests/
 docs/gpt/tests_broken/

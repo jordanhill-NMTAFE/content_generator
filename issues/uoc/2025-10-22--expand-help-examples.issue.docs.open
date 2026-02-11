@@ -1,0 +1,26 @@
+---
+title: Expand CLI help with richer examples per subcommand
+created: 2025-10-22T00:00:00Z
+updated: 2025-10-22T00:00:00Z
+status: open
+type: docs
+priority: p3
+units: []
+tags: [cli, docs, help]
+related: []
+---
+
+## Summary
+
+Augment `--help` for each subcommand with realistic examples (filters, paging, JSON piping).
+
+## Scope
+
+- `packages`, `quals`, `units`, `ss`, `show`, `index-info`, `index-search`, `search`, `compare`
+
+## Acceptance Criteria
+
+- [ ] Each subcommand has 2–3 examples showing common workflows
+- [ ] Examples are tested to ensure they run as documented
+- [ ] README/manpage updated accordingly
+

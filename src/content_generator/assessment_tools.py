@@ -15,17 +15,18 @@ from src.utils.markdownit import markdown_to_word, parse_md, apply_table_cell_pa
 from src.utils.math import add_tuples
 
 # Ensure we have access to a root dir for the templates
-assert "ROOT_DIR" in env, "ROOT_DIR is undefined"
+assert "ROOT_DIR" in env, "ROOT_DIR is undefined. This should be set automatically by the gen command."
 # Absolute Path of course content folder from env
-assert "COURSE_CONTENT" in env, "COURSE_CONTENT is undefined"
-assert "OUTPUT_LOCATION" in env, "OUTPUT_LOCATION is undefined"
+assert "COURSE_CONTENT" in env, "COURSE_CONTENT is undefined. Create ~/.config/content-generator/.env with COURSE_CONTENT=/path/to/course-content"
+assert "OUTPUT_LOCATION" in env, "OUTPUT_LOCATION is undefined. Create ~/.config/content-generator/.env with OUTPUT_LOCATION=/path/to/output"
 
 COURSE_CONTENT = Path(env["COURSE_CONTENT"]).resolve()
 OUTPUT_LOCATION = Path(env["OUTPUT_LOCATION"]).resolve()
 
 # Source code locations:
 ROOT = env["ROOT_DIR"]  # repo root location
-TEMPLATES = Path("templates/")
+# Templates are located relative to the package, not the working directory
+TEMPLATES = Path(__file__).parent.parent / "templates"
 
 # Implementation Specific
 TEMPLATE = TEMPLATES / Path("Assessment Task Tool (F122A12).docx")
@@ -214,6 +215,66 @@ def assess_tool(course_directory: Path, output_location: Path):
 
         output.parent.mkdir(exist_ok=True, parents=True)
         doc.save(output)
+
+
+def convert_assessment_resources(course_directory: Path, output_location: Path):
+    """
+    Convert markdown files in assessment resource directories to Word documents.
+
+    Looks for markdown files in:
+    - 2 KAD/5 Assess Tool/<Assessment Name>/resources/*.md
+
+    Converts each to a .docx file in the corresponding output location.
+
+    :param course_directory: Path to the course content directory
+    :param output_location: Path to the output directory
+    """
+    import logging
+    log = logging.getLogger(__name__)
+
+    assessments_path = course_directory / ASSESSMENTS
+    if not assessments_path.exists():
+        log.warning(f"Assessments directory not found: {assessments_path}")
+        return
+
+    # Find all assessment directories
+    for assessment_dir in assessments_path.iterdir():
+        if not assessment_dir.is_dir():
+            continue
+
+        resources_dir = assessment_dir / "resources"
+        if not resources_dir.exists():
+            continue
+
+        # Find all markdown files in resources
+        for md_file in resources_dir.glob("*.md"):
+            log.info(f"Converting resource: {md_file.name}")
+
+            try:
+                # Parse the markdown file
+                markdown = parse_md(md_file)
+
+                # Create a new Word document
+                doc = Document()
+
+                # Add title from filename or frontmatter
+                title = markdown.get("title", md_file.stem.replace("_", " ").title())
+                doc.add_heading(title, level=0)
+
+                # Convert markdown content to Word
+                markdown_to_word(markdown.content, doc)
+
+                # Determine output path
+                output_dir = output_location / ASSESSMENTS / assessment_dir.name / "resources"
+                output_dir.mkdir(parents=True, exist_ok=True)
+
+                output_file = output_dir / f"{md_file.stem}.docx"
+                doc.save(output_file)
+
+                log.info(f"Generated resource: {output_file}")
+
+            except Exception as e:
+                log.error(f"Error converting resource {md_file}: {e}")
 
 
 @click.command()

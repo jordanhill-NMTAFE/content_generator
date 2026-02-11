@@ -1,0 +1,187 @@
+---
+title: WA TPS Integration for Nominal Hours Lookup
+created: 2026-02-02T17:30:00Z
+updated: 2026-02-02T17:30:00Z
+status: open
+type: feature
+priority: p2
+units: []
+tags: [api, integration, wa, nominal-hours, tps, dtwd]
+related: [src/utils/uoc_api.py]
+---
+
+## Summary
+
+Add integration with the WA Department of Training and Workforce Development (DTWD) Training Product Search (TPS) system to retrieve WA-specific state determination data, particularly **Nominal Hours** funding information for training products. This data is essential for WA-based RTOs to understand funding allocations for VET delivery.
+
+## Research Findings
+
+### WA TPS System Overview
+
+**URL**: https://tps.dtwd.wa.gov.au/apps/tps/Pages/default.aspx
+
+The Training Product Search (TPS) is a SharePoint-based web application that provides WA-specific data not available from the national training.gov.au system, including:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| State Code | WA-specific identifier | OCD83 |
+| Nominal Hours | Hours of training notionally required (used for funding allocation) | 40 |
+| DTWD Status | WA approval status | Approved |
+| Approved Date | Date of WA state approval | 16/03/2021 |
+| Field of Education | Education classification | 061301 - Occupational Health And Safety |
+
+### URL Structure
+
+- **Search page**: `https://tps.dtwd.wa.gov.au/apps/tps/Pages/default.aspx`
+- **UoC detail page**: `https://tps.dtwd.wa.gov.au/apps/tps/Pages/UoCEndorsement.aspx?uocid={guid}`
+  - Example: `?uocid=8b79e07c-7a58-4791-b4e5-32b6136ea87e` for BSBWHS411
+
+### Technical Architecture
+
+- **Platform**: Microsoft SharePoint (version 16.0.0.5535)
+- **Backend**: ASP.NET WebForms (IIS 10.0)
+- **Form submission**: Traditional POST with `__VIEWSTATE` (no modern REST API exposed publicly)
+- **Authentication**: SharePoint REST API (`/_api/`) requires authentication
+- **Data format**: Server-side rendered HTML (no JSON endpoints found publicly accessible)
+
+### API Availability
+
+**No public API discovered.** The system uses:
+1. SharePoint server-side rendering with ASP.NET WebForms
+2. Protected SharePoint REST API endpoints (require authentication)
+3. Form-based postbacks for search functionality
+
+### Alternative Data Sources
+
+#### 1. WA Nominal Hours Guides (PDF)
+**URL**: https://www.wa.gov.au/government/publications/western-australian-nominal-hours-guides
+
+Static PDF documents for each training package containing:
+- Unit codes and nominal hours
+- Mapping information
+- Superseded unit equivalences
+
+**Limitations**: Manual PDF parsing required; not real-time data
+
+#### 2. National training.gov.au API
+**Current implementation in `uoc_api.py`** uses the TGA Search API:
+```
+https://training.gov.au/api/search/training?api-version=1.0
+```
+
+**Limitations**: Does not include WA-specific nominal hours (those are state-determined)
+
+#### 3. TGA SOAP Web Services
+**Sandbox**: `https://ws.sandbox.training.gov.au/Deewr.Tga.Webservices`
+- Username: `WebService.Read`
+- Password: `Asdf098`
+
+**Production**: Contact tgaproject@education.gov.au
+
+**Note**: RESTful APIs expected from early-mid 2025 via National Training Register Enhancement Project
+
+## Integration Options
+
+### Option A: Web Scraping (Recommended for MVP)
+
+Scrape the TPS website to extract WA-specific data.
+
+**Pros**:
+- No API access required
+- Can be implemented immediately
+- Data matches what users see in browser
+
+**Cons**:
+- Brittle (may break with UI changes)
+- Slower (multiple HTTP requests per lookup)
+- May violate terms of service
+- ViewState handling complexity
+
+**Implementation approach**:
+```python
+def fetch_wa_tps_data(unit_code: str) -> dict:
+    """
+    1. POST to default.aspx with search form data
+    2. Parse search results for UoC GUID
+    3. Fetch UoCEndorsement.aspx?uocid={guid}
+    4. Extract: nominal_hours, state_code, dtwd_status, approved_date
+    """
+```
+
+### Option B: PDF Parsing
+
+Parse the Nominal Hours Guide PDFs to build a lookup table.
+
+**Pros**:
+- Official data source
+- Can be cached locally
+- No scraping concerns
+
+**Cons**:
+- PDFs update periodically (maintenance burden)
+- Table extraction from PDFs is error-prone
+- Large number of documents to process
+
+### Option C: Request Official API Access
+
+Contact DTWD Curriculum Data team for API access.
+
+**Contact**:
+- Email: curriculumdatasystem@dtwd.wa.gov.au
+- Phone: 08 6212 9742
+- Address: 1 Prospect Place, West Perth WA 6005
+
+**Request should include**:
+- Use case description (educational content generation)
+- Data fields needed (nominal hours, state code, status)
+- Expected request volume
+- Organisation details
+
+## Proposed Data Model Changes
+
+Add WA-specific fields to `UnitOfCompetencyData` in `src/utils/uoc_api.py`:
+
+```python
+@dataclass
+class UnitOfCompetencyData:
+    # Existing fields...
+    unit_code: str
+    aqf_level: int
+    # ...
+
+    # New WA-specific fields
+    wa_state_code: Optional[str] = None  # e.g., "OCD83"
+    wa_nominal_hours: Optional[int] = None  # e.g., 40
+    wa_dtwd_status: Optional[str] = None  # e.g., "Approved"
+    wa_approved_date: Optional[str] = None  # e.g., "16/03/2021"
+    wa_field_of_education: Optional[str] = None  # e.g., "061301 - Occupational Health And Safety"
+```
+
+## Acceptance Criteria
+
+- [ ] Research and document TPS system structure (DONE - see above)
+- [ ] Determine preferred integration approach (API request vs scraping)
+- [ ] Contact DTWD if pursuing official API access
+- [ ] Implement data fetching mechanism for WA nominal hours
+- [ ] Add WA-specific fields to UnitOfCompetencyData model
+- [ ] Add CLI command: `uoc wa-hours <code>` to display WA nominal hours
+- [ ] Cache WA data to reduce requests (similar to existing TGA caching)
+- [ ] Add tests for WA TPS integration
+- [ ] Update documentation with WA-specific data availability
+
+## References
+
+- [WA Training Product Search](https://tps.dtwd.wa.gov.au/apps/tps/Pages/default.aspx)
+- [WA Nominal Hours Guides](https://www.wa.gov.au/government/publications/western-australian-nominal-hours-guides)
+- [DTWD Training Providers Info](https://www.dtwd.wa.gov.au/training-providers-and-schools)
+- [training.gov.au Web Services](https://data.gov.au/data/dataset/training-gov-au-web-service-access-to-sandbox-environment)
+- [SharePoint REST API Reference](https://learn.microsoft.com/en-us/sharepoint/dev/sp-add-ins/get-to-know-the-sharepoint-rest-service)
+
+## Notes
+
+The WA nominal hours are distinct from the national training.gov.au data because:
+1. Nominal hours are a **state-level funding mechanism** unique to WA
+2. Each state/territory may have different hour allocations for the same unit
+3. WA uses nominal hours for calculating training subsidies and RTO funding
+
+For accurate WA VET funding calculations, this integration is essential.

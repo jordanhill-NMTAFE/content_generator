@@ -1,0 +1,35 @@
+---
+title: Compare crashes on units with empty knowledge_evidence
+created: 2025-10-22T00:00:00Z
+updated: 2025-10-22T00:00:00Z
+status: open
+type: bug
+priority: p1
+units: [ICTAII401, ICTPRG302]
+tags: [cli, compare]
+related: []
+---
+
+## Summary
+
+`uoc compare <unit1> <unit2>` raises StopIteration when a unit has empty or missing `knowledge_evidence` mapping.
+
+## Steps / Repro
+
+1. Run: `uoc compare ICTAII401 ICTPRG302`
+2. Observe traceback from `src/utils/uoc_api.py:2624` on `next(iter(uoc.data.knowledge_evidence.values()))`
+
+## Expected
+
+- Compare should gracefully handle missing/empty sections and print counts (`0`) or `N/A`.
+
+## Actual
+
+- Command prints header then crashes with StopIteration; partial counts shown before crash.
+
+## Proposal / Acceptance Criteria
+
+- [ ] Guard against empty dicts before calling `next(iter(...))`
+- [ ] Display `0` or `N/A` for missing sections
+- [ ] Add test case covering empty `knowledge_evidence`
+

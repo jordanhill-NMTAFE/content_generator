@@ -18,17 +18,18 @@ import logging
 log = logging.getLogger(__name__)
 
 
-assert "ROOT_DIR" in env, "ROOT_DIR is undefined"
+assert "ROOT_DIR" in env, "ROOT_DIR is undefined. This should be set automatically by the gen command."
 
 # Absolute Path of course content folder from env
-assert "COURSE_CONTENT" in env, "COURSE_CONTENT is undefined"
-assert "OUTPUT_LOCATION" in env, "OUTPUT_LOCATION is undefined"
+assert "COURSE_CONTENT" in env, "COURSE_CONTENT is undefined. Create ~/.config/content-generator/.env with COURSE_CONTENT=/path/to/course-content"
+assert "OUTPUT_LOCATION" in env, "OUTPUT_LOCATION is undefined. Create ~/.config/content-generator/.env with OUTPUT_LOCATION=/path/to/output"
 COURSE_CONTENT = Path(env["COURSE_CONTENT"]).resolve()
 OUTPUT_LOCATION = Path(env["OUTPUT_LOCATION"]).resolve()
 
 # Source code locations:
 ROOT = env["ROOT_DIR"]  # repo root location
-TEMPLATES = Path("templates/")
+# Templates are located relative to the package, not the working directory
+TEMPLATES = Path(__file__).parent.parent / "templates"
 
 # Implementation Specific
 TEMPLATE = TEMPLATES / Path("Learning and Assessment Plan (F122A14).docx")

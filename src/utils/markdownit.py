@@ -245,7 +245,7 @@ def markdown_to_word(doc_content: str, document: Document, parent=None):
     # Ensure all required markdown styles exist with sensible defaults
     ensure_markdown_styles(document)
 
-    md = MarkdownIt().enable("html_block").enable("html_inline")
+    md = MarkdownIt().enable("html_block").enable("html_inline").enable("table")
     tokens = md.parse(doc_content)
     process_tokens(tokens, document, parent)
 
@@ -261,6 +261,14 @@ def process_tokens(tokens: list, document: Document, parent=None):
     list_style_stack = []
     current_paragraph = None
     in_blockquote = False  # Track if we're inside a blockquote
+
+    # Table state tracking
+    in_table = False
+    in_thead = False
+    table_data = []  # List of rows, each row is a list of cells
+    current_row = []
+    current_cell_content = []
+    is_header_cell = False
 
     for token in tokens:
         if token.type == "heading_open":
@@ -285,6 +293,11 @@ def process_tokens(tokens: list, document: Document, parent=None):
                 continue
             current_paragraph = None
         elif token.type == "inline":
+            # Skip if we're inside a table - table inline content is handled separately
+            if in_table:
+                cell_text = get_inline_text(token.children)
+                current_cell_content.append(cell_text)
+                continue
             if current_paragraph is None:
                 # Use Blockquote style if we're inside a blockquote, otherwise use our Markdown Text style
                 style = "MD Blockquote" if in_blockquote else "MD Text"
@@ -375,10 +388,21 @@ def process_tokens(tokens: list, document: Document, parent=None):
             current_paragraph = None
             in_blockquote = False
         elif token.type == "hr":
-            for _ in range(10):
-                current_paragraph = empty_paragraph(document, parent)
-            continue
-            document.add_page_break()
+            # Render horizontal rule as a paragraph with a bottom border
+            hr_paragraph = add_paragraph(document, parent)
+            hr_paragraph.paragraph_format.space_before = Pt(6)
+            hr_paragraph.paragraph_format.space_after = Pt(6)
+            # Add a bottom border to simulate a horizontal line
+            pPr = hr_paragraph._p.get_or_add_pPr()
+            pBdr = OxmlElement('w:pBdr')
+            bottom = OxmlElement('w:bottom')
+            bottom.set(qn('w:val'), 'single')
+            bottom.set(qn('w:sz'), '6')  # Line thickness
+            bottom.set(qn('w:space'), '1')
+            bottom.set(qn('w:color'), 'CCCCCC')  # Light gray color
+            pBdr.append(bottom)
+            pPr.append(pBdr)
+            current_paragraph = None
         elif token.type == "code_block":
             # Handle indented code blocks - use "MD Code Block" style if available, otherwise "Quote"
             code_style = (
@@ -393,9 +417,107 @@ def process_tokens(tokens: list, document: Document, parent=None):
                 # Ensure left alignment for code blocks using Quote style
                 if current_paragraph:
                     current_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+        # Markdown table handling
+        elif token.type == "table_open":
+            in_table = True
+            table_data = []
+            current_row = []
+        elif token.type == "table_close":
+            in_table = False
+            # Create Word table from collected data
+            if table_data:
+                add_table_from_markdown(table_data, document if parent is None else parent)
+            table_data = []
+        elif token.type == "thead_open":
+            in_thead = True
+        elif token.type == "thead_close":
+            in_thead = False
+        elif token.type == "tbody_open":
+            pass  # Just continue processing
+        elif token.type == "tbody_close":
+            pass  # Just continue processing
+        elif token.type == "tr_open":
+            current_row = []
+        elif token.type == "tr_close":
+            if current_row:
+                table_data.append({"cells": current_row, "is_header": in_thead})
+            current_row = []
+        elif token.type == "th_open":
+            is_header_cell = True
+            current_cell_content = []
+        elif token.type == "th_close":
+            current_row.append({"content": "".join(current_cell_content), "is_header": True})
+            current_cell_content = []
+            is_header_cell = False
+        elif token.type == "td_open":
+            is_header_cell = False
+            current_cell_content = []
+        elif token.type == "td_close":
+            current_row.append({"content": "".join(current_cell_content), "is_header": False})
+            current_cell_content = []
+
         else:
             # Handle other token types if necessary
             pass
+
+
+def get_inline_text(tokens: list) -> str:
+    """
+    Extract plain text from inline tokens.
+
+    :param tokens: List of inline tokens.
+    :return: Plain text string.
+    """
+    text_parts = []
+    for token in tokens:
+        if token.type == "text":
+            text_parts.append(token.content)
+        elif token.type == "code_inline":
+            text_parts.append(token.content)
+        elif token.type == "softbreak" or token.type == "hardbreak":
+            text_parts.append(" ")
+        elif hasattr(token, "children") and token.children:
+            text_parts.append(get_inline_text(token.children))
+    return "".join(text_parts)
+
+
+def add_table_from_markdown(table_data: list, target):
+    """
+    Create a Word table from markdown table data.
+
+    :param table_data: List of row dictionaries with 'cells' and 'is_header' keys.
+    :param target: Document or cell to add the table to.
+    """
+    if not table_data:
+        return
+
+    # Calculate dimensions
+    num_rows = len(table_data)
+    num_cols = max(len(row["cells"]) for row in table_data) if table_data else 0
+
+    if num_rows == 0 or num_cols == 0:
+        return
+
+    # Create the table
+    table = target.add_table(rows=num_rows, cols=num_cols)
+    table.style = "Table Grid"
+
+    # Apply padding to all cells
+    apply_table_cell_padding(table)
+
+    # Populate the table
+    for row_idx, row_data in enumerate(table_data):
+        for col_idx, cell_data in enumerate(row_data["cells"]):
+            if col_idx < num_cols:
+                cell = table.cell(row_idx, col_idx)
+                cell.text = cell_data["content"]
+
+                # Apply bold formatting for header cells
+                if cell_data["is_header"] or row_data["is_header"]:
+                    for paragraph in cell.paragraphs:
+                        for run in paragraph.runs:
+                            run.bold = True
 
 
 def process_inline(tokens: list, paragraph: Paragraph):

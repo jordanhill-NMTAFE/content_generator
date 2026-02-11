@@ -37,6 +37,65 @@ app = typer.Typer(help="🎓 Australian VET Unit of Competency (UOC) Tool")
 # Global runtime flags
 _NO_CACHE: bool = False
 
+# Shared session for connection pooling (reduces DNS lookups and TCP handshakes)
+_SESSION: Optional[requests.Session] = None
+
+
+def _get_session() -> requests.Session:
+    """Get or create a shared requests.Session for connection pooling."""
+    global _SESSION
+    if _SESSION is None:
+        _SESSION = requests.Session()
+        # Configure connection pool size for concurrent access
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=10,
+            pool_maxsize=20,
+            max_retries=0,  # We handle retries manually
+        )
+        _SESSION.mount("https://", adapter)
+        _SESSION.mount("http://", adapter)
+    return _SESSION
+
+
+def _fetch_with_retry(
+    url: str,
+    timeout: int = 30,
+    max_retries: int = 5,
+    session: Optional[requests.Session] = None,
+) -> requests.Response:
+    """Fetch a URL with exponential backoff retry logic."""
+    sess = session or _get_session()
+    headers = {
+        "Accept": "application/json",
+        "User-Agent": "NMTAFE-Content-Generator/1.0",
+    }
+    backoff = 0.5
+    last_exc: Optional[Exception] = None
+    for attempt in range(max_retries):
+        try:
+            resp = sess.get(url, headers=headers, timeout=timeout)
+            resp.raise_for_status()
+            return resp
+        except requests.HTTPError as e:
+            status = getattr(e.response, "status_code", None)
+            # Retry on rate-limit or server errors
+            if status in {417, 429} or (status and 500 <= status < 600):
+                last_exc = e
+                time.sleep(min(8.0, backoff + random.uniform(0, 0.5)))
+                backoff *= 2
+                continue
+            raise
+        except requests.RequestException as e:
+            # Network errors (DNS, connection, timeout) - retry with backoff
+            last_exc = e
+            time.sleep(min(8.0, backoff + random.uniform(0, 0.5)))
+            backoff *= 2
+            continue
+    # All retries exhausted
+    if last_exc:
+        raise last_exc
+    raise requests.RequestException(f"Failed to fetch {url} after {max_retries} attempts")
+
 
 @app.callback()
 def _global_flags(
@@ -118,6 +177,35 @@ def _is_cache_fresh(cache_dir: Path, max_age_days: int = 7) -> bool:
         return False
 
 
+# ----------------------------
+# WA TPS Nominal Hours cache helpers
+# ----------------------------
+
+
+def _wa_nominal_hours_path(cache_dir: Path) -> Path:
+    return cache_dir / "wa_nominal_hours.json"
+
+
+def _wa_nominal_hours_meta_path(cache_dir: Path) -> Path:
+    return cache_dir / "wa_nominal_hours.meta.json"
+
+
+def _is_wa_cache_fresh(cache_dir: Path, max_age_days: int = 30) -> bool:
+    meta_file = _wa_nominal_hours_meta_path(cache_dir)
+    if not meta_file.exists():
+        return False
+    try:
+        data = json.loads(meta_file.read_text(encoding="utf-8"))
+        ts = data.get("last_updated")
+        if not ts:
+            return False
+        last = datetime.fromisoformat(ts)
+        now = datetime.now(timezone.utc).astimezone(last.tzinfo)
+        return (now - last) <= timedelta(days=max_age_days)
+    except Exception:
+        return False
+
+
 def _write_meta(cache_dir: Path, total_count: int, duration_s: float):
     meta = {
         "last_updated": datetime.now(timezone.utc).isoformat(),
@@ -130,13 +218,7 @@ def _write_meta(cache_dir: Path, total_count: int, duration_s: float):
 
 def _fetch_nrt_page(base_url: str, offset: int, page_size: int) -> dict:
     url = f"{base_url}&offset={offset}&pageSize={page_size}"
-    headers = {
-        "Accept": "application/json",
-        "User-Agent": "NMTAFE-Content-Generator/1.0",
-        "Connection": "close",
-    }
-    resp = requests.get(url, headers=headers, timeout=30)
-    resp.raise_for_status()
+    resp = _fetch_with_retry(url, timeout=30)
     return resp.json()
 
 
@@ -399,6 +481,242 @@ def _is_accredited_record(rec: dict) -> bool:
 
 
 # ----------------------------
+# WA TPS scraping (nominal hours)
+# ----------------------------
+
+_TPS_URL = "https://tps.dtwd.wa.gov.au/apps/tps/Pages/default.aspx"
+_TPS_GUID = "g_72b3d09c_3e10_4bd3_8b9c_f4643f192177"
+_TPS_PREFIX = f"ctl00$SPWebPartManager1${_TPS_GUID}$ctl00$"
+
+
+def _parse_tps_form(html: str) -> dict:
+    """Parse TPS search page HTML and extract ASP.NET form tokens + package options."""
+    soup = BeautifulSoup(html, "html.parser")
+    result: dict = {}
+
+    # Extract hidden fields
+    for name in ("__VIEWSTATE", "__EVENTVALIDATION", "__REQUESTDIGEST", "__VIEWSTATEGENERATOR"):
+        tag = soup.find("input", {"name": name})
+        if tag:
+            result[name] = tag.get("value", "")
+
+    # Extract dynamic GUID prefix from control names
+    prefix_tag = soup.find("input", {"name": re.compile(r"ctl00\$SPWebPartManager1\$g_[\w]+\$ctl00\$")})
+    if prefix_tag:
+        m = re.match(r"(ctl00\$SPWebPartManager1\$g_[\w_]+\$ctl00\$)", prefix_tag["name"])
+        if m:
+            result["_prefix"] = m.group(1)
+
+    # Extract training package dropdown options (value=GUID, text=display name)
+    ddl = soup.find("select", {"name": re.compile(r"TrainingPackageDropDownList$")})
+    packages = []
+    if ddl:
+        for opt in ddl.find_all("option"):
+            val = opt.get("value", "")
+            if val:
+                packages.append((val, opt.get_text(strip=True)))
+    result["_packages"] = packages
+
+    return result
+
+
+def _parse_tps_results(html: str) -> tuple[list[tuple[str, int | None]], bool]:
+    """Parse TPS results table HTML.
+
+    Returns:
+        (results, has_more) where results is list of (national_code, nominal_hours)
+        and has_more indicates if there are additional pages.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    results: list[tuple[str, int | None]] = []
+
+    # Find the results grid table
+    grid = soup.find("table", {"id": re.compile(r"TrainingProductGridView")})
+    if not grid:
+        return results, False
+
+    rows = grid.find_all("tr")
+    for row in rows[1:]:  # Skip header row
+        cells = row.find_all("td")
+        if len(cells) < 7:
+            continue
+        national_code = cells[0].get_text(strip=True)
+        if not national_code or national_code == "\xa0":
+            continue
+        hours_text = cells[5].get_text(strip=True)
+        try:
+            nominal_hours = int(hours_text) if hours_text and hours_text != "\xa0" else None
+        except (ValueError, TypeError):
+            nominal_hours = None
+        if national_code:
+            results.append((national_code.upper(), nominal_hours))
+
+    # Detect pagination: look for "Page X of Y" label
+    has_more = False
+    page_label = soup.find("span", {"id": re.compile(r"PageLabel")})
+    if page_label:
+        m = re.search(r"Page\s+(\d+)\s+of\s+(\d+)", page_label.get_text())
+        if m:
+            current_page, total_pages = int(m.group(1)), int(m.group(2))
+            has_more = current_page < total_pages
+
+    return results, has_more
+
+
+def _build_wa_nominal_hours_mapping(concurrency: int = 3) -> dict[str, int]:
+    """Scrape WA TPS to build a national_code → nominal_hours mapping.
+
+    Strategy: for each training package in the dropdown, GET a fresh page
+    to obtain valid ASP.NET ViewState tokens, then POST a search filtered
+    to Module/UoC type. Handles pagination within each package.
+    """
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "NMTAFE-Content-Generator/1.0",
+    })
+
+    # Step 1: GET the search page to extract the package list
+    resp = session.get(_TPS_URL, timeout=30)
+    resp.raise_for_status()
+    initial_form = _parse_tps_form(resp.text)
+    prefix = initial_form.get("_prefix", _TPS_PREFIX)
+    packages = initial_form.get("_packages", [])
+
+    if not packages:
+        log.warning("WA TPS: no training packages found in dropdown")
+        return {}
+
+    mapping: dict[str, int] = {}
+
+    # Step 2: For each training package, GET fresh tokens then POST search
+    bar = None
+    if tqdm:
+        bar = tqdm(total=len(packages), unit="pkg", desc="WA TPS packages", dynamic_ncols=True)
+
+    for pkg_idx, (pkg_guid, pkg_name) in enumerate(packages):
+        try:
+            # GET fresh page to get valid ViewState for this search
+            time.sleep(0.15)
+            fresh_resp = session.get(_TPS_URL, timeout=30)
+            fresh_resp.raise_for_status()
+            form_data = _parse_tps_form(fresh_resp.text)
+
+            # POST search for this package, Module/UoC only
+            post_data = {
+                "__EVENTTARGET": "",
+                "__EVENTARGUMENT": "",
+                "__VIEWSTATE": form_data.get("__VIEWSTATE", ""),
+                "__EVENTVALIDATION": form_data.get("__EVENTVALIDATION", ""),
+                "__REQUESTDIGEST": form_data.get("__REQUESTDIGEST", ""),
+                "__VIEWSTATEGENERATOR": form_data.get("__VIEWSTATEGENERATOR", ""),
+                f"{prefix}TrainingPackageDropDownList": pkg_guid,
+                f"{prefix}ModuleUocCheckBox": "on",
+                f"{prefix}OrderByDropDownList": "nationaltitle",
+                f"{prefix}IdentifierTextBox": "",
+                f"{prefix}IncludeSupersededCheckBox": "on",
+                f"{prefix}TitleTextBox": "",
+                f"{prefix}SearchButton": "Search",
+            }
+
+            time.sleep(0.15)
+            resp = session.post(_TPS_URL, data=post_data, timeout=60)
+            resp.raise_for_status()
+
+            # Parse results
+            page_results, has_more = _parse_tps_results(resp.text)
+            for code, hours in page_results:
+                if hours is not None:
+                    mapping[code] = hours
+
+            # Handle pagination within this package
+            page_num = 1
+            while has_more:
+                page_num += 1
+                time.sleep(0.15)
+                # Reuse tokens from last response (same search context)
+                page_form = _parse_tps_form(resp.text)
+                grid_id = f"{prefix}TrainingProductGridView"
+                page_post = {
+                    "__EVENTTARGET": grid_id,
+                    "__EVENTARGUMENT": f"Page${page_num}",
+                    "__VIEWSTATE": page_form.get("__VIEWSTATE", ""),
+                    "__EVENTVALIDATION": page_form.get("__EVENTVALIDATION", ""),
+                    "__REQUESTDIGEST": page_form.get("__REQUESTDIGEST", ""),
+                    "__VIEWSTATEGENERATOR": page_form.get("__VIEWSTATEGENERATOR", ""),
+                    f"{prefix}TrainingPackageDropDownList": pkg_guid,
+                    f"{prefix}ModuleUocCheckBox": "on",
+                    f"{prefix}OrderByDropDownList": "nationaltitle",
+                    f"{prefix}IdentifierTextBox": "",
+                    f"{prefix}IncludeSupersededCheckBox": "on",
+                    f"{prefix}TitleTextBox": "",
+                }
+                resp = session.post(_TPS_URL, data=page_post, timeout=60)
+                resp.raise_for_status()
+                page_results, has_more = _parse_tps_results(resp.text)
+                for code, hours in page_results:
+                    if hours is not None:
+                        mapping[code] = hours
+
+        except Exception as e:
+            log.warning("WA TPS: error scraping package %s: %s", pkg_name, e)
+            continue
+
+        if bar:
+            bar.update(1)
+        elif (pkg_idx + 1) % 20 == 0:
+            print(f"  • Scraped {pkg_idx + 1}/{len(packages)} packages ({len(mapping)} hours mapped)")
+
+    if bar:
+        bar.close()
+
+    return mapping
+
+
+# ----------------------------
+# WA nominal hours load/save/lookup
+# ----------------------------
+
+_cached_wa_nominal_hours: Optional[dict[str, int]] = None
+
+
+def _save_wa_nominal_hours(mapping: dict[str, int], cache_dir: Path) -> None:
+    """Save WA nominal hours mapping and meta file."""
+    nh_path = _wa_nominal_hours_path(cache_dir)
+    nh_path.write_text(json.dumps(mapping, ensure_ascii=False, indent=2), encoding="utf-8")
+    meta = {
+        "last_updated": datetime.now(timezone.utc).isoformat(),
+        "source": _TPS_URL,
+        "total_count": len(mapping),
+    }
+    _wa_nominal_hours_meta_path(cache_dir).write_text(
+        json.dumps(meta, indent=2), encoding="utf-8"
+    )
+
+
+def _load_wa_nominal_hours() -> dict[str, int]:
+    """Load WA nominal hours from cache, return empty dict if missing."""
+    global _cached_wa_nominal_hours
+    if not _NO_CACHE and _cached_wa_nominal_hours is not None:
+        return _cached_wa_nominal_hours
+    cache_dir = _default_cache_dir()
+    nh_path = _wa_nominal_hours_path(cache_dir)
+    if not nh_path.exists():
+        return {}
+    try:
+        data = json.loads(nh_path.read_text(encoding="utf-8"))
+        _cached_wa_nominal_hours = data
+        return data
+    except Exception:
+        return {}
+
+
+def _get_wa_nominal_hours(unit_code: str) -> int | None:
+    """Look up WA nominal hours for a single unit code."""
+    mapping = _load_wa_nominal_hours()
+    return mapping.get(unit_code.upper())
+
+
+# ----------------------------
 # UOC content cache (for fast show and global search)
 # ----------------------------
 
@@ -446,6 +764,79 @@ def _save_uoc_content_to_cache(unit_code: str, content: str) -> None:
         pass
 
 
+# ----------------------------
+# UOC JSON cache (structured data)
+# ----------------------------
+
+
+def _uoc_json_cache_dir() -> Path:
+    """Get JSON cache directory for structured UoC data."""
+    base = _default_cache_dir() / "uoc_cache" / "json"
+    base.mkdir(parents=True, exist_ok=True)
+    return base
+
+
+def _uoc_json_cache_path(unit_code: str) -> Path:
+    """Get JSON cache path for a unit code."""
+    return _uoc_json_cache_dir() / f"{unit_code.upper()}.json.gz"
+
+
+def _save_uoc_json_to_cache(
+    unit_code: str, data: UnitOfCompetencyData, metadata: dict
+) -> None:
+    """Save UoC data and metadata to JSON cache."""
+    p = _uoc_json_cache_path(unit_code)
+    try:
+        cache_data = {
+            "schema_version": 1,
+            "unit_code": unit_code.upper(),
+            "aqf_level": data.aqf_level,
+            "title": metadata.get("title", ""),
+            "training_package": metadata.get("training_package", ""),
+            "status": metadata.get("status", "current"),
+            "cached_at": metadata.get("cached_at", ""),
+            "source": metadata.get("source", {}),
+            "sections": data.to_dict(),
+        }
+        json_str = json.dumps(cache_data, ensure_ascii=False, indent=2)
+        with gzip.open(p, "wt", encoding="utf-8") as f:
+            f.write(json_str)
+    except Exception:
+        pass
+
+
+def _load_uoc_json_from_cache(
+    unit_code: str,
+) -> Optional[tuple[UnitOfCompetencyData, dict]]:
+    """Load UoC data and metadata from JSON cache."""
+    if _NO_CACHE:
+        return None
+    p = _uoc_json_cache_path(unit_code)
+    if not p.exists():
+        return None
+    try:
+        with gzip.open(p, "rt", encoding="utf-8") as f:
+            cache_data = json.loads(f.read())
+
+        # Extract sections data
+        sections_data = cache_data.get("sections", {})
+        data = UnitOfCompetencyData.from_dict(sections_data)
+
+        # Extract metadata
+        metadata = {
+            "title": cache_data.get("title", ""),
+            "training_package": cache_data.get("training_package", ""),
+            "status": cache_data.get("status", "current"),
+            "cached_at": cache_data.get("cached_at", ""),
+            "source": cache_data.get("source", {}),
+            "schema_version": cache_data.get("schema_version", 1),
+        }
+
+        return data, metadata
+    except Exception:
+        return None
+
+
 def _build_uoc_content(unit_code: str) -> Optional[str]:
     """Fast-path content fetcher for a unit code using API-only calls.
 
@@ -473,10 +864,12 @@ def _build_uoc_content(unit_code: str) -> Optional[str]:
         rel_url = (
             f"{api_base}training/{unit_code}/releases/{best_rel}?api-version={version}"
         )
-        r = requests.get(rel_url, timeout=20)
-        if r.status_code == 404:
-            return None
-        r.raise_for_status()
+        try:
+            r = _fetch_with_retry(rel_url, timeout=20, max_retries=3)
+        except requests.HTTPError as e:
+            if getattr(e.response, "status_code", None) == 404:
+                return None
+            raise
         release = r.json() or {}
         bundles = release.get("contentBundles") or []
         if not bundles:
@@ -495,8 +888,7 @@ def _build_uoc_content(unit_code: str) -> Optional[str]:
                 continue
             b_url = f"{api_base}content/bundle/{bid}?api-version={version}"
             try:
-                br = requests.get(b_url, timeout=20)
-                br.raise_for_status()
+                br = _fetch_with_retry(b_url, timeout=20, max_retries=3)
                 data = br.json() or {}
                 for item in data.get("items", []) or []:
                     it_title = item.get("title")
@@ -546,14 +938,28 @@ def _build_content_cache_from_index(
     saved = 0
 
     def work(code: str) -> int:
-        # Skip if already cached
-        if _uoc_content_cache_path(code).exists():
+        # Skip if already cached (check JSON cache first)
+        if _uoc_json_cache_path(code).exists():
             return 0
-        text = _build_uoc_content(code)
-        if text:
-            _save_uoc_content_to_cache(code, text)
-            return 1
-        return 0
+        # Skip if text cache exists but no JSON (legacy)
+        if (
+            _uoc_content_cache_path(code).exists()
+            and not _uoc_json_cache_path(code).exists()
+        ):
+            # Could do migration here, but for now just skip
+            return 0
+
+        # Instantiate UoC (fetches from API, populates data)
+        try:
+            _ = UnitOfCompetency(code, prefer_cache=False)  # Side effect: caches data
+        except Exception:
+            return 0
+
+        # Save JSON (already done in __init__ when prefer_cache=False and fetch succeeds)
+        # The JSON cache is written automatically in __init__ after API fetch
+
+        # Text is also saved automatically in __init__ after API fetch
+        return 1
 
     if concurrency <= 1:
         for code in unit_codes:
@@ -720,29 +1126,11 @@ def _tp_components_cache_path(pkg_code: str, release: str) -> Path:
 
 def _fetch_tp_components(pkg_code: str, release: str) -> dict:
     url = f"https://training.gov.au/api/training/{pkg_code}/releases/{release}/components?api-version=1.0"
-    headers = {
-        "Accept": "application/json",
-        "User-Agent": "NMTAFE-Content-Generator/1.0",
-        "Connection": "close",
-    }
-    backoff = 0.5
-    for attempt in range(5):
-        try:
-            resp = requests.get(url, headers=headers, timeout=30)
-            resp.raise_for_status()
-            return resp.json()
-        except requests.HTTPError as e:
-            status = getattr(e.response, "status_code", None)
-            if status in {417, 429} or (status and 500 <= status < 600):
-                time.sleep(min(4.5, backoff + random.uniform(0, 0.25)))
-                backoff *= 2
-                continue
-            raise
-        except requests.RequestException:
-            time.sleep(min(4.5, backoff + random.uniform(0, 0.25)))
-            backoff *= 2
-            continue
-    return {}
+    try:
+        resp = _fetch_with_retry(url, timeout=30)
+        return resp.json()
+    except Exception:
+        return {}
 
 
 def _get_tp_components(
@@ -842,29 +1230,11 @@ def _qual_units_cache_path(qual_code: str, release: str) -> Path:
 
 def _fetch_qual_unitgrid(qual_code: str, release: str) -> dict:
     url = f"https://training.gov.au/api/training/{qual_code}/releases/{release}/unitgrid?api-version=1.0"
-    headers = {
-        "Accept": "application/json",
-        "User-Agent": "NMTAFE-Content-Generator/1.0",
-        "Connection": "close",
-    }
-    backoff = 0.5
-    for attempt in range(5):
-        try:
-            resp = requests.get(url, headers=headers, timeout=30)
-            resp.raise_for_status()
-            return resp.json()
-        except requests.HTTPError as e:
-            status = getattr(e.response, "status_code", None)
-            if status in {417, 429} or (status and 500 <= status < 600):
-                time.sleep(min(4.5, backoff + random.uniform(0, 0.25)))
-                backoff *= 2
-                continue
-            raise
-        except requests.RequestException:
-            time.sleep(min(4.5, backoff + random.uniform(0, 0.25)))
-            backoff *= 2
-            continue
-    return {}
+    try:
+        resp = _fetch_with_retry(url, timeout=30)
+        return resp.json()
+    except Exception:
+        return {}
 
 
 def _parse_unitgrid(payload: dict) -> list[dict]:
@@ -973,30 +1343,12 @@ def _unit_usage_cache_path(unit_code: str) -> Path:
 
 def _fetch_unit_usage(unit_code: str) -> list[dict]:
     url = f"https://training.gov.au/api/training/{unit_code}/unitgridusage?api-version=1.0"
-    headers = {
-        "Accept": "application/json",
-        "User-Agent": "NMTAFE-Content-Generator/1.0",
-        "Connection": "close",
-    }
-    backoff = 0.5
-    for attempt in range(5):
-        try:
-            resp = requests.get(url, headers=headers, timeout=30)
-            resp.raise_for_status()
-            data = resp.json()
-            return data if isinstance(data, list) else []
-        except requests.HTTPError as e:
-            status = getattr(e.response, "status_code", None)
-            if status in {417, 429} or (status and 500 <= status < 600):
-                time.sleep(min(4.5, backoff + random.uniform(0, 0.25)))
-                backoff *= 2
-                continue
-            raise
-        except requests.RequestException:
-            time.sleep(min(4.5, backoff + random.uniform(0, 0.25)))
-            backoff *= 2
-            continue
-    return []
+    try:
+        resp = _fetch_with_retry(url, timeout=30)
+        data = resp.json()
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
 
 
 def _get_unit_usage(unit_code: str, force: bool = False) -> list[dict]:
@@ -1061,6 +1413,21 @@ def index_info(
                 print(f"    - {t}: {c}")
     except Exception as e:
         print(f"❌ Error reading index: {e}")
+
+    # WA nominal hours cache info
+    cache_dir = _default_cache_dir()
+    wa_path = _wa_nominal_hours_path(cache_dir)
+    wa_meta = _wa_nominal_hours_meta_path(cache_dir)
+    print(f"\nWA Nominal Hours: {wa_path}")
+    if wa_meta.exists():
+        try:
+            wm = json.loads(wa_meta.read_text(encoding="utf-8"))
+            print(f"  last_updated: {wm.get('last_updated')}")
+            print(f"  total_count: {wm.get('total_count')}")
+        except Exception:
+            pass
+    elif not wa_path.exists():
+        print("  (not built — run 'uoc wa-index' to build)")
 
 
 @app.command()
@@ -1207,6 +1574,37 @@ class UnitOfCompetencyData:
     def __str__(self) -> str:
         return f"{self.unit_code} - {self.aqf_level}"
 
+    def to_dict(self) -> dict:
+        """Serialize data to a dictionary suitable for JSON storage."""
+        return {
+            "unit_code": self.unit_code,
+            "aqf_level": self.aqf_level,
+            "modification_history": self.modification_history,
+            "application": self.application,
+            "performance_evidence": self.performance_evidence,
+            "performance_skills": self.performance_skills,
+            "knowledge_evidence": self.knowledge_evidence,
+            "elements_and_criteria": self.elements_and_criteria,
+            "assessment_conditions": self.assessment_conditions,
+            "unit_sector": self.unit_sector,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "UnitOfCompetencyData":
+        """Deserialize from a dictionary (e.g., from JSON cache)."""
+        return cls(
+            unit_code=data.get("unit_code", ""),
+            aqf_level=data.get("aqf_level", 0),
+            modification_history=data.get("modification_history", ""),
+            application=data.get("application", ""),
+            performance_evidence=data.get("performance_evidence", {}),
+            performance_skills=data.get("performance_skills", {}),
+            knowledge_evidence=data.get("knowledge_evidence", {}),
+            elements_and_criteria=data.get("elements_and_criteria", {}),
+            assessment_conditions=data.get("assessment_conditions", {}),
+            unit_sector=data.get("unit_sector", ""),
+        )
+
 
 class UnitOfCompetencyError(requests.HTTPError):
     """Base class for all errors in this module"""
@@ -1260,29 +1658,73 @@ class UnitOfCompetency:
         # Prefer initializing from local cached content when available
         initialized_from_cache = False
         if prefer_cache:
-            try:
-                cached = _load_uoc_content_from_cache(self.unit_code)
-            except Exception:
-                cached = None
-            if cached:
-                self._cached_text = cached
-                # Minimal data scaffold so attributes exist
-                self.data = UnitOfCompetencyData(
-                    unit_code=self.unit_code,
-                    aqf_level=self.aqf_level,
-                )
-                try:
-                    idx = _get_nrt_index()
-                    if idx:
-                        self.title = idx.get_title(self.unit_code) or ""
-                except Exception:
-                    pass
+            # Try JSON cache first
+            json_data = _load_uoc_json_from_cache(self.unit_code)
+            if json_data:
+                self.data, metadata = json_data
+                self.title = metadata.get("title", "")
+                # Populate instance attributes from data
+                self.application = self.data.application
+                self.performance_evidence = self.data.performance_evidence
+                self.performance_skills = self.data.performance_skills
+                self.knowledge_evidence = self.data.knowledge_evidence
+                self.elements_and_criteria = self.data.elements_and_criteria
+                self.assessment_conditions = self.data.assessment_conditions
+                self.modification_history = self.data.modification_history
+                self.unit_sector = self.data.unit_sector
+                # Optionally load text for __str__ fast-path
+                self._cached_text = _load_uoc_content_from_cache(self.unit_code)
                 initialized_from_cache = True
+            else:
+                # Fallback to text-only (legacy)
+                try:
+                    cached = _load_uoc_content_from_cache(self.unit_code)
+                except Exception:
+                    cached = None
+                if cached:
+                    self._cached_text = cached
+                    # Minimal data scaffold so attributes exist
+                    self.data = UnitOfCompetencyData(
+                        unit_code=self.unit_code,
+                        aqf_level=self.aqf_level,
+                    )
+                    try:
+                        idx = _get_nrt_index()
+                        if idx:
+                            self.title = idx.get_title(self.unit_code) or ""
+                    except Exception:
+                        pass
+                    initialized_from_cache = True
 
         if not initialized_from_cache:
             # Fetch and process data from API
             self.data = self._get_data()
             self.title = self._get_title()
+            # Write to JSON cache
+            if not _NO_CACHE:
+                # Get training package from unit code
+                training_package = ""
+                if len(self.unit_code) >= 3:
+                    training_package = (
+                        re.match(r"^[A-Z]+", self.unit_code).group()
+                        if re.match(r"^[A-Z]+", self.unit_code)
+                        else ""
+                    )
+
+                metadata = {
+                    "title": self.title,
+                    "training_package": training_package,
+                    "status": "current",
+                    "cached_at": datetime.now(timezone.utc).isoformat(),
+                    "source": {
+                        "release": "1",  # TODO: get actual release number
+                        "url": f"{self.base_url}training/details/{self.unit_code}",
+                    },
+                }
+                _save_uoc_json_to_cache(self.unit_code, self.data, metadata)
+                # Also save text representation
+                text = str(self)
+                _save_uoc_content_to_cache(self.unit_code, text)
 
     def get_related_courses(self) -> list[dict[str, str]]:
         """Best-effort extraction of related courses/qualifications containing this unit.
@@ -1300,8 +1742,7 @@ class UnitOfCompetency:
         found: dict[str, str] = {}
         for url in candidates:
             try:
-                resp = requests.get(url)
-                resp.raise_for_status()
+                resp = _fetch_with_retry(url, timeout=30, max_retries=2)
             except Exception:
                 continue
 
@@ -1394,8 +1835,7 @@ class UnitOfCompetency:
         url = f"{self.base_url}training/{self.unit_code}/unitdetails"
         log.debug(f"Fetching title from {url}")
         try:
-            response = requests.get(url)
-            response.raise_for_status()
+            response = _fetch_with_retry(url, timeout=30, max_retries=3)
 
             from lxml import html
 
@@ -1427,8 +1867,7 @@ class UnitOfCompetency:
         url = f"{self.api_url}training/{self.unit_code}/releases/{best_rel}?api-version={self.api_version}"
         log.debug(f"Fetching release info from {url}")
         try:
-            response = requests.get(url)
-            response.raise_for_status()
+            response = _fetch_with_retry(url, timeout=30)
             return response.json()
         except requests.exceptions.HTTPError as e:
             logging.error(f"Failed to fetch release info {url}: {e}")
@@ -1438,8 +1877,7 @@ class UnitOfCompetency:
         url = f"{self.api_url}content/bundle/{bundle_id}?api-version={self.api_version}"
         log.debug(f"Fetching bundle content from {url}")
         try:
-            response = requests.get(url)
-            response.raise_for_status()
+            response = _fetch_with_retry(url, timeout=30)
             return response.json()
         except requests.exceptions.HTTPError as e:
             logging.error(f"Failed to fetch bundle content {url}: {e}")
@@ -1868,8 +2306,7 @@ class Qualification:
         ]
         for url in candidates:
             try:
-                response = requests.get(url)
-                response.raise_for_status()
+                response = _fetch_with_retry(url, timeout=30, max_retries=2)
                 from lxml import html
 
                 tree = html.fromstring(response.content)
@@ -1903,8 +2340,7 @@ class Qualification:
         )
         log.debug(f"Fetching course release info from {url}")
         try:
-            response = requests.get(url)
-            response.raise_for_status()
+            response = _fetch_with_retry(url, timeout=30)
             data = response.json()
             return data if isinstance(data, dict) else {}
         except Exception as e:
@@ -2007,10 +2443,8 @@ class Qualification:
             items = []
             for bundle in release.get("contentBundles", []) or []:
                 try:
-                    content = requests.get(
-                        f"{self.api_url}content/bundle/{bundle['id']}?api-version={self.api_version}"
-                    )
-                    content.raise_for_status()
+                    url = f"{self.api_url}content/bundle/{bundle['id']}?api-version={self.api_version}"
+                    content = _fetch_with_retry(url, timeout=30, max_retries=3)
                     items.extend(content.json().get("items", []))
                 except Exception:
                     continue
@@ -2059,8 +2493,7 @@ class Qualification:
             f"{self.base_url}training/{self.course_code}",
         ]:
             try:
-                resp = requests.get(url)
-                resp.raise_for_status()
+                resp = _fetch_with_retry(url, timeout=30, max_retries=2)
             except Exception:
                 continue
             soup = BeautifulSoup(resp.content, "html.parser")
@@ -2104,6 +2537,9 @@ def show(
     ),
     index_path: Optional[str] = typer.Option(
         None, "--index-path", help="Override path to local NRT index (jsonl.gz)"
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output as JSON (from cache or fetched)"
     ),
 ):
     """
@@ -2207,7 +2643,51 @@ def show(
         else:
             uoc = UnitOfCompetency(unit_code)
 
-            if sections_only:
+            if json_output:
+                # Output JSON from cache or fetched data
+                json_data = _load_uoc_json_from_cache(unit_code)
+                if json_data:
+                    # Load from cache
+                    data, metadata = json_data
+                    output = {
+                        "schema_version": metadata.get("schema_version", 1),
+                        "unit_code": unit_code.upper(),
+                        "aqf_level": data.aqf_level,
+                        "title": metadata.get("title", uoc.title),
+                        "training_package": metadata.get("training_package", ""),
+                        "status": metadata.get("status", "current"),
+                        "cached_at": metadata.get("cached_at", ""),
+                        "source": metadata.get("source", {}),
+                        "sections": data.to_dict(),
+                    }
+                else:
+                    # No cache, use current data
+                    training_package = ""
+                    if len(unit_code) >= 3:
+                        training_package = (
+                            re.match(r"^[A-Z]+", unit_code).group()
+                            if re.match(r"^[A-Z]+", unit_code)
+                            else ""
+                        )
+                    output = {
+                        "schema_version": 1,
+                        "unit_code": unit_code.upper(),
+                        "aqf_level": uoc.data.aqf_level,
+                        "title": uoc.title,
+                        "training_package": training_package,
+                        "status": "current",
+                        "cached_at": datetime.now(timezone.utc).isoformat(),
+                        "source": {
+                            "release": "1",
+                            "url": f"{uoc.base_url}training/details/{unit_code}",
+                        },
+                        "sections": uoc.data.to_dict(),
+                    }
+                wa_hours = _get_wa_nominal_hours(unit_code)
+                if wa_hours is not None:
+                    output["wa_nominal_hours"] = wa_hours
+                print(json.dumps(output, ensure_ascii=False, indent=2))
+            elif sections_only:
                 print(f"📋 Available sections for {unit_code}:")
                 for section in uoc.sections:
                     print(f"  • {section.value}")
@@ -2220,6 +2700,9 @@ def show(
                 )
                 print(f"📖 Unit of Competency: {header}")
                 print("=" * 60)
+                wa_hours = _get_wa_nominal_hours(unit_code)
+                if wa_hours is not None:
+                    print(f"WA Nominal Hours: {wa_hours}")
                 print(uoc)
 
     except UnitOfCompetencyNotFoundError:
@@ -2246,6 +2729,7 @@ def main_entry():
         "index",
         "index-info",
         "index-search",
+        "wa-index",
         "quals",
         "ss",
         "units",
@@ -2390,8 +2874,7 @@ def _qual_bundle_cache_path(bundle_id: str) -> Path:
 
 def _fetch_json(url: str) -> dict:
     try:
-        resp = requests.get(url, timeout=30)
-        resp.raise_for_status()
+        resp = _fetch_with_retry(url, timeout=30)
         data = resp.json()
         return data if isinstance(data, dict) else {}
     except Exception as e:
@@ -2418,8 +2901,7 @@ def _list_training_releases(code: str) -> list[dict]:
     ]
     for url in urls:
         try:
-            resp = requests.get(url, timeout=30)
-            resp.raise_for_status()
+            resp = _fetch_with_retry(url, timeout=30, max_retries=3)
             data = resp.json()
             if isinstance(data, list):
                 return data
@@ -2621,12 +3103,58 @@ def compare(
         print(f"📋 {unit2} Criteria: {criteria2}")
 
         # Knowledge evidence
-        ke1 = next(iter(uoc1.data.knowledge_evidence.values()))
-        ke2 = next(iter(uoc2.data.knowledge_evidence.values()))
+        ke1_values = (
+            list(uoc1.data.knowledge_evidence.values())
+            if uoc1.data.knowledge_evidence
+            else []
+        )
+        ke2_values = (
+            list(uoc2.data.knowledge_evidence.values())
+            if uoc2.data.knowledge_evidence
+            else []
+        )
+        ke1 = ke1_values[0] if ke1_values else []
+        ke2 = ke2_values[0] if ke2_values else []
         ke1_count = len(ke1) if isinstance(ke1, (list, dict)) else 0
         ke2_count = len(ke2) if isinstance(ke2, (list, dict)) else 0
         print(f"🧠 {unit1} Knowledge items: {ke1_count}")
         print(f"🧠 {unit2} Knowledge items: {ke2_count}")
+
+        # Performance evidence
+        pe1_values = (
+            list(uoc1.data.performance_evidence.values())
+            if uoc1.data.performance_evidence
+            else []
+        )
+        pe2_values = (
+            list(uoc2.data.performance_evidence.values())
+            if uoc2.data.performance_evidence
+            else []
+        )
+        pe1 = pe1_values[0] if pe1_values else []
+        pe2 = pe2_values[0] if pe2_values else []
+        pe1_count = len(pe1) if isinstance(pe1, (list, dict)) else 0
+        pe2_count = len(pe2) if isinstance(pe2, (list, dict)) else 0
+        print(f"🎯 {unit1} Performance items: {pe1_count}")
+        print(f"🎯 {unit2} Performance items: {pe2_count}")
+
+        # Performance skills
+        ps1_values = (
+            list(uoc1.data.performance_skills.values())
+            if uoc1.data.performance_skills
+            else []
+        )
+        ps2_values = (
+            list(uoc2.data.performance_skills.values())
+            if uoc2.data.performance_skills
+            else []
+        )
+        ps1 = ps1_values[0] if ps1_values else []
+        ps2 = ps2_values[0] if ps2_values else []
+        ps1_count = len(ps1) if isinstance(ps1, (list, dict)) else 0
+        ps2_count = len(ps2) if isinstance(ps2, (list, dict)) else 0
+        print(f"🔧 {unit1} Performance skills: {ps1_count}")
+        print(f"🔧 {unit2} Performance skills: {ps2_count}")
 
     except (UnitOfCompetencyNotFoundError, UnitOfCompetencyError) as e:
         print(f"❌ Error: {e}")
@@ -2829,15 +3357,26 @@ def search(
 @app.command()
 def raw(
     unit_code: str = typer.Argument(..., help="Unit code"),
+    json_output: bool = typer.Option(False, "--json", help="Output raw data as JSON"),
 ):
     """
     🔧 Show raw UOC data structure (for debugging).
     """
     try:
         uoc = UnitOfCompetency(unit_code)
-        print(f"🔧 Raw data for {unit_code}:")
-        print("=" * 60)
-        print(uoc.data)
+        if json_output:
+            # Output the data structure as JSON
+            output = {
+                "unit_code": uoc.unit_code,
+                "aqf_level": uoc.aqf_level,
+                "title": uoc.title,
+                "data": uoc.data.to_dict(),
+            }
+            print(json.dumps(output, ensure_ascii=False, indent=2))
+        else:
+            print(f"🔧 Raw data for {unit_code}:")
+            print("=" * 60)
+            print(uoc.data)
     except (UnitOfCompetencyNotFoundError, UnitOfCompetencyError) as e:
         print(f"❌ Error: {e}")
         raise typer.Exit(1)
@@ -3073,6 +3612,15 @@ def index(
                 print(f"✅ Cached {qbuilt} QUAL contents")
         except Exception as e:
             print(f"⚠️  Skipped content cache build: {e}")
+
+        # Build WA nominal hours mapping
+        try:
+            print("🔄 Building WA nominal hours mapping …")
+            wa_mapping = _build_wa_nominal_hours_mapping(concurrency=3)
+            _save_wa_nominal_hours(wa_mapping, cache_dir)
+            print(f"✅ Mapped {len(wa_mapping)} WA nominal hours")
+        except Exception as e:
+            print(f"⚠️  Skipped WA nominal hours build: {e}")
     except requests.HTTPError as e:
         print(f"❌ HTTP error fetching index: {e}")
         raise typer.Exit(1)
@@ -3082,6 +3630,51 @@ def index(
 
 
 # Removed legacy commands: courses, units, course, unit (replaced by show/quals/ss/package)
+
+
+@app.command("wa-index")
+def wa_index(
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Ignore cache currency and refresh now"
+    ),
+    clear: bool = typer.Option(
+        False, "--clear", help="Delete existing WA nominal hours cache before building"
+    ),
+    concurrency: int = typer.Option(
+        3, "--concurrency", "-c", help="Concurrency level (unused, reserved for future)"
+    ),
+):
+    """
+    Build WA nominal hours mapping by scraping the DTWD Training Product Search.
+
+    - Iterates all training packages in the TPS dropdown
+    - Collects nominal hours for each Module / UoC
+    - Saves to a JSON cache file (30-day TTL)
+    """
+    cache_dir = _default_cache_dir()
+
+    if clear:
+        for p in (_wa_nominal_hours_path(cache_dir), _wa_nominal_hours_meta_path(cache_dir)):
+            if p.exists():
+                p.unlink()
+        print("🧹 Cleared WA nominal hours cache")
+
+    if not force and _is_wa_cache_fresh(cache_dir, max_age_days=30):
+        meta = json.loads(_wa_nominal_hours_meta_path(cache_dir).read_text(encoding="utf-8"))
+        print(f"✅ WA nominal hours cache is fresh (≤ 30 days). {meta.get('total_count', '?')} records.")
+        print("   Use --force to refresh.")
+        return
+
+    print("🔄 Building WA nominal hours mapping from TPS …")
+    start = time.time()
+    try:
+        wa_mapping = _build_wa_nominal_hours_mapping(concurrency=concurrency)
+        _save_wa_nominal_hours(wa_mapping, cache_dir)
+        duration = time.time() - start
+        print(f"✅ Mapped {len(wa_mapping)} WA nominal hours in {duration:.1f}s")
+    except Exception as e:
+        print(f"❌ Error building WA nominal hours: {e}")
+        raise typer.Exit(1)
 
 
 @app.command("packages")

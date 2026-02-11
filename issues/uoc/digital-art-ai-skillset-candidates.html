@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>digital-art-ai-skillset-candidates.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="digital-art--ai-skillset---unit-candidates">Digital Art + AI Skillset - Unit Candidates</h1>
+<blockquote>
+<p>Research conducted: 2026-01-30
+Packages searched: CUA, ICT, UEE
+Focus: Units supporting digital art creation using AI techniques and AI as a subject for art</p>
+</blockquote>
+<h2 id="overview">Overview</h2>
+<p>This skillset addresses the emerging intersection of artificial intelligence and creative arts practice. It covers:</p>
+<ul>
+<li>Using AI tools and techniques to create digital art</li>
+<li>Understanding AI/ML fundamentals for creative applications</li>
+<li>Creating interactive and generative artworks</li>
+<li>Exploring AI as both tool and subject matter in artistic practice</li>
+</ul>
+<hr>
+<h2 id="user-identified-units">User-Identified Units</h2>
+<h3 id="cuadig519--investigate-technologies-for-the-creation-of-digital-art">CUADIG519 — Investigate technologies for the creation of digital art</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Diploma</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Visual Communication – Digital Content and Imaging</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>CUA (Creative Arts and Culture)</td>
+</tr>
+<tr>
+<td><strong>Qualifications</strong></td>
+<td>CUA50720/25 Diploma of Graphic Design, CUA50920/25 Diploma of Photography and Digital Imaging, CUA51120/25 Diploma of Visual Arts, CUA60320/25 Advanced Diploma of Graphic Design, CUA60720/25 Advanced Diploma of Visual Arts</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Core unit for investigating emerging digital art technologies including AI tools. Covers:</p>
+<ul>
+<li>Evaluating current, emerging and experimental digital technologies</li>
+<li>Researching capabilities of different technologies to achieve different effects</li>
+<li>Experimenting with technologies to challenge and extend their capabilities</li>
+<li>Establishing systems to maintain currency of knowledge</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Investigate at least two different technologies for the creation of digital art.</p>
+<hr>
+<h3 id="ueeas0006--use-lead-free-soldering-techniques">UEEAS0006 — Use lead-free soldering techniques</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Certificate III equivalent</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Electrotechnology</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>UEE (Electrotechnology)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Supports physical/electronic art installations and interactive works:</p>
+<ul>
+<li>Essential for creating electronic art components</li>
+<li>Enables building custom sensors, LED installations, interactive sculptures</li>
+<li>Foundation skill for combining digital and physical art forms</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Perform high reliability soldering/de-soldering, check components against specifications.</p>
+<hr>
+<h3 id="cuawrt413--write-poetry">CUAWRT413 — Write poetry</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Certificate IV</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Communication - Writing</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>CUA (Creative Arts and Culture)</td>
+</tr>
+<tr>
+<td><strong>Qualifications</strong></td>
+<td>CUA40118/25 Certificate IV in Professional Writing and Editing</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Supports AI-assisted creative writing and prompt engineering:</p>
+<ul>
+<li>Understanding creative writing forms, techniques, and literary devices</li>
+<li>Drafting, redrafting and consideration of audience</li>
+<li>Creating content for various media including web-based material</li>
+<li>Foundation for crafting effective AI prompts and evaluating AI-generated text</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Write at least two poems of different forms.</p>
+<hr>
+<h3 id="ictiot502--program-iot-devices">ICTIOT502 — Program IoT devices</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Diploma</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Internet of Things (IoT)</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>ICT (Information and Communications Technology)</td>
+</tr>
+<tr>
+<td><strong>Qualifications</strong></td>
+<td>ICT50120/ICT50220 Diploma of Information Technology</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Enables interactive and responsive art installations:</p>
+<ul>
+<li>Programming microcontrollers for art installations</li>
+<li>Working with sensors for interactive experiences</li>
+<li>Creating responsive environments that react to audience</li>
+<li>Combining physical computing with digital art</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Research, select and program at least one IoT device for at least two different environmental conditions.</p>
+<hr>
+<h2 id="additional-cua-digital-art-units">Additional CUA Digital Art Units</h2>
+<h3 id="cuadig518--refine-digital-art-techniques">CUADIG518 — Refine digital art techniques</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Diploma</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Visual Communication – Digital Content and Imaging</td>
+</tr>
+<tr>
+<td><strong>Qualifications</strong></td>
+<td>CUA50920/25 Diploma of Photography and Digital Imaging, CUA51020 Diploma of Screen and Media, CUA51120/25 Diploma of Visual Arts, CUA60320/25 Advanced Diploma of Graphic Design, CUA60720/25 Advanced Diploma of Visual Arts</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Develops individual artistic style using digital media:</p>
+<ul>
+<li>Research how artists use different digital media techniques</li>
+<li>Evaluate relationships between digital media techniques and ideas</li>
+<li>Consolidate digital media technique to professional level</li>
+<li>Challenge and test own ideas through experimentation</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Create at least two different pieces of professional digital media work.</p>
+<hr>
+<h3 id="cuadig415--produce-innovative-digital-images">CUADIG415 — Produce innovative digital images</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Certificate IV</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Visual Communication – Digital Content and Imaging</td>
+</tr>
+<tr>
+<td><strong>Qualifications</strong></td>
+<td>CUA40720/25 Certificate IV in Design, CUA41120 Certificate IV in Photography and Digital Imaging, CUA41220/25 Certificate IV in Screen and Media, CUA41320 Certificate IV in Visual Arts</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Focuses on developing individual style through digital imaging:</p>
+<ul>
+<li>Experiment with digital imaging techniques and ideas</li>
+<li>Evaluate new approaches based on capabilities of known techniques</li>
+<li>Adapt or introduce new tools, equipment and materials</li>
+<li>Research and adapt ideas of other practitioners (with IP considerations)</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Produce at least three innovative digital images based on different project requirements.</p>
+<hr>
+<h3 id="cuaanm412--create-digital-visual-effects">CUAANM412 — Create digital visual effects</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Certificate IV</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Visual Communication – Animation and Digital Effects</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>CUA (Creative Arts and Culture)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Creating visual effects using industry software:</p>
+<ul>
+<li>Using different industry software applications for visual effects</li>
+<li>Compositing methods and techniques</li>
+<li>Creating previsualisation and final visual effects</li>
+<li>Understanding impact of delivery platforms on visual effects creation</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Create digital visual effects sequences for at least two different projects.</p>
+<hr>
+<h3 id="cuaphi532--research-and-apply-photo-imaging-trends-and-emerging-technologies">CUAPHI532 — Research and apply photo imaging trends and emerging technologies</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Diploma</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Visual Communication – Photo Imaging</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>CUA (Creative Arts and Culture)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Model for researching and applying emerging tech in creative practice:</p>
+<ul>
+<li>Investigate trends and emerging technologies in photo imaging</li>
+<li>Identify creative and commercial opportunities from research</li>
+<li>Develop plans to realise identified opportunities</li>
+<li>Assess feasibility, commercial viability, and risks</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Research and apply at least one photo imaging trend and one emerging technology.</p>
+<hr>
+<h2 id="ict-artificial-intelligence-units">ICT Artificial Intelligence Units</h2>
+<h3 id="ictaii401--identify-opportunities-to-apply-artificial-intelligence-machine-learning-and-deep-learning">ICTAII401 — Identify opportunities to apply artificial intelligence, machine learning and deep learning</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Certificate IV</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Artificial Intelligence</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>ICT (Information and Communications Technology)</td>
+</tr>
+<tr>
+<td><strong>Qualifications</strong></td>
+<td>ICT40120 Certificate IV in Information Technology, ICT50220 Diploma of Information Technology</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Foundation unit for understanding AI/ML/DL applications:</p>
+<ul>
+<li>Identify opportunities where AI, ML and DL can be applied</li>
+<li>Understand functions and features of industry-recognised AI technologies</li>
+<li>Document advantages, disadvantages and implementation risks</li>
+<li>Develop recommendations for AI implementation</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Report on at least one opportunity for AI, ML, and DL technologies that may be applied in a workplace.</p>
+<hr>
+<h3 id="ictaii501--automate-work-tasks-using-machine-learning">ICTAII501 — Automate work tasks using machine learning</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Diploma</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Artificial Intelligence</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>ICT (Information and Communications Technology)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Practical ML model development applicable to generative art:</p>
+<ul>
+<li>Understanding ML principles and techniques</li>
+<li>Working with training datasets (structured, unstructured, labelled, unlabelled)</li>
+<li>Understanding algorithms (regression, clustering, neural networks)</li>
+<li>Creating and configuring ML models</li>
+<li>Covers Australia's Artificial Intelligence Ethics Framework</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Develop at least one ML model; use an algorithm to produce variable outputs on at least two occasions.</p>
+<hr>
+<h3 id="ictaii502--train-and-evaluate-machine-learning-models">ICTAII502 — Train and evaluate machine learning models</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Diploma</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Artificial Intelligence</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>ICT (Information and Communications Technology)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Advanced ML training for custom creative AI applications:</p>
+<ul>
+<li>Training using supervised and unsupervised ML techniques</li>
+<li>Working with training, validation and test data</li>
+<li>Feature engineering and learning algorithms</li>
+<li>Evaluating predictive accuracy of ML models</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Train at least one ML model; evaluate the operations of at least one trained ML model.</p>
+<hr>
+<h2 id="supportingcomplementary-units">Supporting/Complementary Units</h2>
+<h3 id="cuaind512--enhance-professional-practice-using-creative-arts-industry-knowledge">CUAIND512 — Enhance professional practice using creative arts industry knowledge</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Diploma</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Industry Capability – Industry Context</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>CUA (Creative Arts and Culture)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Maintaining currency in rapidly evolving field:</p>
+<ul>
+<li>Research structure and operation of creative arts industry</li>
+<li><strong>Monitor trends and emerging technologies within industry</strong></li>
+<li>Establish and maintain industry networks</li>
+<li>Participate in professional development activities</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Access industry networks and apply knowledge to two different research-based tasks; participate in at least two professional development activities.</p>
+<hr>
+<h3 id="cuadig315--produce-digital-images">CUADIG315 — Produce digital images</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Certificate III</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>Visual Communication – Digital Content and Imaging</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>CUA (Creative Arts and Culture)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Entry-level digital image production:</p>
+<ul>
+<li>Explore techniques for digital imagery</li>
+<li>Select and combine images using software</li>
+<li>Create finished digital images</li>
+<li>Foundation for more advanced digital art work</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Plan and produce technically proficient digital images according to at least three different ideas.</p>
+<hr>
+<h3 id="ictict426--identify-and-evaluate-emerging-technologies-and-practices">ICTICT426 — Identify and evaluate emerging technologies and practices</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AQF Level</strong></td>
+<td>Certificate IV</td>
+</tr>
+<tr>
+<td><strong>Sector</strong></td>
+<td>General ICT</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>ICT (Information and Communications Technology)</td>
+</tr>
+<tr>
+<td><strong>Qualifications</strong></td>
+<td>ICT40120 Certificate IV in Information Technology</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it fits:</strong> Evaluating emerging tech (including AI tools) for creative practice:</p>
+<ul>
+<li>Identify emerging technologies and practices</li>
+<li>Evaluate potential impact on current practices</li>
+<li>Develop strategies to respond to emerging technologies</li>
+<li>Consider opportunities and threats from new tech</li>
+</ul>
+<p><strong>Performance Evidence:</strong> Describe and evaluate 3 emerging technologies and 3 emerging practices; develop response strategies.</p>
+<hr>
+<h2 id="suggested-skillset-structures">Suggested Skillset Structures</h2>
+<h3 id="option-a-digital-art-foundations-certificate-iv-level-4-units">Option A: Digital Art Foundations (Certificate IV Level, 4 units)</h3>
+<table>
+<thead>
+<tr>
+<th>Unit</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CUADIG415</td>
+<td>Produce innovative digital images</td>
+</tr>
+<tr>
+<td>CUAANM412</td>
+<td>Create digital visual effects</td>
+</tr>
+<tr>
+<td>ICTAII401</td>
+<td>Identify AI/ML/DL opportunities</td>
+</tr>
+<tr>
+<td>CUAWRT413</td>
+<td>Write poetry (prompt engineering foundation)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="option-b-ai-enhanced-digital-art-practice-diploma-level-4-5-units">Option B: AI-Enhanced Digital Art Practice (Diploma Level, 4-5 units)</h3>
+<table>
+<thead>
+<tr>
+<th>Unit</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CUADIG519</td>
+<td>Investigate technologies for digital art creation</td>
+</tr>
+<tr>
+<td>CUADIG518</td>
+<td>Refine digital art techniques</td>
+</tr>
+<tr>
+<td>ICTAII501</td>
+<td>Automate work tasks using machine learning</td>
+</tr>
+<tr>
+<td>CUAIND512</td>
+<td>Enhance professional practice (industry trends)</td>
+</tr>
+<tr>
+<td>ICTICT426</td>
+<td>Identify and evaluate emerging technologies (optional)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="option-c-interactive-digital-art-diploma-level-4-units">Option C: Interactive Digital Art (Diploma Level, 4 units)</h3>
+<table>
+<thead>
+<tr>
+<th>Unit</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CUADIG519</td>
+<td>Investigate technologies for digital art creation</td>
+</tr>
+<tr>
+<td>ICTIOT502</td>
+<td>Program IoT devices</td>
+</tr>
+<tr>
+<td>UEEAS0006</td>
+<td>Use lead-free soldering techniques</td>
+</tr>
+<tr>
+<td>ICTAII401</td>
+<td>Identify AI/ML/DL opportunities</td>
+</tr>
+</tbody>
+</table>
+<h3 id="option-d-comprehensive-pathway-entry-to-advanced">Option D: Comprehensive Pathway (Entry to Advanced)</h3>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Unit</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cert III</td>
+<td>CUADIG315</td>
+<td>Produce digital images</td>
+</tr>
+<tr>
+<td>Cert IV</td>
+<td>CUADIG415</td>
+<td>Produce innovative digital images</td>
+</tr>
+<tr>
+<td>Cert IV</td>
+<td>ICTAII401</td>
+<td>Identify AI/ML/DL opportunities</td>
+</tr>
+<tr>
+<td>Cert IV</td>
+<td>CUAWRT413</td>
+<td>Write poetry (prompt engineering)</td>
+</tr>
+<tr>
+<td>Diploma</td>
+<td>CUADIG519</td>
+<td>Investigate technologies for digital art</td>
+</tr>
+<tr>
+<td>Diploma</td>
+<td>CUADIG518</td>
+<td>Refine digital art techniques</td>
+</tr>
+<tr>
+<td>Diploma</td>
+<td>ICTAII501</td>
+<td>Automate work tasks using ML</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="accredited-units-of-interest-nat">Accredited Units of Interest (NAT)</h2>
+<p>These accredited units are highly relevant but are tied to specific accredited courses:</p>
+<table>
+<thead>
+<tr>
+<th>Unit Code</th>
+<th>Title</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NAT11287001</td>
+<td>Apply prompt engineering for generative Artificial Intelligence</td>
+<td>Directly relevant to AI art creation</td>
+</tr>
+<tr>
+<td>NAT11287002</td>
+<td>Use Artificial Intelligence technologies to produce engaging content</td>
+<td>Content creation with AI</td>
+</tr>
+<tr>
+<td>NAT11287007</td>
+<td>Apply critical thinking and Artificial Intelligence ethics</td>
+<td>Ethics in AI art practice</td>
+</tr>
+</tbody>
+</table>
+<p><em>Note: NAT units are from accredited courses (e.g., 11287NAT Diploma of Artificial Intelligence) and may have import restrictions for national training package qualifications.</em></p>
+<hr>
+<h2 id="qualification-packaging-summary">Qualification Packaging Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Qualification</th>
+<th>Relevant Units Available</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CUA41320</strong> Certificate IV in Visual Arts</td>
+<td>CUADIG415</td>
+</tr>
+<tr>
+<td><strong>CUA50720/25</strong> Diploma of Graphic Design</td>
+<td>CUADIG519</td>
+</tr>
+<tr>
+<td><strong>CUA51120/25</strong> Diploma of Visual Arts</td>
+<td>CUADIG519, CUADIG518</td>
+</tr>
+<tr>
+<td><strong>CUA50920/25</strong> Diploma of Photography and Digital Imaging</td>
+<td>CUADIG519, CUADIG518</td>
+</tr>
+<tr>
+<td><strong>ICT40120</strong> Certificate IV in Information Technology</td>
+<td>ICTAII401, ICTICT426</td>
+</tr>
+<tr>
+<td><strong>ICT50120/220</strong> Diploma of Information Technology</td>
+<td>ICTIOT502, ICTAII501 (import)</td>
+</tr>
+<tr>
+<td><strong>CUA60720/25</strong> Advanced Diploma of Visual Arts</td>
+<td>CUADIG519, CUADIG518</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="notes">Notes</h2>
+<ul>
+<li><strong>CUA units</strong> are from the Creative Arts and Culture Training Package</li>
+<li><strong>ICT units</strong> are from the Information and Communications Technology Training Package</li>
+<li><strong>UEE units</strong> are from the Electrotechnology Training Package</li>
+<li><strong>ICTAII units</strong> are newly created (ICT Training Package Version 8.0) to address AI/ML skills needs</li>
+<li>The ICTAII501 unit explicitly references <strong>Australia's Artificial Intelligence Ethics Framework</strong></li>
+<li>Cross-package imports may be required when building a skillset combining CUA and ICT units</li>
+<li>Consider IP and copyright requirements when using AI tools (addressed in multiple CUA units)</li>
+</ul>
+
+</body>
+</html>
