@@ -11,6 +11,7 @@ dependencies = [
     "beautifulsoup4>=4.13.4",
     "click>=8.2.1",
     "debugpy>=1.8.14",
+    "docx-analyzer",
     "dotenv>=0.9.9",
     "gpt",
     "jupytext>=1.16.0",
@@ -37,6 +38,12 @@ uoc = "src.utils.uoc_api:main_entry"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+# Include templates as package data (essential for document generation)
+artifacts = [
+    "src/templates/*.docx",
+    "src/templates/*.css",
+    "src/templates/*.yaml",
+]
 include = [
     "docs/manpage/gen.1",
     "docs/manpage/MANPAGE_INSTALL.md",
@@ -66,6 +73,7 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
+docx-analyzer = { path = "tools/docx-analyzer", editable = true }
 gpt = { path = "../../Code/gpt" }
 
 [tool.pytest.ini_options]
